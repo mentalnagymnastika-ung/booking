@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EduBooker PRO - Mobilni Booking Sistem</title>
   
-  <!-- Tailwind CSS za moderan i čist dizajn -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -19,11 +18,10 @@
     }
   </script>
 
-  <!-- QRious biblioteka za potpuno lokalno generisanje QR kodova bez API poziva (Radi offline!) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <style>
-    /* Glatke tranzicije  */
+    /* Glatke tranzicije */
     .fade-in {
       animation: fadeIn 0.25s ease-out;
     }
@@ -43,13 +41,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-20 md:pb-0">
 
-  <!-- ========================================== -->
-  <!-- GLAVNO ZAGLAVLJE (HEADER)                 -->
-  <!-- ========================================== -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       
-      <!-- Brending -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xl text-white shadow-md shadow-indigo-500/20">
           E
@@ -58,23 +52,20 @@
           <h1 class="text-base font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
             EduBooker <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-mono font-bold">LITE v4.0</span>
           </h1>
-          <p class="text-[11px] text-slate-500 font-medium">Sistem za rezervaciju edukacija i obuka</p>
+          <p class="text-[11px] text-slate-500 font-medium">Sistem za rezervaciju edukacija, obuka, događaja</p>
         </div>
       </div>
 
-      <!-- Offline prekidač i Admin dugme -->
       <div class="flex items-center gap-2.5">
         
-        <!-- Status Mreže (Simulator) -->
         <div class="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
-          <span id="network-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="network-text" class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Online</span>
+          <span id="network-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span id="network-text" class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Inicijalizacija...</span>
           <button id="btn-toggle-network" class="text-[9px] font-bold bg-white hover:bg-slate-50 text-indigo-600 px-2 py-0.5 rounded-full border border-slate-200 shadow-sm ml-1 transition">
-            Izmeni
+            Simuliraj fiksno
           </button>
         </div>
 
-        <!-- Admin pristup dugme -->
         <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-sm">
           🔑 Admin panel
         </button>
@@ -87,15 +78,11 @@
     </div>
   </header>
 
-  <!-- NOTIFIKACIJA O OFFLINE REDU ZA SINHRONIZACIJU -->
   <div id="sync-banner" class="hidden bg-amber-50 text-amber-950 px-4 py-2 text-center text-xs font-bold border-b border-amber-200 flex items-center justify-center gap-1.5">
     <span>⏳ <span id="sync-count">0</span> rezervacija sačuvano lokalno (offline).</span>
     <span class="text-indigo-700 underline cursor-pointer" id="btn-trigger-sync">Sinhronizuj sada</span>
   </div>
 
-  <!-- ========================================== -->
-  <!-- KORISNIČKA NAVIGACIJA (DESKTOP)            -->
-  <!-- ========================================== -->
   <div class="bg-white border-b border-slate-200 px-4 py-2 hidden md:block shadow-sm">
     <div class="max-w-6xl mx-auto flex gap-2">
       <button id="nav-events-desktop" class="nav-btn-desktop active px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-sm">
@@ -110,15 +97,9 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- GLAVNI KONTEJNER ZA PRIKAZ SADRŽAJA         -->
-  <!-- ========================================== -->
   <main class="flex-1 max-w-6xl w-full mx-auto p-4">
 
-    <!-- 1. TAB: DOSTUPNI DOGAĐAJI (Dizajniran za normalne korisnike) -->
     <section id="tab-events" class="tab-section space-y-6 fade-in">
-      
-      <!-- Pretraga i Filteri -->
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
         <div class="relative">
           <span class="absolute left-3.5 top-3.5 text-slate-400">🔍</span>
@@ -129,65 +110,35 @@
             class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
         </div>
-
-        <!-- Horizontalna lista kategorija -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" id="categories-filter-container">
-          <!-- Dinamički se generiše -->
-        </div>
+          </div>
       </div>
-
-      <!-- Spisak aktivnih kartica edukacija -->
       <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Dinamički renderovane kartice događaja -->
-      </div>
+        </div>
     </section>
 
-    <!-- 2. TAB: MOJE REZERVACIJE (Karta sa QR kodom za korisnike) -->
     <section id="tab-my-tickets" class="tab-section hidden space-y-6 fade-in">
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 class="text-xl font-bold text-slate-900">Vaše rezervisane karte i potvrde</h2>
-          <p class="text-slate-500 text-xs mt-1">
-            Ovde se nalaze sve potvrde koje ste uspešno rezervisali. Unesite vaš telefon kako biste ih povukli i preuzeli QR kod.
-          </p>
+          <p class="text-slate-500 text-xs mt-1">Ovde se nalaze sve potvrde koje ste uspešno rezervisali. Unesite vaš telefon kako biste ih povukli i preuzeli QR kod.</p>
         </div>
-        
-        <!-- Pretraga karata preko telefona -->
         <div class="flex gap-2 w-full md:w-auto">
-          <input 
-            id="search-ticket-phone" 
-            type="tel" 
-            placeholder="Unesite vaš telefon (npr. 064...)" 
-            class="bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500"
-          />
-          <button id="btn-search-my-tickets" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm">
-            Pronađi karte
-          </button>
+          <input id="search-ticket-phone" type="tel" placeholder="Unesite vaš telefon (npr. 064...)" class="bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
+          <button id="btn-search-my-tickets" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm">Pronađi karte</button>
         </div>
       </div>
-
       <div id="my-tickets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Dinamički upisane karte -->
-      </div>
+        </div>
     </section>
 
-    <!-- 3. TAB: ADMINISTRATORSKI PANEL (Za sekretare i organizatore) -->
     <section id="tab-admin" class="tab-section hidden space-y-6 fade-in">
-      
-      <!-- Navigacija unutar admin sekcije -->
       <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap gap-2">
-        <button id="admin-subnav-events" class="admin-subnav-btn active bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition">
-          📅 Upravljanje obukama
-        </button>
-        <button id="admin-subnav-categories" class="admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition">
-          🛠️ Dinamičke Kategorije
-        </button>
-        <button id="admin-subnav-scanner" class="admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition">
-          🔍 QR Skener & Prijava (Offline)
-        </button>
+        <button id="admin-subnav-events" class="admin-subnav-btn active bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition">📅 Upravljanje obukama</button>
+        <button id="admin-subnav-categories" class="admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition">🛠️ Dinamičke Kategorije</button>
+        <button id="admin-subnav-scanner" class="admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition">🔍 QR Skener & Prijava (Offline)</button>
       </div>
 
-      <!-- POD-SEKCIJA 3.1: UPRAVLJANJE OBUKAMA -->
       <div id="admin-view-events" class="admin-view space-y-6">
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
@@ -198,37 +149,24 @@
             <span>➕</span> Novi edukativni događaj
           </button>
         </div>
-
-        <!-- Tabela ili lista događaja sa brzim opcijama -->
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
             <h4 class="font-bold text-slate-800 text-xs">Svi registrovani programi u sistemu</h4>
           </div>
           <div id="admin-events-list" class="divide-y divide-slate-100">
-            <!-- Dinamički redovi događaja -->
-          </div>
+            </div>
         </div>
       </div>
 
-      <!-- POD-SEKCIJA 3.2: DINAMIČKE KATEGORIJE -->
       <div id="admin-view-categories" class="admin-view hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <!-- Kreiranje nove kategorije -->
           <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
             <h3 class="font-bold text-slate-900 text-sm">Dodaj novi smer / kategoriju</h3>
             <form id="form-create-category" class="space-y-3">
               <div>
                 <label class="block text-xs font-bold text-slate-500 mb-1">Naziv smera/kategorije *</label>
-                <input
-                  id="cat-name-input"
-                  type="text"
-                  required
-                  placeholder="npr. Taktička medicina, Vojni sport"
-                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
-                />
+                <input id="cat-name-input" type="text" required placeholder="e.g. Vojna akademija, IT obuka" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
               </div>
-
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-bold text-slate-500 mb-1">Emoji ikona</label>
@@ -237,9 +175,7 @@
                     <option value="🎓">🎓 Edukacija / AI</option>
                     <option value="🌲">🌲 Priroda / Kamp</option>
                     <option value="🩹">🩹 Prva pomoć</option>
-                    <option value="🏹">🏹 Streljaštvo</option>
                     <option value="⚽">⚽ Sport</option>
-                    <option value="🍔">🍔 Gastro</option>
                     <option value="✨">✨ Ostalo</option>
                   </select>
                 </div>
@@ -248,105 +184,48 @@
                   <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
                     <option value="from-blue-500 to-indigo-600">Indigo / Plava</option>
                     <option value="from-olive-600 to-green-800">Maslinasto zelena</option>
-                    <option value="from-emerald-500 to-teal-600">Zelena / Teget</option>
-                    <option value="from-amber-500 to-orange-600">Narandžasta / Amber</option>
                     <option value="from-rose-500 to-red-600">Crvena</option>
-                    <option value="from-purple-500 to-violet-600">Ljubičasta</option>
                   </select>
                 </div>
               </div>
-
-              <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
-                ➕ Kreiraj smer i upiši
-              </button>
+              <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">➕ Kreiraj smer i upiši</button>
             </form>
           </div>
-
-          <!-- Prikaz postojećih -->
           <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <h3 class="font-bold text-slate-900 text-sm">Trenutne aktivne kategorije</h3>
-            <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <!-- Dinamički spisak kategorija -->
-            </div>
+            <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
           </div>
-
         </div>
       </div>
 
-      <!-- POD-SEKCIJA 3.3: QR VALIDATOR / SKENER -->
       <div id="admin-view-scanner" class="admin-view hidden space-y-6">
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
           <h3 class="text-lg font-bold text-slate-900">Validacija QR karata i evidencija dolazaka</h3>
-          <p class="text-slate-500 text-xs mt-0.5">Sve učitane karte su dostupne lokalno na uređaju, što omogućava brzu proveru i u potpunom offline okruženju!</p>
         </div>
-
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          <!-- Leva strana: Kontrole i simulator skenera -->
           <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <h4 class="font-bold text-slate-800 text-sm">Pretraga i unos koda sa karte</h4>
-            
-            <!-- Ručna pretraga koda -->
             <div class="flex gap-2">
-              <input
-                id="scanner-manual-input"
-                type="text"
-                placeholder="Unesite kod karte ručno (npr. BK-123456)"
-                class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500 font-mono font-bold"
-              />
-              <button id="btn-verify-manual" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
-                Proveri kod
-              </button>
+              <input id="scanner-manual-input" type="text" placeholder="Unesite kod karte ručno (npr. BK-123456)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500 font-mono font-bold" />
+              <button id="btn-verify-manual" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">Proveri kod</button>
             </div>
-
-            <!-- Vizuelni simulator kamere i skenera za offline rad -->
             <div class="border border-slate-200 rounded-2xl bg-slate-900 aspect-video flex flex-col items-center justify-center p-6 relative overflow-hidden text-center">
-              <div class="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 mb-2 animate-pulse">
-                📷
-              </div>
+              <div class="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 mb-2 animate-pulse">📷</div>
               <p class="text-xs font-bold text-white">Simulator optičkog skenera</p>
-              <p class="text-[10px] text-slate-400 max-w-xs mt-1">Izaberite neku od kreiranih rezervacija ispod da simulirate trenutno očitavanje QR koda na kapiji:</p>
-              
-              <!-- Lista za simulaciju očitavanja -->
-              <div id="scanner-simulation-list" class="w-full mt-4 max-h-32 overflow-y-auto border border-slate-700 rounded-xl divide-y divide-slate-800 text-left bg-slate-950 text-xs">
-                <!-- Dinamičke rezervacije za brzi klik-test -->
-              </div>
+              <div id="scanner-simulation-list" class="w-full mt-4 max-h-32 overflow-y-auto border border-slate-700 rounded-xl divide-y divide-slate-800 text-left bg-slate-950 text-xs"></div>
             </div>
           </div>
-
-          <!-- Desna strana: Rezultat provere i check-in -->
           <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between" id="scanner-result-panel">
             <div class="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
               <span class="text-4xl block mb-2">🎫</span>
-              <p class="text-xs font-semibold">Čekam očitavanje karte ili unos koda...</p>
+              <p class="text-xs font-semibold">Čekam očitavanje karte...</p>
             </div>
           </div>
-
         </div>
       </div>
-
     </section>
-
   </main>
 
-  <!-- ========================================== -->
-  <!-- VIZUELNI TOAST BANER ZA OBAVEŠTENJA        -->
-  <!-- ========================================== -->
-  <div id="notification-toast" class="hidden fixed bottom-24 md:bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-md animate-bounce">
-    <div id="toast-bg" class="p-4 rounded-xl shadow-lg flex items-center justify-between border">
-      <div class="flex items-center gap-2">
-        <span id="toast-icon" class="text-xl">✅</span>
-        <p id="toast-message" class="text-sm font-semibold"></p>
-      </div>
-      <button id="btn-close-toast" class="text-xs opacity-60 hover:opacity-100 ml-2">🗙</button>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- SVI MODALNI PROZORI (POPUP-OVI)            -->
-  <!-- ========================================== -->
-
-  <!-- 1. MODAL: FORMULAR ZA REZERVACIJU OBUKE -->
   <div id="modal-booking" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4">
       <div class="flex items-start justify-between">
@@ -357,7 +236,6 @@
         </div>
         <button id="btn-close-booking-modal" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-850">🗙</button>
       </div>
-
       <form id="form-submit-booking" class="space-y-3 pt-2">
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -369,274 +247,186 @@
             <input id="booking-lastname" type="text" required placeholder="Unesite prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
           </div>
         </div>
-
         <div>
           <label class="block text-xs font-bold text-slate-500 mb-1">Kontakt telefon *</label>
-          <input id="booking-phone" type="tel" required placeholder="npr. 064 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
+          <input id="booking-phone" type="tel" required placeholder="e.g. 064 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
         </div>
-
         <div>
           <label class="block text-xs font-bold text-slate-500 mb-1">Adresa stanovanja</label>
-          <input id="booking-address" type="text" placeholder="npr. Bulevar oslobođenja 45, Novi Sad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
+          <input id="booking-address" type="text" placeholder="e.g. Novi Sad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
         </div>
-
         <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1">Poruka / Napomena za instruktore (opcionalno)</label>
-          <textarea id="booking-note" rows="2" placeholder="Unesite specifične napomene ili zahteve..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+          <label class="block text-xs font-bold text-slate-500 mb-1">Poruka / Napomena (opcionalno)</label>
+          <textarea id="booking-note" rows="2" placeholder="Unesite napomene..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
         </div>
-
-        <div id="booking-offline-notice" class="hidden bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[11px] text-amber-800 font-semibold">
-          ⚠️ Trenutno nemate internet konekciju. Vaša karta će biti odmah generisana i sačuvana u lokalu, a prijava će se poslati automatski kada se povežete.
-        </div>
-
+        <div id="booking-offline-notice" class="hidden bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[11px] text-amber-800 font-semibold">⚠️ Radi se u lokalnom režimu. Karta će biti sačuvana na uređaju.</div>
         <div class="pt-4 flex items-center justify-end gap-2">
           <button type="button" id="btn-cancel-booking" class="px-4 py-2 text-slate-500 hover:text-slate-800 text-xs font-bold transition">Odustani</button>
-          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition">
-            Potvrdi rezervaciju i kreiraj kartu
-          </button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition">Potvrdi rezervaciju</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 2. MODAL: PRIKAZ KARTE / DIGITALNE POTVRDE SA QR KODOM -->
   <div id="modal-ticket" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4 relative">
       <button id="btn-close-ticket-modal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800">🗙</button>
-      
       <div class="pt-2">
         <span class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mx-auto mb-2 font-bold">✓</span>
-        <h3 class="text-base font-bold text-slate-900">Uspešna Rezervacija Mesta</h3>
-        <p class="text-slate-500 text-xs mt-0.5">Spremite vašu kartu i pokažite QR kod na samom prijemu.</p>
+        <h3 class="text-base font-bold text-slate-900">Uspešna Rezervacija</h3>
       </div>
-
-      <!-- Izgled fizičke karte -->
-      <div id="physical-ticket-card" class="border border-slate-200 rounded-2xl bg-white p-4 text-left space-y-3 relative overflow-hidden shadow-inner">
-        <div class="flex justify-between items-start">
-          <div>
-            <span class="text-[9px] font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded" id="ticket-id-badge">KOD: BK-000000</span>
-            <h4 class="text-sm font-bold text-slate-900 mt-1" id="ticket-event-title">Naziv obuke</h4>
-          </div>
-        </div>
-
+      <div id="physical-ticket-card" class="border border-slate-200 rounded-2xl bg-white p-4 text-left space-y-3 relative shadow-inner">
+        <span class="text-[9px] font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded" id="ticket-id-badge">KOD: BK-000000</span>
+        <h4 class="text-sm font-bold text-slate-900 mt-1" id="ticket-event-title">...</h4>
         <div class="border-t border-dashed border-slate-200 pt-3 text-xs space-y-1.5 text-slate-600">
-          <p><strong>Polaznik:</strong> <span id="ticket-user-name">Ime Prezime</span></p>
-          <p><strong>Vreme:</strong> <span id="ticket-datetime">01.01.2026 u 10h</span></p>
-          <p class="truncate"><strong>Lokacija:</strong> <span id="ticket-location">Lokacija predavanja</span></p>
+          <p><strong>Polaznik:</strong> <span id="ticket-user-name">...</span></p>
+          <p><strong>Vreme:</strong> <span id="ticket-datetime">...</span></p>
+          <p class="truncate"><strong>Lokacija:</strong> <span id="ticket-location">...</span></p>
         </div>
-
-        <!-- Renderisani QR kod -->
         <div class="flex justify-center pt-2">
           <canvas id="ticket-qr-canvas" class="bg-white p-2 rounded-xl border border-slate-200"></canvas>
         </div>
       </div>
-
-      <!-- Opcije za isporuku i čuvanje klijentima -->
       <div class="flex flex-col gap-2">
-        <button id="btn-download-ticket-img" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
-          💾 Preuzmi u galeriju (Slika)
-        </button>
-        <button id="btn-share-ticket" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
-          📱 Podeli kartu (Viber, WhatsApp...)
-        </button>
-        <button id="btn-dismiss-ticket" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
-          Zatvori prozor
-        </button>
+        <button id="btn-download-ticket-img" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">💾 Preuzmi u galeriju (Slika)</button>
+        <button id="btn-share-ticket" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">📱 Podeli kartu</button>
       </div>
     </div>
   </div>
 
-  <!-- 3. MODAL: AUTENTIFIKACIJA ADMINA (ZAKLJUČANO ZA SEKRETARE) -->
   <div id="modal-admin-login" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl space-y-4 text-center">
-      <div>
-        <span class="text-3xl">🔑</span>
-        <h3 class="text-base font-bold text-slate-900 mt-1">Autorizacija Sekretara / Organizatora</h3>
-        <p class="text-xs text-slate-500 mt-0.5">Unesite četvorocifreni pristupni PIN kod za administrativni mod.</p>
-      </div>
-
-      <div class="py-2">
-        <input
-          id="admin-pin-input"
-          type="password"
-          maxlength="4"
-          placeholder="••••"
-          class="w-28 text-center text-2xl tracking-widest bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500"
-        />
-        <div class="text-[10px] text-rose-500 font-bold mt-1 hidden" id="admin-login-error">Netačan pristupni PIN! Pokušajte ponovo.</div>
-      </div>
-
-      <div class="text-[10px] text-slate-400">Podrazumevani pristupni PIN za sekretare je: <strong class="text-slate-600 font-mono">1234</strong></div>
-
+      <h3 class="text-base font-bold text-slate-900">Autorizacija Sekretara</h3>
+      <input id="admin-pin-input" type="password" maxlength="4" placeholder="••••" class="w-28 text-center text-2xl tracking-widest bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none" />
+      <div class="text-[10px] text-rose-500 font-bold hidden" id="admin-login-error">Netačan PIN! (Default: 1234)</div>
       <div class="flex gap-2 pt-2">
         <button id="btn-close-login" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">Poništi</button>
-        <button id="btn-submit-login" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Otključaj</button>
+        <button id="btn-submit-login" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">Otključaj</button>
       </div>
     </div>
   </div>
 
-  <!-- 4. MODAL: DODAVANJE / IZMENA DOGAĐAJA SA KOMPRESIJOM SLIKE -->
   <div id="modal-event" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4">
       <div class="flex items-start justify-between">
-        <div>
-          <h3 id="modal-event-action-title" class="text-lg font-bold text-slate-900">Dodaj novu edukaciju / obuku</h3>
-          <p class="text-xs text-slate-500">Zavedite sve podatke, učitajte sliku i podesite željeni broj mesta.</p>
-        </div>
-        <button id="btn-close-event-modal" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800">🗙</button>
+        <h3 id="modal-event-action-title" class="text-lg font-bold text-slate-900">Nova obuka</h3>
+        <button id="btn-close-event-modal" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">🗙</button>
       </div>
-
       <form id="form-submit-event" class="space-y-3 pt-1">
+        <input id="event-title" type="text" required placeholder="Naziv predavanja ili obuke *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+        
         <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1">Naziv predavanja ili obuke *</label>
-          <input id="event-title" type="text" required placeholder="npr. Napredni kurs preživljavanja u prirodi" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
-        </div>
-
-        <!-- Učitavanje i kompresija profilne/naslovne slike obuke -->
-        <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1">Naslovna slika obuke (Automatska lokalna kompresija)</label>
           <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-            <div id="event-image-preview" class="w-16 h-16 rounded-xl bg-slate-200 border border-slate-350 flex items-center justify-center overflow-hidden shrink-0 text-lg">
-              🖼️
-            </div>
+            <div id="event-image-preview" class="w-16 h-16 rounded-xl bg-slate-200 flex items-center justify-center overflow-hidden shrink-0">🖼️</div>
             <div class="flex-1 space-y-1">
               <input type="file" id="event-image-file" accept="image/*" class="hidden" />
-              <button type="button" onclick="document.getElementById('event-image-file').click()" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg text-xs font-bold shadow-xs transition">
-                Izaberi sliku
-              </button>
-              <p id="event-image-status" class="text-[10px] text-slate-400">Slika nije odabrana. Koristiće se podrazumevani gradijent.</p>
+              <button type="button" onclick="document.getElementById('event-image-file').click()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold shadow-xs">Izaberi sliku</button>
+              <p id="event-image-status" class="text-[10px] text-slate-400">Slika nije odabrana.</p>
             </div>
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1">Detaljan plan i opis edukacije</label>
-          <textarea id="event-description" rows="2" placeholder="Opišite šta obuka obuhvata, ko su predavači..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
-        </div>
-
+        <textarea id="event-description" rows="2" placeholder="Detaljan plan i opis obuke..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none resize-none"></textarea>
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">Smer / Kategorija</label>
-            <select id="event-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-indigo-500">
-              <!-- Dinamički se pune -->
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">Ukupan kapacitet mesta *</label>
-            <input id="event-total-seats" type="number" min="1" required placeholder="npr. 30" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
-          </div>
+          <select id="event-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none"></select>
+          <input id="event-total-seats" type="number" min="1" required placeholder="Ukupan kapacitet mesta *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1">Lokacija / Mesto izvođenja *</label>
-          <input id="event-location" type="text" required placeholder="npr. Poligon 2, Nacionalni park Fruška Gora" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
-        </div>
-
+        <input id="event-location" type="text" required placeholder="Lokacija / Mesto izvođenja *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">Datum održavanja *</label>
-            <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">Početak (časova) *</label>
-            <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
-          </div>
+          <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+          <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
-
-        <div class="flex items-center gap-2 pt-1.5">
-          <input type="checkbox" id="event-is-active" checked class="w-4 h-4 text-indigo-600 bg-slate-50 border-slate-200 rounded focus:ring-indigo-500" />
-          <label htmlFor="event-is-active" class="text-xs font-bold text-slate-600">Aktivno odmah i dostupno za rezervisanje klijentima</label>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="event-is-active" checked class="w-4 h-4 text-indigo-600 rounded" />
+          <label htmlFor="event-is-active" class="text-xs font-bold text-slate-600">Aktivno odmah za rezervisanje</label>
         </div>
-
         <div class="pt-4 flex items-center justify-end gap-2">
-          <button type="button" id="btn-cancel-event" class="px-4 py-2 text-slate-500 hover:text-slate-800 text-xs font-bold transition">Odustani</button>
-          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition">
-            Sačuvaj izmene i zavedi
-          </button>
+          <button type="button" id="btn-cancel-event" class="px-4 py-2 text-slate-500 font-bold">Odustani</button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">Sačuvaj</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 5. REUSABLE CUSTOM CONFIRM MODAL -->
   <div id="custom-confirm-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
-      <div>
-        <span class="text-3xl">⚠️</span>
-        <h3 id="confirm-title" class="text-base font-bold text-slate-900 mt-1">Potvrdite akciju</h3>
-        <p id="confirm-message" class="text-xs text-slate-500 mt-0.5">Da li ste potpuno sigurni da želite izvršiti ovu operaciju?</p>
-      </div>
-
+      <h3 id="confirm-title" class="text-base font-bold text-slate-900">Potvrdite akciju</h3>
+      <p id="confirm-message" class="text-xs text-slate-500">Da li ste sigurni?</p>
       <div class="flex gap-2 pt-2">
-        <button id="btn-confirm-no" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">Otkaži</button>
-        <button id="btn-confirm-yes" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Da, potvrđujem</button>
+        <button id="btn-confirm-no" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold">Otkaži</button>
+        <button id="btn-confirm-yes" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">Da, potvrđujem</button>
       </div>
     </div>
   </div>
 
-  <!-- SIMULATOR POZIVA NA VELIKOM EKRANU -->
-  <div id="simulated-call-panel" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex flex-col items-center justify-center text-center p-6">
-    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full flex flex-col items-center">
-      <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center animate-pulse mb-6 shadow-lg shadow-emerald-500/25">
-        <span class="text-3xl text-white">📞</span>
-      </div>
-      <h3 class="text-xl font-bold text-slate-900">Pozivanje klijenta...</h3>
-      <p id="sim-call-name" class="text-indigo-600 font-bold text-lg mt-2">Ime Prezime</p>
-      <p id="sim-call-phone" class="text-slate-500 text-sm">064...</p>
-      <p class="text-slate-400 text-xs mt-6 italic">Pokrenut je nativni poziv sa vašeg uređaja. Simulator se automatski gasi za par sekundi.</p>
-      <button id="btn-sim-call-close" class="mt-6 w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition">Završi poziv</button>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- DNO - MOBILNA NAVIGACIJA (FIKSNA NA DNU)   -->
-  <!-- ========================================== -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center justify-around z-40 md:hidden shadow-lg">
-    <button id="nav-events-mobile" class="nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1 transition-all">
-      <span class="text-lg">📅</span>
-      <span class="text-[10px] font-bold">Edukacije</span>
-    </button>
-
-    <button id="nav-my-tickets-mobile" class="nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 transition-all relative">
-      <span class="text-lg">📋</span>
-      <span class="text-[10px] font-bold">Moje karte</span>
-      <span id="badge-my-tickets-count" class="hidden absolute -top-1.5 right-2.5 bg-indigo-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black">0</span>
-    </button>
-
-    <button id="nav-admin-panel-mobile" class="hidden nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 transition-all">
-      <span class="text-lg">⚙️</span>
-      <span class="text-[10px] font-bold">Admin Panel</span>
-    </button>
+    <button id="nav-events-mobile" class="nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1"><span class="text-lg">📅</span><span class="text-[10px] font-bold">Edukacije</span></button>
+    <button id="nav-my-tickets-mobile" class="nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 relative"><span class="text-lg">📋</span><span class="text-[10px] font-bold">Moje karte</span><span id="badge-my-tickets-count" class="hidden absolute -top-1.5 right-2.5 bg-indigo-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black">0</span></button>
+    <button id="nav-admin-panel-mobile" class="hidden nav-btn-mobile text-slate-400 flex flex-col items-center gap-1"><span class="text-lg">⚙️</span><span class="text-[10px] font-bold">Admin Panel</span></button>
   </nav>
 
-  <!-- ========================================== -->
-  <!-- JAVASCRIPT KOD I FIREBASE LOGIKA           -->
-  <!-- ========================================== -->
   <script type="module">
-    // Uvoz Firebase biblioteka sa proverenih i stabilnih CDN lokacija
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // --- PODRAZUMEVANA FIKTIVNA KONFIGURACIJA U SLUČAJU ODSUSTVA OKRUŽENJA ---
-    const firebaseConfig = typeof __firebase_config !== 'undefined' 
-      ? JSON.parse(__firebase_config) 
-      : {
-          apiKey: "",
-          authDomain: "",
-          projectId: "mock-booking-project",
-          storageBucket: "",
-          messagingSenderId: "",
-          appId: ""
-        };
+    // =========================================================================
+    // 🔴 OVDE MENJAŠ PODATKE KADA PRENOSIŠ NA DRUGI FIREBASE SERVER 🔴
+    // =========================================================================
+    const firebaseConfig = {
+      apiKey: "OVDE_UPIŠI_TVOJ_NEW_API_KEY",
+      authDomain: "tvoj-novi-projekat.firebaseapp.com",
+      projectId: "tvoj-novi-projekat-id",
+      storageBucket: "tvoj-novi-projekat.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:123456:web:abcdef123456"
+    };
+    // =========================================================================
 
-    // Inicijalizacija
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const safeStorage = {
+      getItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+      setItem(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+    };
+
+    let app, auth, db;
+    let firebaseActive = false;
+
+    // Funkcija koja proverava i postavlja vizuelni status konekcije na ekranu
+    function updateConnectionStatusState(status, message) {
+      const dot = document.getElementById('network-dot');
+      const txt = document.getElementById('network-text');
+      if (dot && txt) {
+        txt.innerText = message;
+        if (status === 'online') {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        } else if (status === 'offline') {
+          dot.className = "w-2 h-2 rounded-full bg-amber-500";
+        } else {
+          dot.className = "w-2 h-2 rounded-full bg-rose-500";
+        }
+      }
+    }
+
+    // Pokušaj inicijalizacije tvoje konfiguracije
+    try {
+      if (firebaseConfig && firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("OVDE_")) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        firebaseActive = true;
+        updateConnectionStatusState('online', 'Povezan na Firebase');
+      } else {
+        // Ako su ključevi prazni ili nisu zamenjeni, sistem prebacuje u bezbedan lokalni rad
+        updateConnectionStatusState('offline', 'Lokalno (Offline)');
+      }
+    } catch (err) {
+      console.warn("Inicijalizacija baze nije uspela. Sistem radi lokalno.", err);
+      updateConnectionStatusState('error', 'Greška baze (Lokalno)');
+    }
+
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'booking-master-html-app';
 
-    // --- PODRAZUMEVANE POČETNE DINAMIČKE KATEGORIJE ---
+    // PODRAZUMEVANA STRANICA I PODACI
     const INITIAL_CATEGORIES = [
       { id: 'edu', name: 'Edukacija', icon: '🎓', gradient: 'from-blue-500 to-indigo-600' },
       { id: 'military', name: 'Vojna obuka', icon: '🪖', gradient: 'from-olive-600 to-green-800' },
@@ -645,126 +435,64 @@
       { id: 'other', name: 'Ostalo', icon: '✨', gradient: 'from-purple-500 to-violet-600' }
     ];
 
-    // --- POČETNE EDUKACIJE ---
     const INITIAL_DUMMY_EVENTS = [
       {
         id: 'ev-1',
         title: 'Seminar: Osnove Veštačke Inteligencije u Edukaciji',
-        description: 'Sveobuhvatni jednodnevni seminar o primeni modernih generativnih AI modela u nastavi i organizaciji učenja. Obezbeđeni materijali i sertifikat.',
+        description: 'Sveobuhvatni jednodnevni seminar o primeni modernih generativnih AI modela u nastavi i organizaciji učenja.',
         location: 'Učionica 3, Edukativni Centar, Novi Sad',
         date: '2026-06-25',
         time: '10:00',
         totalSeats: 45,
         category: 'edu',
-        image: '', // Bez slike na pocetku, koristi se gradient
-        isActive: true
-      },
-      {
-        id: 'ev-2',
-        title: 'Taktički Trening i Orijentacija u Divljini',
-        description: 'Vikend intenzivna obuka snalaženja u prostoru, osnova preživljavanja i timske koordinacije pod vođstvom iskusnih instruktora.',
-        location: 'Poligon 4, Fruška Gora',
-        date: '2026-07-04',
-        time: '08:00',
-        totalSeats: 25,
-        category: 'military',
         image: '',
         isActive: true
       }
     ];
 
-    // --- GLOBALNA STANJA APLIKACIJE (STATE) ---
     let state = {
       user: null,
       isOnline: true,
-      currentTab: 'events',         // 'events' | 'my-tickets' | 'admin'
-      adminSubTab: 'events_list',   // 'events_list' | 'categories' | 'qr_scanner'
+      currentTab: 'events',
+      adminSubTab: 'events_list',
       isAdminAuthenticated: false,
       activeCategory: 'all',
       searchTerm: '',
-      
       events: [],
       bookings: [],
       categories: [],
       syncQueue: [],
-      
-      // Trenutna učitana slika u Base64 formatu (za kompresovani preview i upis)
       tempEventImageBase64: '',
-      
       selectedEventForBooking: null,
-      activeViewingTicket: null, // Čuva kompletnu aktivnu kartu za čuvanje slike i share
+      activeViewingTicket: null,
       editingEventId: null
     };
 
-    // Prikaz tost-obaveštenja
     function showNotification(message, type = 'success') {
       const toast = document.getElementById('notification-toast');
       const toastBg = document.getElementById('toast-bg');
       const toastIcon = document.getElementById('toast-icon');
       const toastMsg = document.getElementById('toast-message');
-
       if (!toast || !toastBg || !toastMsg) return;
-
       toastMsg.innerText = message;
-      
       if (type === 'success') {
         toastBg.className = "p-4 rounded-xl shadow-lg flex items-center justify-between border bg-emerald-50 border-emerald-200 text-emerald-800";
         if (toastIcon) toastIcon.innerText = "✅";
-      } else if (type === 'error') {
-        toastBg.className = "p-4 rounded-xl shadow-lg flex items-center justify-between border bg-rose-50 border-rose-200 text-rose-800";
-        if (toastIcon) toastIcon.innerText = "❌";
-      } else if (type === 'warning') {
+      } else {
         toastBg.className = "p-4 rounded-xl shadow-lg flex items-center justify-between border bg-amber-50 border-amber-200 text-amber-800";
         if (toastIcon) toastIcon.innerText = "⚠️";
-      } else {
-        toastBg.className = "p-4 rounded-xl shadow-lg flex items-center justify-between border bg-indigo-50 border-indigo-200 text-indigo-800";
-        if (toastIcon) toastIcon.innerText = "ℹ️";
       }
-
       toast.classList.remove('hidden');
-      setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 4000);
+      setTimeout(() => { toast.classList.add('hidden'); }, 4000);
     }
 
-    // --- POMOĆNA FUNKCIJA ZA BEZBEDNO DODAVANJE EVENT LISTENER-A ---
-    // Sprečava null pointer greške ako se elementi dinamički učitavaju ili se script izvrši pre DOM-a
     function safeAddEventListener(id, event, callback) {
       const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener(event, callback);
-      } else {
-        console.warn(`Element sa ID-em "${id}" nije pronađen u DOM-u prilikom inicijalizacije.`);
-      }
+      if (el) el.addEventListener(event, callback);
     }
 
-    // --- CUSTOM CONFIRM MODAL (ZAMENA ZA window.confirm) ---
-    let confirmCallback = null;
-    function showCustomConfirm(title, message, onConfirm) {
-      const titleEl = document.getElementById('confirm-title');
-      const msgEl = document.getElementById('confirm-message');
-      const modalEl = document.getElementById('custom-confirm-modal');
-
-      if (titleEl) titleEl.innerText = title;
-      if (msgEl) msgEl.innerText = message;
-      if (modalEl) modalEl.classList.remove('hidden');
-      confirmCallback = onConfirm;
-    }
-
-    safeAddEventListener('btn-confirm-yes', 'click', () => {
-      const modalEl = document.getElementById('custom-confirm-modal');
-      if (modalEl) modalEl.classList.add('hidden');
-      if (confirmCallback) confirmCallback();
-    });
-
-    safeAddEventListener('btn-confirm-no', 'click', () => {
-      const modalEl = document.getElementById('custom-confirm-modal');
-      if (modalEl) modalEl.classList.add('hidden');
-      confirmCallback = null;
-    });
-
-    // --- BEZBEDNOSNA PRIJAVA NA FIREBASE (RULE 3) ---
     async function initFirebaseAuthentication() {
+      if (!firebaseActive) return;
       try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
@@ -772,35 +500,28 @@
           await signInAnonymously(auth);
         }
       } catch (err) {
-        console.error("Autentifikacija neuspešna:", err);
-        showNotification("Mreža je nedostupna. Sistem radi u lokalnom offline modu.", "warning");
+        updateConnectionStatusState('offline', 'Lokalno (Offline)');
       }
     }
 
-    // --- UČITAVANJE LOKALNIH PODATAKA (OFFLINE-FIRST) ---
     function loadLocalCache() {
-      const cachedEvents = localStorage.getItem('edubooker_events');
-      const cachedBookings = localStorage.getItem('edubooker_bookings');
-      const cachedCategories = localStorage.getItem('edubooker_categories');
-      const cachedQueue = localStorage.getItem('edubooker_sync_queue');
-
+      const cachedEvents = safeStorage.getItem('edubooker_events');
+      const cachedBookings = safeStorage.getItem('edubooker_bookings');
+      const cachedCategories = safeStorage.getItem('edubooker_categories');
+      const cachedQueue = safeStorage.getItem('edubooker_sync_queue');
       state.events = cachedEvents ? JSON.parse(cachedEvents) : INITIAL_DUMMY_EVENTS;
       state.bookings = cachedBookings ? JSON.parse(cachedBookings) : [];
       state.categories = cachedCategories ? JSON.parse(cachedCategories) : INITIAL_CATEGORIES;
       state.syncQueue = cachedQueue ? JSON.parse(cachedQueue) : [];
-
       renderUI();
     }
 
-    // --- SINHRONIZACIJA SA FIRESTORE (KADA JE ONLINE) ---
     function startRealtimeSync() {
-      if (!state.user || !state.isOnline) return;
-
+      if (!firebaseActive || !state.user || !state.isOnline) return;
       const eventsRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
       const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
       const categoriesRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
 
-      // Slušaj događaje
       onSnapshot(eventsRef, (snapshot) => {
         let list = [];
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
@@ -811,61 +532,45 @@
           list = INITIAL_DUMMY_EVENTS;
         }
         state.events = list;
-        localStorage.setItem('edubooker_events', JSON.stringify(list));
+        safeStorage.setItem('edubooker_events', JSON.stringify(list));
         renderUI();
-      }, (error) => console.error("Firestore Error (events):", error));
+      });
 
-      // Slušaj rezervacije
       onSnapshot(bookingsRef, (snapshot) => {
         const list = [];
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
         state.bookings = list;
-        localStorage.setItem('edubooker_bookings', JSON.stringify(list));
+        safeStorage.setItem('edubooker_bookings', JSON.stringify(list));
         renderUI();
-      }, (error) => console.error("Firestore Error (bookings):", error));
+      });
 
-      // Slušaj kategorije
       onSnapshot(categoriesRef, (snapshot) => {
         const list = [];
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
         if (list.length > 0) {
           state.categories = list;
-          localStorage.setItem('edubooker_categories', JSON.stringify(list));
-        } else {
-          INITIAL_CATEGORIES.forEach(async (cat) => {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', cat.id), cat);
-          });
+          safeStorage.setItem('edubooker_categories', JSON.stringify(list));
         }
         renderUI();
-      }, (error) => console.error("Firestore Error (categories):", error));
+      });
     }
 
-    // --- PROCESUIRANJE OFFLINE REDA ČEKANJA (QUEUE) ---
     async function processSyncQueue() {
-      if (!state.isOnline || !state.user || state.syncQueue.length === 0) return;
-
-      showNotification("Započinjem prenos nesačuvanih podataka na server...", "info");
+      if (!firebaseActive || !state.isOnline || !state.user || state.syncQueue.length === 0) return;
       const remainingQueue = [...state.syncQueue];
-
       for (const item of state.syncQueue) {
         try {
           const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', item.id);
           await setDoc(docRef, { ...item, syncStatus: 'synced' });
-          
           const idx = remainingQueue.findIndex(q => q.id === item.id);
           if (idx > -1) remainingQueue.splice(idx, 1);
         } catch (err) {
-          console.error("Sinhronizacija neuspešna za kartu:", item.id, err);
+          console.error(err);
         }
       }
-
       state.syncQueue = remainingQueue;
-      localStorage.setItem('edubooker_sync_queue', JSON.stringify(remainingQueue));
+      safeStorage.setItem('edubooker_sync_queue', JSON.stringify(remainingQueue));
       updateSyncBanner();
-      
-      if (remainingQueue.length === 0) {
-        showNotification("Svi offline upisi su bezbedno upisani na mrežu!", "success");
-      }
     }
 
     function updateSyncBanner() {
@@ -881,20 +586,11 @@
       }
     }
 
-    // --- PROCES KLIJENTSKE KOMPRESIJE SLIKA (CANVAS API) ---
-    // Smanjuje bilo koju ulaznu sliku na max 600px i pretvara u jpeg od 60% radi brzine i offline cuvanja u Firestore
     safeAddEventListener('event-image-file', 'change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const previewDiv = document.getElementById('event-image-preview');
       const statusText = document.getElementById('event-image-status');
-
-      if (statusText) {
-        statusText.innerText = "Kompresovanje slike u toku...";
-        statusText.className = "text-[10px] text-indigo-600 font-bold animate-pulse";
-      }
-
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = function(event) {
@@ -902,97 +598,38 @@
         img.src = event.target.result;
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 600;
-          const MAX_HEIGHT = 450;
           let width = img.width;
           let height = img.height;
-
-          // Prilagođavanje veličine uz očuvanje aspekta
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
+          if (width > 600) { height *= 600 / width; width = 600; }
           canvas.width = width;
           canvas.height = height;
-
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-
-          // Pretvaranje u kompresovani JPEG (60% kvaliteta)
           const base64Compressed = canvas.toDataURL('image/jpeg', 0.6);
           state.tempEventImageBase64 = base64Compressed;
-
-          // Prikaz u malom kvadratu i ispis velicine u KB
-          const kbSize = Math.round((base64Compressed.length * 3) / 4 / 1024);
           if (previewDiv) previewDiv.innerHTML = `<img src="${base64Compressed}" class="w-full h-full object-cover rounded-xl" />`;
-          if (statusText) {
-            statusText.innerText = `Slika uspešno kompresovana na samo ${kbSize} KB!`;
-            statusText.className = "text-[10px] text-emerald-600 font-bold";
-          }
+          if (statusText) statusText.innerText = `Slika uspešno optimizovana!`;
         };
       };
     });
 
-    // --- KORISNIČKE AKCIJE I REZERVACIJA OBUKE ---
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
-
       const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
       const remaining = Math.max(0, event.totalSeats - bookedCount);
-
-      if (remaining <= 0) {
-        showNotification("Izvinite, sva mesta za ovu edukaciju su popunjena!", "warning");
-        return;
-      }
-
+      if (remaining <= 0) return;
       state.selectedEventForBooking = event;
-      const titleEl = document.getElementById('modal-booking-title');
-      const seatsEl = document.getElementById('modal-booking-seats');
-      const modalEl = document.getElementById('modal-booking');
-
-      if (titleEl) titleEl.innerText = event.title;
-      if (seatsEl) seatsEl.innerText = `Slobodno još: ${remaining} od ${event.totalSeats} mesta`;
-      
-      const offlineNotice = document.getElementById('booking-offline-notice');
-      if (offlineNotice) {
-        if (!state.isOnline) {
-          offlineNotice.classList.remove('hidden');
-        } else {
-          offlineNotice.classList.add('hidden');
-        }
-      }
-
-      if (modalEl) modalEl.classList.remove('hidden');
+      document.getElementById('modal-booking-title').innerText = event.title;
+      document.getElementById('modal-booking-seats').innerText = `Slobodno još: ${remaining} mesta`;
+      document.getElementById('modal-booking').classList.remove('hidden');
     }
 
     safeAddEventListener('form-submit-booking', 'submit', async (e) => {
       e.preventDefault();
       const event = state.selectedEventForBooking;
       if (!event) return;
-
-      const fNameEl = document.getElementById('booking-firstname');
-      const lNameEl = document.getElementById('booking-lastname');
-      const phoneEl = document.getElementById('booking-phone');
-      const addressEl = document.getElementById('booking-address');
-      const noteEl = document.getElementById('booking-note');
-
-      const fName = fNameEl ? fNameEl.value.trim() : '';
-      const lName = lNameEl ? lNameEl.value.trim() : '';
-      const phone = phoneEl ? phoneEl.value.trim() : '';
-      const address = (addressEl && addressEl.value.trim()) || 'Nije navedena';
-      const note = noteEl ? noteEl.value.trim() : '';
-
       const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
-
       const newBooking = {
         id: bookingId,
         eventId: event.id,
@@ -1000,109 +637,65 @@
         eventLocation: event.location,
         eventDate: event.date,
         eventTime: event.time,
-        firstName: fName,
-        lastName: lName,
-        phone: phone,
-        address: address,
-        note: note,
+        firstName: document.getElementById('booking-firstname').value.trim(),
+        lastName: document.getElementById('booking-lastname').value.trim(),
+        phone: document.getElementById('booking-phone').value.trim(),
+        address: document.getElementById('booking-address').value.trim() || 'Nije navedena',
+        note: document.getElementById('booking-note').value.trim(),
         timestamp: new Date().toISOString(),
-        syncStatus: state.isOnline ? 'synced' : 'pending',
+        syncStatus: state.isOnline && firebaseActive ? 'synced' : 'pending',
         status: 'aktivna'
       };
 
       state.bookings = [newBooking, ...state.bookings];
-      localStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
-
-      let myTickets = JSON.parse(localStorage.getItem('my_user_tickets') || '[]');
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+      let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       myTickets.push(newBooking.id);
-      localStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+      safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
 
-      if (state.isOnline && state.user) {
+      if (state.isOnline && state.user && firebaseActive) {
         try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id);
-          await setDoc(docRef, newBooking);
-          showNotification("Uspešno ste rezervisali mesto!", "success");
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id), newBooking);
         } catch (err) {
-          console.error(err);
           state.syncQueue.push(newBooking);
-          localStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
-          showNotification("Mreža je u zastoju. Karta je sačuvana u lokalu.", "warning");
+          safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
         }
       } else {
         state.syncQueue.push(newBooking);
-        localStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
-        showNotification("Offline režim: Rezervacija uspešno zavedena na uređaju!", "info");
+        safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
       }
 
-      const modalEl = document.getElementById('modal-booking');
-      const formEl = document.getElementById('form-submit-booking');
-
-      if (modalEl) modalEl.classList.add('hidden');
-      if (formEl) formEl.reset();
-      
+      document.getElementById('modal-booking').classList.add('hidden');
+      document.getElementById('form-submit-booking').reset();
       updateSyncBanner();
       renderUI();
-
       openTicketModal(newBooking);
     });
 
-    // --- KORISNIČKA PRETRAGA VLASTITIH REZERVISANIH KARATA PREKO TELEFONA ---
     safeAddEventListener('btn-search-my-tickets', 'click', () => {
-      const phoneInputEl = document.getElementById('search-ticket-phone');
-      const phoneInput = phoneInputEl ? phoneInputEl.value.trim() : '';
-      if (!phoneInput) {
-        showNotification("Unesite ispravan broj telefona!", "warning");
-        return;
-      }
-
-      // Pretraga u lokalnom registru, ali i simulacija globalne pretrage
-      const found = state.bookings.filter(b => b.phone.includes(phoneInput));
-      
+      const phone = document.getElementById('search-ticket-phone').value.trim();
+      const found = state.bookings.filter(b => b.phone.includes(phone));
       if (found.length > 0) {
-        // Dodaj ove karte u klijentske karte na ovom uređaju
-        let myTickets = JSON.parse(localStorage.getItem('my_user_tickets') || '[]');
-        found.forEach(f => {
-          if (!myTickets.includes(f.id)) myTickets.push(f.id);
-        });
-        localStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
-        showNotification(`Pronađeno je ${found.length} aktivnih rezervacija na ovaj broj!`, "success");
+        let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+        found.forEach(f => { if (!myTickets.includes(f.id)) myTickets.push(f.id); });
+        safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+        showNotification("Karte uspešno preuzete!");
         renderUI();
-      } else {
-        showNotification("Nije pronađena nijedna aktivna karta na ovaj broj telefona.", "error");
       }
     });
 
-    // --- PRIKAZ DIGITALNE KARTE / QR KODA ---
     function openTicketModal(booking) {
       state.activeViewingTicket = booking;
-      const badge = document.getElementById('ticket-id-badge');
-      const title = document.getElementById('ticket-event-title');
-      const user = document.getElementById('ticket-user-name');
-      const datetime = document.getElementById('ticket-datetime');
-      const location = document.getElementById('ticket-location');
-      const modal = document.getElementById('modal-ticket');
-
-      if (badge) badge.innerText = `KOD: ${booking.id}`;
-      if (title) title.innerText = booking.eventTitle;
-      if (user) user.innerText = `${booking.firstName} ${booking.lastName}`;
-      if (datetime) datetime.innerText = `${booking.eventDate} u ${booking.eventTime}h`;
-      if (location) location.innerText = booking.eventLocation;
-
+      document.getElementById('ticket-id-badge').innerText = `KOD: ${booking.id}`;
+      document.getElementById('ticket-event-title').innerText = booking.eventTitle;
+      document.getElementById('ticket-user-name').innerText = `${booking.firstName} ${booking.lastName}`;
+      document.getElementById('ticket-datetime').innerText = `${booking.eventDate} u ${booking.eventTime}h`;
+      document.getElementById('ticket-location').innerText = booking.eventLocation;
       setTimeout(() => {
         const canvas = document.getElementById('ticket-qr-canvas');
-        if (canvas) {
-          new QRious({
-            element: canvas,
-            value: booking.id,
-            size: 160,
-            background: '#ffffff',
-            foreground: '#4f46e5',
-            level: 'H'
-          });
-        }
+        if (canvas) new QRious({ element: canvas, value: booking.id, size: 160, background: '#ffffff', foreground: '#4f46e5', level: 'H' });
       }, 100);
-
-      if (modal) modal.classList.remove('hidden');
+      document.getElementById('modal-ticket').classList.remove('hidden');
     }
 
     window.viewTicket = function(bookingId) {
@@ -1110,238 +703,82 @@
       if (b) openTicketModal(b);
     }
 
-    // --- EKSKLUZIVNA ISPORUKA 1: PREUZIMANJE KARTE KAO SLIKE U GALERIJU (OFFLINE) ---
-    // Iscrtava estetsku kartu na platnu u potpunosti offline bez spoljnih resursa i preuzima
     safeAddEventListener('btn-download-ticket-img', 'click', () => {
       const b = state.activeViewingTicket;
       if (!b) return;
-
-      showNotification("Pripremam sliku potvrde za čuvanje...", "info");
-
       const canvas = document.createElement('canvas');
-      canvas.width = 400;
-      canvas.height = 560;
+      canvas.width = 400; canvas.height = 560;
       const ctx = canvas.getContext('2d');
-
-      // 1. Pozadina i bela podloga karte
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillRect(0, 0, 400, 560);
-      
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(15, 15, 370, 530, 24);
-      ctx.fill();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.stroke();
-
-      // 2. Zaglavlje - EduBooker PRO
-      ctx.fillStyle = '#4f46e5';
-      ctx.beginPath();
-      ctx.roundRect(15, 15, 370, 80, [24, 24, 0, 0]);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px sans-serif';
-      ctx.fillText('EduBooker POTVRDA', 40, 60);
-
-      // 3. Informacije i tekst
-      ctx.fillStyle = '#1e293b';
-      ctx.font = 'bold 15px sans-serif';
-      ctx.fillText('KOD REZERVACIJE:', 40, 135);
-      
-      ctx.fillStyle = '#4f46e5';
-      ctx.font = 'bold 18px monospace';
-      ctx.fillText(b.id, 40, 160);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillText('PROGRAM OBUKE / EDUKACIJE', 40, 195);
-      
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 14px sans-serif';
-      // Skraćivanje dugog naslova obuke za sliku
-      let title = b.eventTitle;
-      if (title.length > 38) title = title.substring(0, 35) + '...';
-      ctx.fillText(title, 40, 215);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillText('POLAZNIK (IME I PREZIME)', 40, 250);
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.fillText(`${b.firstName} ${b.lastName}`, 40, 270);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillText('VREME ODRŽAVANJA', 40, 305);
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.fillText(`${b.eventDate} u ${b.eventTime}h`, 40, 325);
-
-      // Perforirana linija
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(15, 350);
-      ctx.lineTo(385, 350);
-      ctx.stroke();
-      ctx.setLineDash([]); // Reset line dash
-
-      // 4. Iscrtavanje QR Koda koji je vec generisan u originalnom canvasu
+      ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, 400, 560);
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(15, 15, 370, 530, 24); ctx.fill();
+      ctx.fillStyle = '#4f46e5'; ctx.beginPath(); ctx.roundRect(15, 15, 370, 80, [24, 24, 0, 0]); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('EduBooker POTVRDA', 40, 60);
+      ctx.fillStyle = '#1e293b'; ctx.font = 'bold 15px sans-serif'; ctx.fillText('KOD KARTE:', 40, 135);
+      ctx.fillStyle = '#4f46e5'; ctx.font = 'bold 18px monospace'; ctx.fillText(b.id, 40, 160);
+      ctx.fillStyle = '#64748b'; ctx.font = 'bold 12px sans-serif'; ctx.fillText('PROGRAM OBUKE', 40, 195);
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 14px sans-serif'; ctx.fillText(b.eventTitle.substring(0,35), 40, 215);
       const qrCanvas = document.getElementById('ticket-qr-canvas');
-      if (qrCanvas) {
-        ctx.drawImage(qrCanvas, 120, 370, 160, 160);
-      }
-
-      // Preuzimanje generisane slike
-      const imgURL = canvas.toDataURL('image/jpeg', 0.9);
+      if (qrCanvas) ctx.drawImage(qrCanvas, 120, 370, 160, 160);
       const link = document.createElement('a');
-      link.download = `Potvrda-EduBooker-${b.id}.jpg`;
-      link.href = imgURL;
-      link.click();
-      showNotification("Karta uspešno sačuvana u preuzimanja!", "success");
+      link.download = `Karta-${b.id}.jpg`; link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
     });
 
-    // --- EKSKLUZIVNA ISPORUKA 2: PODELI KARTU PREKO CHAT APLIKACIJA ---
-    safeAddEventListener('btn-share-ticket', 'click', async () => {
+    safeAddEventListener('btn-share-ticket', 'click', () => {
       const b = state.activeViewingTicket;
       if (!b) return;
-
-      const shareText = `Potvrda rezervacije za: ${b.eventTitle}\nPolaznik: ${b.firstName} ${b.lastName}\nKod karte: ${b.id}\nLokacija: ${b.eventLocation}\nDatum: ${b.eventDate} u ${b.eventTime}h`;
-
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'EduBooker Potvrda',
-            text: shareText
-          });
-          showNotification("Karta uspešno podeljena!", "success");
-        } catch (err) {
-          console.log("Web Share API otkazan ili neuspešan, pokrećem Viber/WhatsApp fallback.");
-          fallbackShare(shareText);
-        }
-      } else {
-        fallbackShare(shareText);
-      }
+      const text = `Potvrda za obuku: ${b.eventTitle}\nKod karte: ${b.id}\nDatum: ${b.eventDate}`;
+      if (navigator.share) navigator.share({ title: 'Karta', text: text });
+      else window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     });
 
-    function fallbackShare(text) {
-      // Otvaranje univerzalnog linka za deljenje na mobilnim mrežama
-      const encodedText = encodeURIComponent(text);
-      const whatsappURL = `https://api.whatsapp.com/send?text=${encodedText}`;
-      window.open(whatsappURL, '_blank');
-      showNotification("Otvorili smo WhatsApp prozor za slanje.", "info");
-    }
-
-    // --- SEPARACIJA ULOGA I ADMIN PIN ZAŠTITA ---
     safeAddEventListener('btn-admin-access', 'click', () => {
-      if (state.isAdminAuthenticated) {
-        switchTab('admin');
-      } else {
-        const pinEl = document.getElementById('admin-pin-input');
-        const errEl = document.getElementById('admin-login-error');
-        const modalEl = document.getElementById('modal-admin-login');
-
-        if (pinEl) pinEl.value = '';
-        if (errEl) errEl.classList.add('hidden');
-        if (modalEl) modalEl.classList.remove('hidden');
-      }
+      if (state.isAdminAuthenticated) switchTab('admin');
+      else document.getElementById('modal-admin-login').classList.remove('hidden');
     });
 
     safeAddEventListener('btn-submit-login', 'click', () => {
-      const pinEl = document.getElementById('admin-pin-input');
-      const pin = pinEl ? pinEl.value : '';
-      if (pin === '1234') {
+      if (document.getElementById('admin-pin-input').value === '1234') {
         state.isAdminAuthenticated = true;
-        const loginModal = document.getElementById('modal-admin-login');
-        if (loginModal) loginModal.classList.add('hidden');
-        
-        const desktopNav = document.getElementById('nav-admin-panel-desktop');
-        const mobileNav = document.getElementById('nav-admin-panel-mobile');
-        const accessBtn = document.getElementById('btn-admin-access');
-        const logoutBtn = document.getElementById('btn-admin-logout');
-
-        if (desktopNav) desktopNav.classList.remove('hidden');
-        if (mobileNav) mobileNav.classList.remove('hidden');
-        if (accessBtn) accessBtn.classList.add('hidden');
-        if (logoutBtn) logoutBtn.classList.remove('hidden');
-        
-        showNotification("Uspešno ste se prijavili u administrativni režim!", "success");
+        document.getElementById('modal-admin-login').classList.add('hidden');
+        document.getElementById('nav-admin-panel-desktop').classList.remove('hidden');
+        document.getElementById('nav-admin-panel-mobile').classList.remove('hidden');
+        document.getElementById('btn-admin-access').classList.add('hidden');
+        document.getElementById('btn-admin-logout').classList.remove('hidden');
         switchTab('admin');
       } else {
-        const errEl = document.getElementById('admin-login-error');
-        if (errEl) errEl.classList.remove('hidden');
+        document.getElementById('admin-login-error').classList.remove('hidden');
       }
     });
 
     safeAddEventListener('btn-admin-logout', 'click', () => {
       state.isAdminAuthenticated = false;
-      const desktopNav = document.getElementById('nav-admin-panel-desktop');
-      const mobileNav = document.getElementById('nav-admin-panel-mobile');
-      const accessBtn = document.getElementById('btn-admin-access');
-      const logoutBtn = document.getElementById('btn-admin-logout');
-
-      if (desktopNav) desktopNav.classList.add('hidden');
-      if (mobileNav) mobileNav.classList.add('hidden');
-      if (accessBtn) accessBtn.classList.remove('hidden');
-      if (logoutBtn) logoutBtn.classList.add('hidden');
-
+      document.getElementById('nav-admin-panel-desktop').classList.add('hidden');
+      document.getElementById('nav-admin-panel-mobile').classList.add('hidden');
+      document.getElementById('btn-admin-access').classList.remove('hidden');
+      document.getElementById('btn-admin-logout').classList.add('hidden');
       switchTab('events');
-      showNotification("Odjavili ste se iz admin modusa.", "info");
     });
 
-    // --- KONTROLA TABOVA ---
     function switchTab(tabId) {
       state.currentTab = tabId;
-      
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
       const activeTabSec = document.getElementById(`tab-${tabId}`);
       if (activeTabSec) activeTabSec.classList.remove('hidden');
-
-      document.querySelectorAll('.nav-btn-desktop').forEach(btn => {
-        btn.className = "nav-btn-desktop px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50";
-      });
-      const activeDesktopBtn = document.getElementById(`nav-${tabId}-desktop`);
-      if (activeDesktopBtn) {
-        activeDesktopBtn.className = "nav-btn-desktop active px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-sm";
-      }
-
-      document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
-        btn.className = "nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 transition-all";
-      });
-      const activeMobileBtn = document.getElementById(`nav-${tabId}-mobile`);
-      if (activeMobileBtn) {
-        activeMobileBtn.className = "nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1 transition-all";
-      }
-
       renderUI();
     }
 
     safeAddEventListener('nav-events-desktop', 'click', () => switchTab('events'));
     safeAddEventListener('nav-my-tickets-desktop', 'click', () => switchTab('my-tickets'));
     safeAddEventListener('nav-admin-panel-desktop', 'click', () => switchTab('admin'));
-
     safeAddEventListener('nav-events-mobile', 'click', () => switchTab('events'));
     safeAddEventListener('nav-my-tickets-mobile', 'click', () => switchTab('my-tickets'));
     safeAddEventListener('nav-admin-panel-mobile', 'click', () => switchTab('admin'));
 
-    // --- ADMIN POD-TAB NAVIGACIJA ---
     function switchAdminSubTab(subTabId) {
       state.adminSubTab = subTabId;
-      
       document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
       const activeSubTabEl = document.getElementById(`admin-view-${subTabId}`);
       if (activeSubTabEl) activeSubTabEl.classList.remove('hidden');
-
-      document.querySelectorAll('.admin-subnav-btn').forEach(btn => {
-        btn.className = "admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition";
-      });
-      const activeBtn = document.getElementById(`admin-subnav-${subTabId}`);
-      if (activeBtn) {
-        activeBtn.className = "admin-subnav-btn active bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition";
-      }
-
       renderUI();
     }
 
@@ -1349,731 +786,125 @@
     safeAddEventListener('admin-subnav-categories', 'click', () => switchAdminSubTab('categories'));
     safeAddEventListener('admin-subnav-scanner', 'click', () => switchAdminSubTab('scanner'));
 
-
-    // --- KREIRANJE I IZMENA DOGAĐAJA (ADMIN) ---
-    safeAddEventListener('btn-create-event', 'click', () => {
-      state.editingEventId = null;
-      state.tempEventImageBase64 = ''; // Reset ucitane slike
-      
-      const form = document.getElementById('form-submit-event');
-      const preview = document.getElementById('event-image-preview');
-      const status = document.getElementById('event-image-status');
-      const modal = document.getElementById('modal-event');
-      const actionTitle = document.getElementById('modal-event-action-title');
-
-      if (form) form.reset();
-      if (preview) preview.innerHTML = "🖼️";
-      if (status) {
-        status.innerText = "Slika nije odabrana. Koristiće se podrazumevani gradijent.";
-        status.className = "text-[10px] text-slate-400";
-      }
-      
-      if (actionTitle) actionTitle.innerText = "Dodaj novu edukaciju / obuku";
-      
-      const select = document.getElementById('event-category');
-      if (select) {
-        select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-      }
-      
-      if (modal) modal.classList.remove('hidden');
-    });
-
-    window.openEditEventModal = function(eventId) {
-      const ev = state.events.find(e => e.id === eventId);
-      if (!ev) return;
-
-      state.editingEventId = eventId;
-      state.tempEventImageBase64 = ev.image || ''; // Postavi postojecu ako ima
-
-      const actionTitle = document.getElementById('modal-event-action-title');
-      const titleEl = document.getElementById('event-title');
-      const descEl = document.getElementById('event-description');
-      const seatsEl = document.getElementById('event-total-seats');
-      const locEl = document.getElementById('event-location');
-      const dateEl = document.getElementById('event-date');
-      const timeEl = document.getElementById('event-time');
-      const activeEl = document.getElementById('event-is-active');
-
-      if (actionTitle) actionTitle.innerText = "Izmeni podatke o obuci";
-      if (titleEl) titleEl.value = ev.title;
-      if (descEl) descEl.value = ev.description;
-      if (seatsEl) seatsEl.value = ev.totalSeats;
-      if (locEl) locEl.value = ev.location;
-      if (dateEl) dateEl.value = ev.date;
-      if (timeEl) timeEl.value = ev.time;
-      if (activeEl) activeEl.checked = ev.isActive;
-
-      const previewDiv = document.getElementById('event-image-preview');
-      const statusText = document.getElementById('event-image-status');
-
-      if (ev.image) {
-        if (previewDiv) previewDiv.innerHTML = `<img src="${ev.image}" class="w-full h-full object-cover rounded-xl" />`;
-        if (statusText) {
-          statusText.innerText = "Naslovna slika je aktivna.";
-          statusText.className = "text-[10px] text-emerald-600 font-bold";
-        }
-      } else {
-        if (previewDiv) previewDiv.innerHTML = "🖼️";
-        if (statusText) {
-          statusText.innerText = "Slika nije postavljena. Koristi se gradijent.";
-          statusText.className = "text-[10px] text-slate-400";
-        }
-      }
-
-      const select = document.getElementById('event-category');
-      if (select) {
-        select.innerHTML = state.categories.map(c => `
-          <option value="${c.id}" ${c.id === ev.category ? 'selected' : ''}>${c.icon} ${c.name}</option>
-        `).join('');
-      }
-
-      const modal = document.getElementById('modal-event');
-      if (modal) modal.classList.remove('hidden');
-    }
-
     safeAddEventListener('form-submit-event', 'submit', async (e) => {
       e.preventDefault();
-
-      const titleEl = document.getElementById('event-title');
-      const descEl = document.getElementById('event-description');
-      const catEl = document.getElementById('event-category');
-      const seatsEl = document.getElementById('event-total-seats');
-      const locEl = document.getElementById('event-location');
-      const dateEl = document.getElementById('event-date');
-      const timeEl = document.getElementById('event-time');
-      const activeEl = document.getElementById('event-is-active');
-
-      const title = titleEl ? titleEl.value.trim() : '';
-      const desc = descEl ? descEl.value.trim() : '';
-      const cat = catEl ? catEl.value : 'edu';
-      const seats = seatsEl ? Number(seatsEl.value) : 10;
-      const locName = locEl ? locEl.value.trim() : '';
-      const date = dateEl ? dateEl.value : '';
-      const time = timeEl ? timeEl.value : '';
-      const isActive = activeEl ? activeEl.checked : true;
-
       const id = state.editingEventId || `ev-${Date.now()}`;
-
       const newEvent = {
         id: id,
-        title: title,
-        description: desc,
-        category: cat,
-        totalSeats: seats,
-        location: locName,
-        date: date,
-        time: time,
-        image: state.tempEventImageBase64 || '', // Čuvanje ultra lagane kompresovane slike
-        isActive: isActive
+        title: document.getElementById('event-title').value.trim(),
+        description: document.getElementById('event-description').value.trim(),
+        category: document.getElementById('event-category').value,
+        totalSeats: Number(document.getElementById('event-total-seats').value),
+        location: document.getElementById('event-location').value.trim(),
+        date: document.getElementById('event-date').value,
+        time: document.getElementById('event-time').value,
+        image: state.tempEventImageBase64 || '',
+        isActive: document.getElementById('event-is-active').checked
       };
 
-      if (state.editingEventId) {
-        state.events = state.events.map(ev => ev.id === id ? newEvent : ev);
-      } else {
-        state.events = [newEvent, ...state.events];
-      }
-      localStorage.setItem('edubooker_events', JSON.stringify(state.events));
+      state.events = state.editingEventId ? state.events.map(ev => ev.id === id ? newEvent : ev) : [newEvent, ...state.events];
+      safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
 
-      if (state.isOnline && state.user) {
-        try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'events', id);
-          await setDoc(docRef, newEvent);
-          showNotification("Edukacija je uspešno sačuvana na serveru!", "success");
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        showNotification("Sačuvano lokalno (Offline).", "info");
+      if (state.isOnline && state.user && firebaseActive) {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), newEvent);
       }
-
-      const modal = document.getElementById('modal-event');
-      if (modal) modal.classList.add('hidden');
+      document.getElementById('modal-event').classList.add('hidden');
       renderUI();
     });
 
-    window.toggleEventStatus = async function(eventId) {
-      const ev = state.events.find(e => e.id === eventId);
-      if (!ev) return;
-
-      const updated = { ...ev, isActive: !ev.isActive };
-      state.events = state.events.map(e => e.id === eventId ? updated : e);
-      localStorage.setItem('edubooker_events', JSON.stringify(state.events));
-
-      if (state.isOnline && state.user) {
-        try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId);
-          await updateDoc(docRef, { isActive: updated.isActive });
-          showNotification(`Prijave su uspešno ${updated.isActive ? 'OTVORENE' : 'ZATVORENE'}!`, "success");
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        showNotification("Izmena statusa zabeležena lokalno.", "info");
-      }
-      renderUI();
-    }
-
-    window.deleteEvent = function(eventId) {
-      showCustomConfirm(
-        "Uklanjanje edukacije",
-        "Da li ste potpuno sigurni da želite obrisati ovu obuku? Sve dosadašnje rezervacije će ostati sačuvane u bazi.",
-        async () => {
-          state.events = state.events.filter(e => e.id !== eventId);
-          localStorage.setItem('edubooker_events', JSON.stringify(state.events));
-
-          if (state.isOnline && state.user) {
-            try {
-              const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId);
-              await deleteDoc(docRef);
-              showNotification("Događaj je obrisan sa servera.", "success");
-            } catch (err) {
-              console.error(err);
-            }
-          } else {
-            showNotification("Uklonjeno iz lokalne memorije.", "info");
-          }
-          renderUI();
-        }
-      );
-    }
-
-    // --- UPRAVLJANJE DINAMIČKIM KATEGORIJAMA (ADMIN) ---
-    safeAddEventListener('form-create-category', 'submit', async (e) => {
-      e.preventDefault();
-      const nameEl = document.getElementById('cat-name-input');
-      const iconEl = document.getElementById('cat-icon-select');
-      const colorEl = document.getElementById('cat-color-select');
-
-      const name = nameEl ? nameEl.value.trim() : '';
-      const icon = iconEl ? iconEl.value : '🎓';
-      const color = colorEl ? colorEl.value : 'from-blue-500 to-indigo-600';
-
-      const catId = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-
-      if (state.categories.some(c => c.id === catId)) {
-        showNotification("Kategorija sa sličnim imenom već postoji!", "warning");
-        return;
-      }
-
-      const newCategory = {
-        id: catId,
-        name: name,
-        icon: icon,
-        gradient: color
-      };
-
-      state.categories.push(newCategory);
-      localStorage.setItem('edubooker_categories', JSON.stringify(state.categories));
-
-      if (state.isOnline && state.user) {
-        try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'categories', catId);
-          await setDoc(docRef, newCategory);
-          showNotification("Smer je uspešno sačuvan i sinhronizovan!", "success");
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        showNotification("Smer zaveden lokalno.", "info");
-      }
-
-      const form = document.getElementById('form-create-category');
-      if (form) form.reset();
-      renderUI();
-    });
-
-    window.deleteCategory = function(catId) {
-      if (catId === 'edu') {
-        showNotification("Glavni smer 'Edukacija' ne može biti uklonjen.", "warning");
-        return;
-      }
-
-      showCustomConfirm(
-        "Uklanjanje smera",
-        "Da li želite obrisati ovaj smer? Postojeće edukacije u ovoj kategoriji neće biti obrisane ali će izgubiti oznaku.",
-        async () => {
-          state.categories = state.categories.filter(c => c.id !== catId);
-          localStorage.setItem('edubooker_categories', JSON.stringify(state.categories));
-
-          if (state.isOnline && state.user) {
-            try {
-              const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'categories', catId);
-              await deleteDoc(docRef);
-              showNotification("Smer uspešno obrisan.", "success");
-            } catch (err) {
-              console.error(err);
-            }
-          } else {
-            showNotification("Smer uklonjen u lokalu.", "info");
-          }
-          renderUI();
-        }
-      );
-    }
-
-    // --- QR PROVERA I EVIDENCIJA NA VRATIMA (OFFLINE/ONLINE) ---
     window.verifyBookingCode = function(code) {
-      if (!code) {
-        showNotification("Molimo unesite ispravan kod!", "warning");
-        return;
-      }
-
+      if (!code) return;
       const cleanCode = code.trim().toUpperCase();
       const b = state.bookings.find(booking => booking.id === cleanCode);
       const panel = document.getElementById('scanner-result-panel');
-
       if (!panel) return;
-
       if (b) {
         const isUsed = b.status === 'iskorišćena';
         panel.innerHTML = `
           <div class="space-y-4">
-            <div class="${isUsed ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'} rounded-2xl p-4">
-              <h4 class="text-sm font-black flex items-center gap-1.5">
-                <span>${isUsed ? '🟡' : '🟢'}</span> ${isUsed ? 'KARTA JE VEĆ ISKORIŠĆENA' : 'ISPRAVNA REZERVACIJA'}
-              </h4>
-              <p class="text-xs mt-1">${isUsed ? 'Dolazak klijenta je već jednom zabeležen.' : 'Uspravan upis. Možete potvrditi ulazak.'}</p>
+            <div class="${isUsed ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'} rounded-2xl p-4">
+              <h4 class="text-sm font-black">${isUsed ? '🟡 KARTA JE VEĆ ISKORIŠĆENA' : '🟢 ISPRAVNA REZERVACIJA'}</h4>
             </div>
-
-            <div class="border border-slate-200 rounded-2xl p-4 space-y-2 text-xs">
-              <div class="flex justify-between border-b border-slate-100 pb-2">
-                <span class="text-slate-400 font-semibold">Osoba / Polaznik:</span>
-                <span class="font-bold text-slate-900">${b.firstName} ${b.lastName}</span>
-              </div>
-              <div class="flex justify-between border-b border-slate-100 pb-2">
-                <span class="text-slate-400 font-semibold">Edukativni program:</span>
-                <span class="font-bold text-slate-800 truncate max-w-[160px]">${b.eventTitle}</span>
-              </div>
-              <div class="flex justify-between border-b border-slate-100 pb-2">
-                <span class="text-slate-400 font-semibold">Adresa i kontakt:</span>
-                <span class="font-bold text-slate-800">${b.address} (${b.phone})</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400 font-semibold">Kod:</span>
-                <span class="font-mono font-black text-indigo-600">${b.id}</span>
-              </div>
-            </div>
-
-            ${!isUsed ? `
-              <button onclick="checkInBooking('${b.id}')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
-                ✓ Evidentiraj dolazak i overi kartu
-              </button>
-            ` : ''}
+            <p class="text-xs">Polaznik: <strong>${b.firstName} ${b.lastName}</strong><br>Program: ${b.eventTitle}</p>
+            ${!isUsed ? `<button onclick="checkInBooking('${b.id}')" class="w-full py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold">✓ Evidentiraj dolazak</button>` : ''}
           </div>
         `;
-        showNotification("Karta uspešno pronađena u bazi!", "success");
-      } else {
-        panel.innerHTML = `
-          <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5 text-rose-800 text-center space-y-3">
-            <span class="text-3xl block">❌</span>
-            <h4 class="text-sm font-black">NEPOSTOJEĆI KOD KARTE</h4>
-            <p class="text-xs">Kod <strong class="font-mono text-rose-950">${cleanCode}</strong> ne postoji u lokalnoj bazi.</p>
-          </div>
-        `;
-        showNotification("Karta nije pronađena!", "error");
       }
     }
 
     window.checkInBooking = async function(bookingId) {
       state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, status: 'iskorišćena' } : b);
-      localStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
-
-      const b = state.bookings.find(bk => bk.id === bookingId);
-
-      if (state.isOnline && state.user) {
-        try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId);
-          await updateDoc(docRef, { status: 'iskorišćena' });
-          showNotification("Dolazak uspešno evidentiran!", "success");
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        const queueItem = { ...b, status: 'iskorišćena' };
-        state.syncQueue.push(queueItem);
-        localStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
-        showNotification("Čekiranje upisano offline. Sinhronizacija sledi.", "info");
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+      if (state.isOnline && state.user && firebaseActive) {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { status: 'iskorišćena' });
       }
-
       verifyBookingCode(bookingId);
       renderUI();
     }
 
     safeAddEventListener('btn-verify-manual', 'click', () => {
-      const inputEl = document.getElementById('scanner-manual-input');
-      const code = inputEl ? inputEl.value : '';
-      verifyBookingCode(code);
+      verifyBookingCode(document.getElementById('scanner-manual-input').value);
     });
 
-    window.startCallSimulation = function(name, phone) {
-      const simName = document.getElementById('sim-call-name');
-      const simPhone = document.getElementById('sim-call-phone');
-      const panel = document.getElementById('simulated-call-panel');
-
-      if (simName) simName.innerText = name;
-      if (simPhone) simPhone.innerText = phone;
-      if (panel) panel.classList.remove('hidden');
-
-      window.location.href = `tel:${phone}`;
-
-      setTimeout(() => {
-        if (panel) panel.classList.add('hidden');
-      }, 5000);
-    }
-
-    safeAddEventListener('btn-sim-call-close', 'click', () => {
-      const panel = document.getElementById('simulated-call-panel');
-      if (panel) panel.classList.add('hidden');
-    });
-
-    // --- RENDER GLAVNOG KORISNIČKOG INTERFEJSA ---
     function renderUI() {
-      // 1. RENDER KATEGORIJA NA NASLOVNOJ
-      const filterContainer = document.getElementById('categories-filter-container');
-      if (filterContainer) {
-        let catHTML = `
-          <button onclick="selectCategory('all')" class="px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-            state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200'
-          }">
-            🌐 Sve obuke
-          </button>
-        `;
-
-        state.categories.forEach(cat => {
-          catHTML += `
-            <button onclick="selectCategory('${cat.id}')" class="px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200'
-            }">
-              <span>${cat.icon}</span>
-              <span>${cat.name}</span>
-            </button>
-          `;
-        });
-        filterContainer.innerHTML = catHTML;
-      }
-
-      // 2. RENDER KARTICA ZA OBUKE WITH IMAGES (KORISNIČKI DEO)
       const eventsGrid = document.getElementById('events-grid');
       if (eventsGrid) {
-        const filteredEvents = state.events.filter(e => {
-          const matchesCategory = state.activeCategory === 'all' || e.category === state.activeCategory;
-          const matchesSearch = e.title.toLowerCase().includes(state.searchTerm.toLowerCase()) || 
-                                e.location.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-                                e.description.toLowerCase().includes(state.searchTerm.toLowerCase());
-          return matchesCategory && matchesSearch;
-        });
+        eventsGrid.innerHTML = state.events.map(evt => {
+          const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
+          const remaining = Math.max(0, evt.totalSeats - bookedCount);
+          const headerHTML = evt.image 
+            ? `<div class="h-44 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
+            : `<div class="h-2.5 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
 
-        if (filteredEvents.length === 0) {
-          eventsGrid.innerHTML = `
-            <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
-              <span class="text-4xl block mb-2">🎓</span>
-              <p class="text-sm font-bold text-slate-800">Trenutno nema aktivnih predavanja ili vojnih vežbi</p>
-              <p class="text-xs text-slate-500 mt-0.5">Izaberite drugu kategoriju ili izmenite pretragu.</p>
+          return `
+            <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm">
+              ${headerHTML}
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">${evt.title}</h3>
+                  <p class="text-xs text-slate-500 mt-1">${evt.description}</p>
+                </div>
+                <p class="text-xs font-bold text-slate-700">📍 ${evt.location}<br>📅 ${evt.date} u ${evt.time}h</p>
+                <div class="text-xs font-bold text-slate-400">Slobodno: <span class="text-slate-900">${remaining} mesta</span></div>
+                <button onclick="openBookingModal('${evt.id}')" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">Rezerviši mesto</button>
+              </div>
             </div>
           `;
-        } else {
-          eventsGrid.innerHTML = filteredEvents.map(evt => {
-            const cat = state.categories.find(c => c.id === evt.category) || { name: 'Ostalo', icon: '✨', gradient: 'from-slate-400 to-slate-600' };
-            const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
-            const remaining = Math.max(0, evt.totalSeats - bookedCount);
-            const percent = Math.round((bookedCount / evt.totalSeats) * 100);
-
-            // Renderovanje zaglavlja kartice (Ako postoji kompresovana slika, prikazuje se, u suprotnom podrazumevani gradient)
-            const headerHTML = evt.image 
-              ? `<div class="h-44 w-full relative overflow-hidden">
-                   <img src="${evt.image}" class="w-full h-full object-cover" alt="[Slika obuke: ${evt.title}]" />
-                   <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                 </div>`
-              : `<div class="h-2.5 bg-gradient-to-r ${cat.gradient}"></div>`;
-
-            return `
-              <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition duration-300">
-                ${headerHTML}
-                <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        <span>${cat.icon}</span> ${cat.name}
-                      </span>
-                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        !evt.isActive ? 'bg-rose-50 text-rose-700' : remaining === 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
-                      }">
-                        ${!evt.isActive ? '🔒 Zatvoreno' : remaining === 0 ? '🚫 Popunjeno' : '✅ Otvoreno'}
-                      </span>
-                    </div>
-
-                    <h3 class="text-base font-bold text-slate-900 leading-snug">${evt.title}</h3>
-                    <p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">${evt.description}</p>
-                  </div>
-
-                  <div class="border-t border-slate-100 pt-3 space-y-2 text-xs text-slate-600">
-                    <div class="flex items-center gap-1.5"><span class="opacity-80">📍</span> <span class="truncate font-semibold">${evt.location}</span></div>
-                    <div class="flex justify-between items-center">
-                      <div class="flex items-center gap-1.5 font-semibold"><span>📅</span> <span>${evt.date}</span></div>
-                      <div class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-black text-[10px]">⏰ ${evt.time}h</div>
-                    </div>
-                  </div>
-
-                  <!-- Progres mesta -->
-                  <div class="space-y-1">
-                    <div class="flex justify-between text-[11px] font-bold text-slate-500">
-                      <span>Zauzeto mesta:</span>
-                      <span>${bookedCount} / ${evt.totalSeats}</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div class="h-full bg-indigo-600 rounded-full" style="width: ${Math.min(100, percent)}%"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-slate-400 font-bold">
-                      <span>Slobodno:</span>
-                      <span class="text-slate-700 font-black">${remaining} mesta</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onclick="openBookingModal('${evt.id}')"
-                    ${!evt.isActive || remaining === 0 ? 'disabled' : ''}
-                    class="w-full py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                      !evt.isActive || remaining === 0 
-                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
-                    }"
-                  >
-                    <span>✍️</span> <span>Rezerviši svoje mesto</span>
-                  </button>
-
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
+        }).join('');
       }
 
-      // 3. RENDER KORISNIČKIH KARATA ("Moje karte" sekcija)
       const myTicketsGrid = document.getElementById('my-tickets-grid');
       if (myTicketsGrid) {
-        const savedTicketIds = JSON.parse(localStorage.getItem('my_user_tickets') || '[]');
+        const savedTicketIds = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
         const userBookings = state.bookings.filter(b => savedTicketIds.includes(b.id));
-
-        const badgeEl = document.getElementById('badge-my-tickets-count');
-        if (badgeEl) {
-          badgeEl.innerText = userBookings.length;
-          if (userBookings.length > 0) {
-            badgeEl.classList.remove('hidden');
-          } else {
-            badgeEl.classList.add('hidden');
-          }
-        }
-
-        if (userBookings.length === 0) {
-          myTicketsGrid.innerHTML = `
-            <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
-              <span class="text-4xl block mb-2">📋</span>
-              <p class="text-sm font-bold text-slate-800">Nemate aktivnih karata na ovom uređaju</p>
-              <p class="text-xs text-slate-500 mt-0.5">Izvršite rezervaciju ili koristite pretragu iznad da biste uneli vaše aktivne karte.</p>
-            </div>
-          `;
-        } else {
-          myTicketsGrid.innerHTML = userBookings.map(b => `
-            <div class="bg-white rounded-3xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden">
-              <span class="absolute top-4 right-4 text-[9px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">${b.status === 'iskorišćena' ? '✓ Iskorišćena' : 'Aktivna'}</span>
-              <div class="space-y-3">
-                <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-full">${b.eventTitle}</span>
-                <div class="flex items-center gap-3 pt-2">
-                  <div class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-indigo-700 font-black text-xs">${b.firstName[0]}${b.lastName[0]}</div>
-                  <div>
-                    <h4 class="text-sm font-bold text-slate-900">${b.firstName} ${b.lastName}</h4>
-                    <p class="text-[10px] text-slate-500 font-mono">ID: ${b.id}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-4 pt-3 border-t border-slate-100 flex gap-2">
-                <button onclick="viewTicket('${b.id}')" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
-                  🎫 Prikaži QR kartu
-                </button>
-              </div>
-            </div>
-          `).join('');
-        }
-      }
-
-      // 4. RENDER ADMIN POGLEDA ZA UPRAVLJANJE DOGAĐAJIMA
-      const adminEventsList = document.getElementById('admin-events-list');
-      if (adminEventsList) {
-        if (state.events.length === 0) {
-          adminEventsList.innerHTML = `<div class="p-5 text-center text-xs text-slate-400">Nema evidentiranih događaja.</div>`;
-        } else {
-          adminEventsList.innerHTML = state.events.map(evt => {
-            const cat = state.categories.find(c => c.id === evt.category) || { name: 'Ostalo', icon: '✨' };
-            const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
-            const remaining = Math.max(0, evt.totalSeats - bookedCount);
-
-            return `
-              <div class="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/50 transition">
-                <div class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span class="text-[9px] font-black bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full uppercase">${cat.icon} ${cat.name}</span>
-                    <h4 class="text-sm font-black text-slate-900 leading-tight">${evt.title}</h4>
-                  </div>
-                  <p class="text-xs text-slate-500 font-semibold">📍 ${evt.location} | 📅 ${evt.date} u ${evt.time}h</p>
-                  <p class="text-xs text-slate-600">Mesta: <strong class="text-slate-950">${evt.totalSeats}</strong> | Rezervisano: <strong class="text-indigo-600">${bookedCount}</strong> | Slobodno: <strong class="text-emerald-600">${remaining}</strong></p>
-                </div>
-
-                <div class="flex items-center gap-1.5">
-                  <button onclick="toggleEventStatus('${evt.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition ${evt.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
-                    ${evt.isActive ? '🔓 Otvoreno' : '🔒 Zatvoreno'}
-                  </button>
-                  <button onclick="openEditEventModal('${evt.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
-                    ✏️ Izmeni
-                  </button>
-                  <button onclick="deleteEvent('${evt.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition border border-rose-100">
-                    🗑️ Briši
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-
-      // 5. RENDER ADMIN KATEGORIJA
-      const adminCategoriesGrid = document.getElementById('admin-categories-grid');
-      if (adminCategoriesGrid) {
-        adminCategoriesGrid.innerHTML = state.categories.map(cat => `
-          <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">${cat.icon}</span>
-              <div>
-                <p class="text-xs font-bold text-slate-900">${cat.name}</p>
-                <p class="text-[9px] font-mono text-slate-400">ID: ${cat.id}</p>
-              </div>
-            </div>
-            <button onclick="deleteCategory('${cat.id}')" class="text-slate-400 hover:text-rose-600 font-bold text-xs p-1">
-              ❌
-            </button>
+        myTicketsGrid.innerHTML = userBookings.map(b => `
+          <div class="bg-white rounded-3xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm">
+            <h4 class="text-sm font-bold text-slate-900">${b.eventTitle}</h4>
+            <p class="text-xs text-slate-500">Polaznik: ${b.firstName} ${b.lastName}</p>
+            <button onclick="viewTicket('${b.id}')" class="mt-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl">🎫 Prikaži QR kartu</button>
           </div>
         `).join('');
       }
-
-      // 6. RENDER SIMULATORA SKENIRANJA
-      const simList = document.getElementById('scanner-simulation-list');
-      if (simList) {
-        if (state.bookings.length === 0) {
-          simList.innerHTML = `<p class="p-3 text-center text-[10px] text-slate-500">Nema upisanih rezervacija.</p>`;
-        } else {
-          simList.innerHTML = state.bookings.map(b => `
-            <button onclick="simulateScan('${b.id}')" class="w-full text-left p-2 hover:bg-indigo-950 flex justify-between items-center transition border-b border-slate-800">
-              <div>
-                <span class="font-bold text-white">${b.firstName} ${b.lastName}</span>
-                <span class="text-[9px] text-slate-400 block">${b.eventTitle}</span>
-              </div>
-              <span class="font-mono font-black text-indigo-400 bg-indigo-950/80 px-1.5 rounded text-[9px]">${b.id}</span>
-            </button>
-          `).join('');
-        }
-      }
     }
 
-    // Pozovi simulaciju očitavanja klikom na karticu u simulatoru
-    window.simulateScan = function(bookingId) {
-      const inputEl = document.getElementById('scanner-manual-input');
-      if (inputEl) inputEl.value = bookingId;
-      verifyBookingCode(bookingId);
-    }
+    safeAddEventListener('btn-close-booking-modal', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
+    safeAddEventListener('btn-cancel-booking', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
+    safeAddEventListener('btn-close-ticket-modal', 'click', () => document.getElementById('modal-ticket').classList.add('hidden'));
+    safeAddEventListener('btn-close-login', 'click', () => document.getElementById('modal-admin-login').classList.add('hidden'));
+    safeAddEventListener('btn-close-event-modal', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
+    safeAddEventListener('btn-cancel-event', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
 
-    // Selektovanje kategorija na klik
-    window.selectCategory = function(catId) {
-      state.activeCategory = catId;
-      renderUI();
-    }
-
-    // Pretraga u realnom vremenu
-    safeAddEventListener('search-input', 'input', (e) => {
-      state.searchTerm = e.target.value;
-      renderUI();
-    });
-
-    // --- MANUAL TOGGLE MREŽE (ONLINE/OFFLINE SIMULATION) ---
-    safeAddEventListener('btn-toggle-network', 'click', () => {
-      state.isOnline = !state.isOnline;
-      
-      const dot = document.getElementById('network-dot');
-      const txt = document.getElementById('network-text');
-
-      if (state.isOnline) {
-        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-        if (txt) txt.innerText = "Online";
-        showNotification("Mreža je aktivna. Sinhronizujem podatke...", "success");
-        processSyncQueue();
-        startRealtimeSync();
-      } else {
-        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500";
-        if (txt) txt.innerText = "Offline";
-        showNotification("Prebačeno u offline mod. Čekiranje i rezervacije radite lokalno.", "warning");
-      }
-      updateSyncBanner();
-    });
-
-    safeAddEventListener('btn-trigger-sync', 'click', () => {
-      processSyncQueue();
-    });
-
-    // --- ZATVARANJE MODALA ---
-    safeAddEventListener('btn-close-booking-modal', 'click', () => {
-      const modal = document.getElementById('modal-booking');
-      if (modal) modal.classList.add('hidden');
-    });
-    safeAddEventListener('btn-cancel-booking', 'click', () => {
-      const modal = document.getElementById('modal-booking');
-      if (modal) modal.classList.add('hidden');
-    });
-    safeAddEventListener('btn-close-ticket-modal', 'click', () => {
-      const modal = document.getElementById('modal-ticket');
-      if (modal) modal.classList.add('hidden');
-      state.activeViewingTicket = null;
-    });
-    safeAddEventListener('btn-dismiss-ticket', 'click', () => {
-      const modal = document.getElementById('modal-ticket');
-      if (modal) modal.classList.add('hidden');
-      state.activeViewingTicket = null;
-    });
-    safeAddEventListener('btn-close-login', 'click', () => {
-      const modal = document.getElementById('modal-admin-login');
-      if (modal) modal.classList.add('hidden');
-    });
-    safeAddEventListener('btn-close-event-modal', 'click', () => {
-      const modal = document.getElementById('modal-event');
-      if (modal) modal.classList.add('hidden');
-    });
-    safeAddEventListener('btn-cancel-event', 'click', () => {
-      const modal = document.getElementById('modal-event');
-      if (modal) modal.classList.add('hidden');
-    });
-
-    // --- ŠTAMPANJE POTVRDE ---
-    safeAddEventListener('btn-print-ticket', 'click', () => {
-      window.print();
-    });
-
-    // Zatvaranje tosta
-    safeAddEventListener('btn-close-toast', 'click', () => {
-      const toast = document.getElementById('notification-toast');
-      if (toast) toast.classList.add('hidden');
-    });
-
-    // --- POKRETANJE SISTEMA I UČITAVANJE ---
     window.addEventListener('DOMContentLoaded', async () => {
       loadLocalCache();
       await initFirebaseAuthentication();
-
-      onAuthStateChanged(auth, (usr) => {
-        state.user = usr;
-        startRealtimeSync();
-        processSyncQueue();
-      });
+      if (firebaseActive) {
+        onAuthStateChanged(auth, (usr) => {
+          state.user = usr;
+          startRealtimeSync();
+          processSyncQueue();
+        });
+      }
     });
-
   </script>
 </body>
 </html>
