@@ -21,7 +21,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <style>
-    /* Glatke tranzicije */
     .fade-in {
       animation: fadeIn 0.25s ease-out;
     }
@@ -38,7 +37,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-20 md:pb-0">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-24 lg:pb-0">
 
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -49,9 +48,9 @@
         </div>
         <div>
           <h1 class="text-base font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
-            EduBooker <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-mono font-bold">AUTH v4.5</span>
+            EduBooker <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-mono font-bold">AUTH v4.6</span>
           </h1>
-          <p class="text-[11px] text-slate-500 font-medium">Sistem za rezervaciju edukacija i vojnih obuka</p>
+          <p class="text-[11px] text-slate-500 font-medium">Sistem za rezervaciju edukacija i obuka</p>
         </div>
       </div>
 
@@ -81,7 +80,7 @@
         </div>
 
         <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-sm">
-          🔑 Admin mod
+          🔑 Admin Panel
         </button>
 
         <button id="btn-admin-logout" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold px-3 py-1.5 rounded-xl transition border border-rose-200">
@@ -97,7 +96,7 @@
     <span class="text-indigo-700 underline cursor-pointer" id="btn-trigger-sync">Sinhronizuj sada</span>
   </div>
 
-  <div class="bg-white border-b border-slate-200 px-4 py-2 hidden md:block shadow-sm">
+  <div class="bg-white border-b border-slate-200 px-4 py-2 hidden lg:block shadow-sm">
     <div class="max-w-6xl mx-auto flex gap-2">
       <button id="nav-events-desktop" class="nav-btn-desktop active px-4 py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow-sm">
         📅 Dostupne obuke i edukacije
@@ -313,7 +312,10 @@
           <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
           <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
-        <input type="checkbox" id="event-is-active" checked class="w-4 h-4 rounded" /> <label htmlFor="event-is-active" class="text-xs font-bold text-slate-600">Dostupno odmah</label>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="event-is-active" checked class="w-4 h-4 rounded" /> 
+          <label for="event-is-active" class="text-xs font-bold text-slate-600">Dostupno odmah</label>
+        </div>
         <div class="pt-4 flex items-center justify-end gap-2">
           <button type="button" id="btn-cancel-event" class="px-4 py-2 text-slate-500 font-bold">Odustani</button>
           <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">Sačuvaj</button>
@@ -322,7 +324,7 @@
     </div>
   </div>
 
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center justify-around z-40 md:hidden shadow-lg">
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center justify-around z-40 lg:hidden shadow-lg">
     <button id="nav-events-mobile" class="nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1"><span class="text-lg">📅</span><span class="text-[10px] font-bold">Edukacije</span></button>
     <button id="nav-my-tickets-mobile" class="nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 relative"><span class="text-lg">📋</span><span class="text-[10px] font-bold">Moje karte</span><span id="badge-my-tickets-count" class="hidden absolute -top-1.5 right-2.5 bg-indigo-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black">0</span></button>
     <button id="nav-admin-panel-mobile" class="hidden nav-btn-mobile text-slate-400 flex flex-col items-center gap-1"><span class="text-lg">⚙️</span><span class="text-[10px] font-bold">Admin Panel</span></button>
@@ -333,7 +335,6 @@
     import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // TVOJA DETEKTOVANA STRUKTURA I KLJUČEVI SA FIREBASE SERVERA
     const firebaseConfig = {
       apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
       authDomain: "edubooker-umg.firebaseapp.com",
@@ -379,7 +380,7 @@
 
     let state = {
       user: null,
-      googleUser: null, // Čuva profilne podatke sa Google-a (ime, stvarni email, slika)
+      googleUser: null,
       isOnline: true,
       currentTab: 'events',
       adminSubTab: 'events_list',
@@ -419,10 +420,8 @@
       setTimeout(() => { toast.classList.add('hidden'); }, 4000);
     }
 
-    // --- SINHRONIZACIJA OFFLINE REDA ČEKANJA (QUEUE) ---
     async function processSyncQueue() {
       if (!firebaseActive || !state.isOnline || !state.user || state.syncQueue.length === 0) return;
-      
       const remainingQueue = [...state.syncQueue];
       for (const item of state.syncQueue) {
         try {
@@ -431,19 +430,17 @@
           const idx = remainingQueue.findIndex(q => q.id === item.id);
           if (idx > -1) remainingQueue.splice(idx, 1);
         } catch (err) {
-          console.error("Greška pri sinhronizaciji:", err);
+          console.error(err);
         }
       }
       state.syncQueue = remainingQueue;
       safeStorage.setItem('edubooker_sync_queue', JSON.stringify(remainingQueue));
       updateSyncBanner();
-      
       if (remainingQueue.length === 0) {
-        showNotification("Sve lokalno sačuvane rezervacije su uspešno sinhronizovane!", "success");
+        showNotification("Sve lokalne rezervacije su uspešno sinhronizovane!", "success");
       }
     }
 
-    // --- VIZUELNI BANER ZA PROGRES SINHRONIZACIJE ---
     function updateSyncBanner() {
       const banner = document.getElementById('sync-banner');
       const countSpan = document.getElementById('sync-count');
@@ -457,18 +454,13 @@
       }
     }
 
-    // --- INTEGRISANA GOOGLE PRIJAVA ZA KORISNIKE (SABIRANJE BAZA PODATAKA) ---
     safeAddEventListener('btn-google-login', 'click', async () => {
-      if (!firebaseActive) {
-        showNotification("Google prijava nije dostupna u offline radu.", "warning");
-        return;
-      }
+      if (!firebaseActive) return;
       try {
         const result = await signInWithPopup(auth, googleProvider);
         showNotification(`Dobrodošli nazad, ${result.user.displayName}!`, "success");
       } catch (err) {
-        console.error("Greška pri Google prijavi:", err);
-        showNotification("Prijava prekinuta ili odbijena.", "warning");
+        showNotification("Prijava prekinuta.", "warning");
       }
     });
 
@@ -478,7 +470,6 @@
       state.googleUser = null;
       document.getElementById('google-auth-container').classList.remove('hidden');
       document.getElementById('google-user-profile').classList.add('hidden');
-      showNotification("Uspješno ste se odjavili sa Google profila.", "info");
       renderUI();
     });
 
@@ -492,7 +483,7 @@
         state.googleUser = user;
         if (loginBtn) loginBtn.classList.add('hidden');
         if (profileDiv) profileDiv.classList.remove('hidden');
-        if (userImg) userImg.src = user.photoURL || '🎓';
+        if (userImg) userImg.src = user.photoURL || '';
         if (userEmail) userEmail.innerText = user.email;
       } else {
         state.googleUser = null;
@@ -501,7 +492,6 @@
       }
     }
 
-    // --- STRUKTURA PODATAKA ---
     const INITIAL_CATEGORIES = [
       { id: 'edu', name: 'Edukacija', icon: '🎓', gradient: 'from-blue-500 to-indigo-600' },
       { id: 'military', name: 'Vojna obuka', icon: '🪖', gradient: 'from-olive-600 to-green-800' },
@@ -512,7 +502,7 @@
       {
         id: 'ev-1',
         title: 'Seminar: Osnove Veštačke Inteligencije u Edukaciji',
-        description: 'Sveobuhvatni jednodnevni seminar o primeni modernih generativnih AI modela u nastavi i organizaciji učenja.',
+        description: 'Sveobuhvatni jednodnevni seminar o primeni modernih generativnih AI modela u nastavi.',
         location: 'Učionica 3, Edukativni Centar, Novi Sad',
         date: '2026-06-25',
         time: '10:00',
@@ -559,12 +549,32 @@
       });
     }
 
-    // --- REZERVACIJA OBUKE ---
+    safeAddEventListener('event-image-file', 'change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width; let height = img.height;
+          if (width > 600) { height *= 600 / width; width = 600; }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          state.tempEventImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+          const previewDiv = document.getElementById('event-image-preview');
+          if (previewDiv) previewDiv.innerHTML = `<img src="${state.tempEventImageBase64}" class="w-full h-full object-cover rounded-xl" />`;
+        };
+      };
+    });
+
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
       state.selectedEventForBooking = event;
-      
       const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
       const remaining = Math.max(0, event.totalSeats - bookedCount);
 
@@ -577,9 +587,7 @@
 
       if (state.googleUser) {
         if (noticeEl) noticeEl.classList.remove('hidden');
-        if (fNameEl && state.googleUser.displayName) {
-          fNameEl.value = state.googleUser.displayName.split(' ')[0] || '';
-        }
+        if (fNameEl && state.googleUser.displayName) fNameEl.value = state.googleUser.displayName.split(' ')[0] || '';
         if (emailEl) {
           emailEl.value = state.googleUser.email || '';
           emailEl.setAttribute('disabled', 'true');
@@ -588,7 +596,6 @@
         if (noticeEl) noticeEl.classList.add('hidden');
         if (emailEl) emailEl.removeAttribute('disabled');
       }
-
       document.getElementById('modal-booking').classList.remove('hidden');
     }
 
@@ -596,7 +603,6 @@
       e.preventDefault();
       const event = state.selectedEventForBooking;
       if (!event) return;
-      
       const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
       const newBooking = {
         id: bookingId,
@@ -618,7 +624,6 @@
 
       state.bookings = [newBooking, ...state.bookings];
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
-      
       let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       myTickets.push(newBooking.id);
       safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
@@ -626,7 +631,7 @@
       if (state.isOnline && firebaseActive) {
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id), newBooking);
-          showNotification("Rezervacija uspešno zavedena u bazu!", "success");
+          showNotification("Rezervacija uspešno zavedena!", "success");
         } catch (err) {
           state.syncQueue.push(newBooking);
           safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
@@ -635,7 +640,6 @@
         state.syncQueue.push(newBooking);
         safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
       }
-
       document.getElementById('modal-booking').classList.add('hidden');
       document.getElementById('form-submit-booking').reset();
       renderUI();
@@ -661,7 +665,54 @@
       if (b) openTicketModal(b);
     }
 
-    // --- KONTROLA TABOVA ---
+    safeAddEventListener('btn-download-ticket-img', 'click', () => {
+      const b = state.activeViewingTicket; if (!b) return;
+      const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 560;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, 400, 560);
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(15, 15, 370, 530, 24); ctx.fill();
+      ctx.fillStyle = '#4f46e5'; ctx.beginPath(); ctx.roundRect(15, 15, 370, 80, [24, 24, 0, 0]); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('EduBooker POTVRDA', 40, 60);
+      const qrCanvas = document.getElementById('ticket-qr-canvas');
+      if (qrCanvas) ctx.drawImage(qrCanvas, 120, 370, 160, 160);
+      const link = document.createElement('a'); link.download = `Karta-${b.id}.jpg`; link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
+    });
+
+    safeAddEventListener('btn-share-ticket', 'click', () => {
+      const b = state.activeViewingTicket; if (!b) return;
+      const text = `Karta: ${b.eventTitle}\nKod: ${b.id}`;
+      if (navigator.share) navigator.share({ title: 'Karta', text: text });
+      else window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    });
+
+    safeAddEventListener('btn-admin-access', 'click', () => {
+      if (state.isAdminAuthenticated) switchTab('admin');
+      else document.getElementById('modal-admin-login').classList.remove('hidden');
+    });
+
+    safeAddEventListener('btn-submit-login', 'click', () => {
+      if (document.getElementById('admin-pin-input').value === '1234') {
+        state.isAdminAuthenticated = true;
+        document.getElementById('modal-admin-login').classList.add('hidden');
+        document.getElementById('nav-admin-panel-desktop').classList.remove('hidden');
+        document.getElementById('nav-admin-panel-mobile').classList.remove('hidden');
+        document.getElementById('btn-admin-access').classList.add('hidden');
+        document.getElementById('btn-admin-logout').classList.remove('hidden');
+        switchTab('admin');
+      } else {
+        document.getElementById('admin-login-error').classList.remove('hidden');
+      }
+    });
+
+    safeAddEventListener('btn-admin-logout', 'click', () => {
+      state.isAdminAuthenticated = false;
+      document.getElementById('nav-admin-panel-desktop').classList.add('hidden');
+      document.getElementById('nav-admin-panel-mobile').classList.add('hidden');
+      document.getElementById('btn-admin-access').classList.remove('hidden');
+      document.getElementById('btn-admin-logout').classList.add('hidden');
+      switchTab('events');
+    });
+
     function switchTab(tabId) {
       state.currentTab = tabId;
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
@@ -677,8 +728,111 @@
     safeAddEventListener('nav-my-tickets-mobile', 'click', () => switchTab('my-tickets'));
     safeAddEventListener('nav-admin-panel-mobile', 'click', () => switchTab('admin'));
 
-    // --- RENDER UI ---
+    function switchAdminSubTab(subTabId) {
+      state.adminSubTab = subTabId;
+      document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
+      const activeSubTabEl = document.getElementById(`admin-view-${subTabId}`);
+      if (activeSubTabEl) activeSubTabEl.classList.remove('hidden');
+      renderUI();
+    }
+
+    safeAddEventListener('admin-subnav-events', 'click', () => switchAdminSubTab('events'));
+    safeAddEventListener('admin-subnav-categories', 'click', () => switchAdminSubTab('categories'));
+    safeAddEventListener('admin-subnav-scanner', 'click', () => switchAdminSubTab('scanner'));
+
+    // --- POPRAVLJENO OTVARANJE I KREIRANJE MODALA DOGAĐAJA ---
+    safeAddEventListener('btn-create-event', 'click', () => {
+      state.editingEventId = null;
+      state.tempEventImageBase64 = '';
+      const form = document.getElementById('form-submit-event');
+      if (form) form.reset();
+      
+      const preview = document.getElementById('event-image-preview');
+      if (preview) preview.innerHTML = "🖼️";
+
+      document.getElementById('modal-event-action-title').innerText = "Nova obuka";
+      
+      const select = document.getElementById('event-category');
+      if (select) {
+        select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+      }
+      document.getElementById('modal-event').classList.remove('hidden');
+    });
+
+    safeAddEventListener('form-submit-event', 'submit', async (e) => {
+      e.preventDefault();
+      const id = state.editingEventId || `ev-${Date.now()}`;
+      const newEvent = {
+        id: id,
+        title: document.getElementById('event-title').value.trim(),
+        description: document.getElementById('event-description').value.trim(),
+        category: document.getElementById('event-category').value || 'edu',
+        totalSeats: Number(document.getElementById('event-total-seats').value),
+        location: document.getElementById('event-location').value.trim(),
+        date: document.getElementById('event-date').value,
+        time: document.getElementById('event-time').value,
+        image: state.tempEventImageBase64 || '',
+        isActive: document.getElementById('event-is-active').checked
+      };
+
+      state.events = state.editingEventId ? state.events.map(ev => ev.id === id ? newEvent : ev) : [newEvent, ...state.events];
+      safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
+
+      if (state.isOnline && state.user && firebaseActive) {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), newEvent);
+      }
+      document.getElementById('modal-event').classList.add('hidden');
+      renderUI();
+    });
+
+    window.verifyBookingCode = function(code) {
+      if (!code) return;
+      const cleanCode = code.trim().toUpperCase();
+      const b = state.bookings.find(booking => booking.id === cleanCode);
+      const panel = document.getElementById('scanner-result-panel');
+      if (!panel) return;
+      if (b) {
+        const isUsed = b.status === 'iskorišćena';
+        panel.innerHTML = `
+          <div class="space-y-4">
+            <div class="${isUsed ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'} rounded-2xl p-4">
+              <h4 class="text-sm font-black">${isUsed ? '🟡 KARTA JE VEĆ ISKORIŠĆENA' : '🟢 ISPRAVNA REZERVACIJA'}</h4>
+            </div>
+            <p class="text-xs">Polaznik: <strong>${b.firstName} ${b.lastName}</strong><br>Program: ${b.eventTitle}</p>
+            ${!isUsed ? `<button onclick="checkInBooking('${b.id}')" class="w-full py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold">✓ Evidentiraj dolazak</button>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    window.checkInBooking = async function(bookingId) {
+      state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, status: 'iskorišćena' } : b);
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+      if (state.isOnline && state.user && firebaseActive) {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { status: 'iskorišćena' });
+      }
+      verifyBookingCode(bookingId);
+      renderUI();
+    }
+
+    safeAddEventListener('btn-verify-manual', 'click', () => {
+      verifyBookingCode(document.getElementById('scanner-manual-input').value);
+    });
+
+    safeAddEventListener('btn-trigger-sync', 'click', () => {
+      processSyncQueue();
+    });
+
     function renderUI() {
+      const filterContainer = document.getElementById('categories-filter-container');
+      if (filterContainer) {
+        let catHTML = `<button onclick="selectCategory('all')" class="px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200'}">🌐 Sve obuke</button>`;
+        state.categories.forEach(cat => {
+          catHTML += `<button onclick="selectCategory('${cat.id}')" class="px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200'}"><span>${cat.icon}</span> <span>${cat.name}</span></button>`;
+        });
+        filterContainer.innerHTML = catHTML;
+      }
+
       const eventsGrid = document.getElementById('events-grid');
       if (eventsGrid) {
         eventsGrid.innerHTML = state.events.map(evt => {
@@ -722,46 +876,29 @@
           </div>
         `).join('');
       }
-    }
 
-    // AUTORIZACIJA ADMINA (PIN: 1234)
-    safeAddEventListener('btn-admin-access', 'click', () => {
-      if (state.isAdminAuthenticated) switchTab('admin');
-      else document.getElementById('modal-admin-login').classList.remove('hidden');
-    });
-
-    safeAddEventListener('btn-submit-login', 'click', () => {
-      if (document.getElementById('admin-pin-input').value === '1234') {
-        state.isAdminAuthenticated = true;
-        document.getElementById('modal-admin-login').classList.add('hidden');
-        document.getElementById('nav-admin-panel-desktop').classList.remove('hidden');
-        document.getElementById('nav-admin-panel-mobile').classList.remove('hidden');
-        document.getElementById('btn-admin-access').classList.add('hidden');
-        document.getElementById('btn-admin-logout').classList.remove('hidden');
-        switchTab('admin');
-      } else {
-        document.getElementById('admin-login-error').classList.remove('hidden');
+      const adminEventsList = document.getElementById('admin-events-list');
+      if (adminEventsList) {
+        adminEventsList.innerHTML = state.events.map(evt => {
+          const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
+          return `
+            <div class="p-4 flex items-center justify-between hover:bg-slate-50">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900">${evt.title}</h4>
+                <p class="text-xs text-slate-500">📍 ${evt.location} | Rezervisano: <strong>${bookedCount}/${evt.totalSeats}</strong></p>
+              </div>
+            </div>
+          `;
+        }).join('');
       }
-    });
-
-    safeAddEventListener('btn-admin-logout', 'click', () => {
-      state.isAdminAuthenticated = false;
-      document.getElementById('nav-admin-panel-desktop').classList.add('hidden');
-      document.getElementById('nav-admin-panel-mobile').classList.add('hidden');
-      document.getElementById('btn-admin-access').classList.remove('hidden');
-      document.getElementById('btn-admin-logout').classList.add('hidden');
-      switchTab('events');
-    });
-
-    // Povezivanje sinhronizacije na klik banera
-    safeAddEventListener('btn-trigger-sync', 'click', () => {
-      processSyncQueue();
-    });
+    }
 
     safeAddEventListener('btn-close-booking-modal', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
     safeAddEventListener('btn-cancel-booking', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
     safeAddEventListener('btn-close-ticket-modal', 'click', () => document.getElementById('modal-ticket').classList.add('hidden'));
     safeAddEventListener('btn-close-login', 'click', () => document.getElementById('modal-admin-login').classList.add('hidden'));
+    safeAddEventListener('btn-close-event-modal', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
+    safeAddEventListener('btn-cancel-event', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
 
     window.addEventListener('DOMContentLoaded', async () => {
       loadLocalCache();
