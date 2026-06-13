@@ -29,7 +29,6 @@
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    /* Sakrivanje scrollbar-a za horizontalne kategorije */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -50,27 +49,42 @@
         </div>
         <div>
           <h1 class="text-base font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
-            EduBooker <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-mono font-bold">LITE v4.0</span>
+            EduBooker <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-mono font-bold">AUTH v4.5</span>
           </h1>
-          <p class="text-[11px] text-slate-500 font-medium">Sistem za rezervaciju edukacija, obuka, događaja</p>
+          <p class="text-[11px] text-slate-500 font-medium">Sistem za rezervaciju edukacija i vojnih obuka</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5">
+      <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2.5">
         
-        <div class="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
-          <span id="network-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
-          <span id="network-text" class="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Inicijalizacija...</span>
-          <button id="btn-toggle-network" class="text-[9px] font-bold bg-white hover:bg-slate-50 text-indigo-600 px-2 py-0.5 rounded-full border border-slate-200 shadow-sm ml-1 transition">
-            Simuliraj fiksno
+        <div id="google-auth-container" class="flex items-center">
+          <button id="btn-google-login" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-2 shadow-xs">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Prijava preko Google-a</span>
           </button>
+          
+          <div id="google-user-profile" class="hidden items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-xl p-1 pr-2.5">
+            <img id="google-user-img" src="" class="w-6 h-6 rounded-lg object-cover" />
+            <span id="google-user-email" class="text-[10px] font-bold text-indigo-950 truncate max-w-[120px]">...</span>
+            <button id="btn-google-logout" class="text-[10px] text-indigo-600 hover:text-indigo-900 ml-1 font-bold">✕</button>
+          </div>
         </div>
 
-        <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-sm">
-          🔑 Admin panel
+        <div class="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-1">
+          <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span id="network-text" class="text-[9px] font-black text-slate-700 uppercase tracking-wider">Provera...</span>
+        </div>
+
+        <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-sm">
+          🔑 Admin mod
         </button>
 
-        <button id="btn-admin-logout" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1 border border-rose-200">
+        <button id="btn-admin-logout" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold px-3 py-1.5 rounded-xl transition border border-rose-200">
           🚪 Izlaz (Admin)
         </button>
       </div>
@@ -85,13 +99,13 @@
 
   <div class="bg-white border-b border-slate-200 px-4 py-2 hidden md:block shadow-sm">
     <div class="max-w-6xl mx-auto flex gap-2">
-      <button id="nav-events-desktop" class="nav-btn-desktop active px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-sm">
+      <button id="nav-events-desktop" class="nav-btn-desktop active px-4 py-2 rounded-lg text-sm font-bold transition bg-indigo-600 text-white shadow-sm">
         📅 Dostupne obuke i edukacije
       </button>
-      <button id="nav-my-tickets-desktop" class="nav-btn-desktop px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+      <button id="nav-my-tickets-desktop" class="nav-btn-desktop px-4 py-2 rounded-lg text-sm font-bold transition text-slate-600 hover:text-slate-900 hover:bg-slate-50">
         📋 Moje rezervacije i karte
       </button>
-      <button id="nav-admin-panel-desktop" class="hidden nav-btn-desktop px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+      <button id="nav-admin-panel-desktop" class="hidden nav-btn-desktop px-4 py-2 rounded-lg text-sm font-bold transition text-slate-600 hover:text-slate-900 hover:bg-slate-50">
         ⚙️ Administracija
       </button>
     </div>
@@ -103,121 +117,87 @@
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
         <div class="relative">
           <span class="absolute left-3.5 top-3.5 text-slate-400">🔍</span>
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Pretražite po nazivu obuke, predavaču ili lokaciji..."
-            class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
+          <input id="search-input" type="text" placeholder="Pretražite po nazivu obuke, predavaču ili lokaciji..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
         </div>
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" id="categories-filter-container">
-          </div>
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar" id="categories-filter-container"></div>
       </div>
-      <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        </div>
+      <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
     <section id="tab-my-tickets" class="tab-section hidden space-y-6 fade-in">
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 class="text-xl font-bold text-slate-900">Vaše rezervisane karte i potvrde</h2>
-          <p class="text-slate-500 text-xs mt-1">Ovde se nalaze sve potvrde koje ste uspešno rezervisali. Unesite vaš telefon kako biste ih povukli i preuzeli QR kod.</p>
+          <p class="text-slate-500 text-xs mt-1">Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte!</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto">
-          <input id="search-ticket-phone" type="tel" placeholder="Unesite vaš telefon (npr. 064...)" class="bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
-          <button id="btn-search-my-tickets" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm">Pronađi karte</button>
+          <input id="search-ticket-phone" type="tel" placeholder="Ili pretraži po telefonu..." class="bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none" />
+          <button id="btn-search-my-tickets" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm">Pronađi</button>
         </div>
       </div>
-      <div id="my-tickets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        </div>
+      <div id="my-tickets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
     <section id="tab-admin" class="tab-section hidden space-y-6 fade-in">
       <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap gap-2">
-        <button id="admin-subnav-events" class="admin-subnav-btn active bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition">📅 Upravljanje obukama</button>
-        <button id="admin-subnav-categories" class="admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition">🛠️ Dinamičke Kategorije</button>
-        <button id="admin-subnav-scanner" class="admin-subnav-btn bg-slate-100 text-slate-600 hover:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold transition">🔍 QR Skener & Prijava (Offline)</button>
+        <button id="admin-subnav-events" class="admin-subnav-btn active bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold">📅 Upravljanje obukama</button>
+        <button id="admin-subnav-categories" class="admin-subnav-btn bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold">🛠️ Dinamičke Kategorije</button>
+        <button id="admin-subnav-scanner" class="admin-subnav-btn bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold">🔍 QR Skener & Prijava (Offline)</button>
       </div>
 
       <div id="admin-view-events" class="admin-view space-y-6">
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900">Kontrolna tabla za događaje i mesta</h3>
-            <p class="text-slate-500 text-xs mt-0.5">Otvarajte i zatvarajte kapacitete obuka jednim klikom.</p>
           </div>
-          <button id="btn-create-event" class="w-full md:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
-            <span>➕</span> Novi edukativni događaj
-          </button>
+          <button id="btn-create-event" class="w-full md:w-auto px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">➕ Novi edukativni događaj</button>
         </div>
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-            <h4 class="font-bold text-slate-800 text-xs">Svi registrovani programi u sistemu</h4>
-          </div>
-          <div id="admin-events-list" class="divide-y divide-slate-100">
-            </div>
+          <div id="admin-events-list" class="divide-y divide-slate-100"></div>
         </div>
       </div>
 
       <div id="admin-view-categories" class="admin-view hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
-            <h3 class="font-bold text-slate-900 text-sm">Dodaj novi smer / kategoriju</h3>
+            <h3 class="font-bold text-slate-900 text-sm">Dodaj novi smer</h3>
             <form id="form-create-category" class="space-y-3">
-              <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1">Naziv smera/kategorije *</label>
-                <input id="cat-name-input" type="text" required placeholder="e.g. Vojna akademija, IT obuka" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
-              </div>
+              <input id="cat-name-input" type="text" required placeholder="Naziv smera/kategorije *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
               <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-bold text-slate-500 mb-1">Emoji ikona</label>
-                  <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
-                    <option value="🪖">🪖 Vojna obuka</option>
-                    <option value="🎓">🎓 Edukacija / AI</option>
-                    <option value="🌲">🌲 Priroda / Kamp</option>
-                    <option value="🩹">🩹 Prva pomoć</option>
-                    <option value="⚽">⚽ Sport</option>
-                    <option value="✨">✨ Ostalo</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-slate-500 mb-1">Boja gradijenta</label>
-                  <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
-                    <option value="from-blue-500 to-indigo-600">Indigo / Plava</option>
-                    <option value="from-olive-600 to-green-800">Maslinasto zelena</option>
-                    <option value="from-rose-500 to-red-600">Crvena</option>
-                  </select>
-                </div>
+                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
+                  <option value="🎓">🎓 Edukacija / AI</option>
+                  <option value="🪖">🪖 Vojna obuka</option>
+                  <option value="⚽">⚽ Sport</option>
+                </select>
+                <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
+                  <option value="from-blue-500 to-indigo-600">Plava</option>
+                  <option value="from-olive-600 to-green-800">Maslinasta</option>
+                </select>
               </div>
-              <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">➕ Kreiraj smer i upiši</button>
+              <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">➕ Kreiraj smer</button>
             </form>
           </div>
           <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <h3 class="font-bold text-slate-900 text-sm">Trenutne aktivne kategorije</h3>
             <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
           </div>
         </div>
       </div>
 
       <div id="admin-view-scanner" class="admin-view hidden space-y-6">
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-          <h3 class="text-lg font-bold text-slate-900">Validacija QR karata i evidencija dolazaka</h3>
-        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <h4 class="font-bold text-slate-800 text-sm">Pretraga i unos koda sa karte</h4>
+            <h4 class="font-bold text-slate-800 text-sm">Unos koda sa karte</h4>
             <div class="flex gap-2">
-              <input id="scanner-manual-input" type="text" placeholder="Unesite kod karte ručno (npr. BK-123456)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-indigo-500 font-mono font-bold" />
-              <button id="btn-verify-manual" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">Proveri kod</button>
+              <input id="scanner-manual-input" type="text" placeholder="Unesite kod karte ručno" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-mono font-bold" />
+              <button id="btn-verify-manual" class="bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold">Proveri kod</button>
             </div>
-            <div class="border border-slate-200 rounded-2xl bg-slate-900 aspect-video flex flex-col items-center justify-center p-6 relative overflow-hidden text-center">
-              <div class="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 mb-2 animate-pulse">📷</div>
-              <p class="text-xs font-bold text-white">Simulator optičkog skenera</p>
+            <div class="border border-slate-200 rounded-2xl bg-slate-900 aspect-video flex flex-col items-center justify-center p-6 text-center">
+              <div class="w-12 h-12 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-400 mb-2">📷</div>
               <div id="scanner-simulation-list" class="w-full mt-4 max-h-32 overflow-y-auto border border-slate-700 rounded-xl divide-y divide-slate-800 text-left bg-slate-950 text-xs"></div>
             </div>
           </div>
           <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between" id="scanner-result-panel">
             <div class="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
-              <span class="text-4xl block mb-2">🎫</span>
               <p class="text-xs font-semibold">Čekam očitavanje karte...</p>
             </div>
           </div>
@@ -230,78 +210,80 @@
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4">
       <div class="flex items-start justify-between">
         <div>
-          <span class="text-[9px] uppercase font-black tracking-wider text-indigo-600">Popunjavanje rezervacije</span>
-          <h3 id="modal-booking-title" class="text-lg font-bold text-slate-900 mt-0.5">...</h3>
+          <h3 id="modal-booking-title" class="text-lg font-bold text-slate-900">...</h3>
           <p id="modal-booking-seats" class="text-xs text-slate-500">...</p>
         </div>
-        <button id="btn-close-booking-modal" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-850">🗙</button>
+        <button id="btn-close-booking-modal" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">🗙</button>
       </div>
       <form id="form-submit-booking" class="space-y-3 pt-2">
+        <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-3 rounded-2xl text-xs font-semibold hidden">
+          💡 Prijavljeni ste preko Google-a! Vaš e-mail i ime su automatski osigurani radi bezbednosti i slanja potvrde.
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1">Vaše ime *</label>
-            <input id="booking-firstname" type="text" required placeholder="Unesite ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
+            <input id="booking-firstname" type="text" required placeholder="Unesite ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1">Prezime *</label>
-            <input id="booking-lastname" type="text" required placeholder="Unesite prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
+            <input id="booking-lastname" type="text" required placeholder="Unesite prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
           </div>
         </div>
         <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">Vaš e-mail za potvrdu *</label>
+          <input id="booking-email" type="email" required placeholder="Unesite e-mail adresu" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+        </div>
+        <div>
           <label class="block text-xs font-bold text-slate-500 mb-1">Kontakt telefon *</label>
-          <input id="booking-phone" type="tel" required placeholder="e.g. 064 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
+          <input id="booking-phone" type="tel" required placeholder="e.g. 064 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-500 mb-1">Adresa stanovanja</label>
-          <input id="booking-address" type="text" placeholder="e.g. Novi Sad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500" />
+          <input id="booking-address" type="text" placeholder="e.g. Novi Sad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1">Poruka / Napomena (opcionalno)</label>
-          <textarea id="booking-note" rows="2" placeholder="Unesite napomene..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+          <label class="block text-xs font-bold text-slate-500 mb-1">Napomena uz rezervaciju (opcionalno)</label>
+          <textarea id="booking-note" rows="2" placeholder="Unesite napomene..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none resize-none"></textarea>
         </div>
-        <div id="booking-offline-notice" class="hidden bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[11px] text-amber-800 font-semibold">⚠️ Radi se u lokalnom režimu. Karta će biti sačuvana na uređaju.</div>
         <div class="pt-4 flex items-center justify-end gap-2">
-          <button type="button" id="btn-cancel-booking" class="px-4 py-2 text-slate-500 hover:text-slate-800 text-xs font-bold transition">Odustani</button>
-          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition">Potvrdi rezervaciju</button>
+          <button type="button" id="btn-cancel-booking" class="px-4 py-2 text-slate-500 font-bold">Odustani</button>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">Potvrdi i preuzmi QR kartu</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div id="modal-ticket" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+  <div id="modal-ticket" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4 relative">
-      <button id="btn-close-ticket-modal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800">🗙</button>
-      <div class="pt-2">
-        <span class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mx-auto mb-2 font-bold">✓</span>
-        <h3 class="text-base font-bold text-slate-900">Uspešna Rezervacija</h3>
-      </div>
+      <button id="btn-close-ticket-modal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">🗙</button>
+      <h3 class="text-base font-bold text-slate-900">Mesto Uspešno Rezervisano!</h3>
       <div id="physical-ticket-card" class="border border-slate-200 rounded-2xl bg-white p-4 text-left space-y-3 relative shadow-inner">
-        <span class="text-[9px] font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded" id="ticket-id-badge">KOD: BK-000000</span>
+        <span class="text-[9px] font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded" id="ticket-id-badge">...</span>
         <h4 class="text-sm font-bold text-slate-900 mt-1" id="ticket-event-title">...</h4>
         <div class="border-t border-dashed border-slate-200 pt-3 text-xs space-y-1.5 text-slate-600">
           <p><strong>Polaznik:</strong> <span id="ticket-user-name">...</span></p>
+          <p><strong>E-mail:</strong> <span id="ticket-user-email">...</span></p>
           <p><strong>Vreme:</strong> <span id="ticket-datetime">...</span></p>
-          <p class="truncate"><strong>Lokacija:</strong> <span id="ticket-location">...</span></p>
         </div>
         <div class="flex justify-center pt-2">
           <canvas id="ticket-qr-canvas" class="bg-white p-2 rounded-xl border border-slate-200"></canvas>
         </div>
       </div>
       <div class="flex flex-col gap-2">
-        <button id="btn-download-ticket-img" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">💾 Preuzmi u galeriju (Slika)</button>
-        <button id="btn-share-ticket" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">📱 Podeli kartu</button>
+        <button id="btn-download-ticket-img" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm">💾 Preuzmi u galeriju (Slika)</button>
+        <button id="btn-share-ticket" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm">📱 Podeli kartu polazniku</button>
       </div>
     </div>
   </div>
 
   <div id="modal-admin-login" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl space-y-4 text-center">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
       <h3 class="text-base font-bold text-slate-900">Autorizacija Sekretara</h3>
       <input id="admin-pin-input" type="password" maxlength="4" placeholder="••••" class="w-28 text-center text-2xl tracking-widest bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none" />
-      <div class="text-[10px] text-rose-500 font-bold hidden" id="admin-login-error">Netačan PIN! (Default: 1234)</div>
+      <div class="text-[10px] text-rose-500 font-bold hidden" id="admin-login-error">Netačan PIN! (1234)</div>
       <div class="flex gap-2 pt-2">
-        <button id="btn-close-login" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">Poništi</button>
-        <button id="btn-submit-login" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">Otključaj</button>
+        <button id="btn-close-login" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold">Poništi</button>
+        <button id="btn-submit-login" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">Otključaj</button>
       </div>
     </div>
   </div>
@@ -313,49 +295,30 @@
         <button id="btn-close-event-modal" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">🗙</button>
       </div>
       <form id="form-submit-event" class="space-y-3 pt-1">
-        <input id="event-title" type="text" required placeholder="Naziv predavanja ili obuke *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
-        
-        <div>
-          <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-            <div id="event-image-preview" class="w-16 h-16 rounded-xl bg-slate-200 flex items-center justify-center overflow-hidden shrink-0">🖼️</div>
-            <div class="flex-1 space-y-1">
-              <input type="file" id="event-image-file" accept="image/*" class="hidden" />
-              <button type="button" onclick="document.getElementById('event-image-file').click()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold shadow-xs">Izaberi sliku</button>
-              <p id="event-image-status" class="text-[10px] text-slate-400">Slika nije odabrana.</p>
-            </div>
+        <input id="event-title" type="text" required placeholder="Naziv obuke *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+          <div id="event-image-preview" class="w-16 h-16 rounded-xl bg-slate-200 flex items-center justify-center overflow-hidden">🖼️</div>
+          <div class="flex-1 space-y-1">
+            <input type="file" id="event-image-file" accept="image/*" class="hidden" />
+            <button type="button" onclick="document.getElementById('event-image-file').click()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">Izaberi sliku</button>
           </div>
         </div>
-
-        <textarea id="event-description" rows="2" placeholder="Detaljan plan i opis obuke..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none resize-none"></textarea>
+        <textarea id="event-description" rows="2" placeholder="Opis obuke..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none resize-none"></textarea>
         <div class="grid grid-cols-2 gap-3">
           <select id="event-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none"></select>
-          <input id="event-total-seats" type="number" min="1" required placeholder="Ukupan kapacitet mesta *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+          <input id="event-total-seats" type="number" min="1" required placeholder="Mesta *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
-        <input id="event-location" type="text" required placeholder="Lokacija / Mesto izvođenja *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
+        <input id="event-location" type="text" required placeholder="Lokacija *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         <div class="grid grid-cols-2 gap-3">
           <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
           <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" />
         </div>
-        <div class="flex items-center gap-2">
-          <input type="checkbox" id="event-is-active" checked class="w-4 h-4 text-indigo-600 rounded" />
-          <label htmlFor="event-is-active" class="text-xs font-bold text-slate-600">Aktivno odmah za rezervisanje</label>
-        </div>
+        <input type="checkbox" id="event-is-active" checked class="w-4 h-4 rounded" /> <label htmlFor="event-is-active" class="text-xs font-bold text-slate-600">Dostupno odmah</label>
         <div class="pt-4 flex items-center justify-end gap-2">
           <button type="button" id="btn-cancel-event" class="px-4 py-2 text-slate-500 font-bold">Odustani</button>
           <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-md">Sačuvaj</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <div id="custom-confirm-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
-      <h3 id="confirm-title" class="text-base font-bold text-slate-900">Potvrdite akciju</h3>
-      <p id="confirm-message" class="text-xs text-slate-500">Da li ste sigurni?</p>
-      <div class="flex gap-2 pt-2">
-        <button id="btn-confirm-no" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold">Otkaži</button>
-        <button id="btn-confirm-yes" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">Da, potvrđujem</button>
-      </div>
     </div>
   </div>
 
@@ -367,21 +330,18 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // =========================================================================
-    // 🔴 OVDE MENJAŠ PODATKE KADA PRENOSIŠ NA DRUGI FIREBASE SERVER 🔴
-    // =========================================================================
+    // TVOJA DETEKTOVANA STRUKTURA I KLJUČEVI SA FIREBASE SERVERA
     const firebaseConfig = {
-      apiKey: "OVDE_UPIŠI_TVOJ_NEW_API_KEY",
-      authDomain: "tvoj-novi-projekat.firebaseapp.com",
-      projectId: "tvoj-novi-projekat-id",
-      storageBucket: "tvoj-novi-projekat.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:123456:web:abcdef123456"
+      apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
+      authDomain: "edubooker-umg.firebaseapp.com",
+      projectId: "edubooker-umg",
+      storageBucket: "edubooker-umg.firebasestorage.app",
+      messagingSenderId: "406523647165",
+      appId: "1:406523647165:web:d4ec882a22f152aeec53d4"
     };
-    // =========================================================================
 
     const safeStorage = {
       getItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
@@ -390,24 +350,17 @@
 
     let app, auth, db;
     let firebaseActive = false;
+    const googleProvider = new GoogleAuthProvider();
 
-    // Funkcija koja proverava i postavlja vizuelni status konekcije na ekranu
     function updateConnectionStatusState(status, message) {
       const dot = document.getElementById('network-dot');
       const txt = document.getElementById('network-text');
       if (dot && txt) {
         txt.innerText = message;
-        if (status === 'online') {
-          dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-        } else if (status === 'offline') {
-          dot.className = "w-2 h-2 rounded-full bg-amber-500";
-        } else {
-          dot.className = "w-2 h-2 rounded-full bg-rose-500";
-        }
+        dot.className = status === 'online' ? "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" : "w-1.5 h-1.5 rounded-full bg-amber-500";
       }
     }
 
-    // Pokušaj inicijalizacije tvoje konfiguracije
     try {
       if (firebaseConfig && firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("OVDE_")) {
         app = initializeApp(firebaseConfig);
@@ -416,42 +369,17 @@
         firebaseActive = true;
         updateConnectionStatusState('online', 'Povezan na Firebase');
       } else {
-        // Ako su ključevi prazni ili nisu zamenjeni, sistem prebacuje u bezbedan lokalni rad
         updateConnectionStatusState('offline', 'Lokalno (Offline)');
       }
     } catch (err) {
-      console.warn("Inicijalizacija baze nije uspela. Sistem radi lokalno.", err);
-      updateConnectionStatusState('error', 'Greška baze (Lokalno)');
+      updateConnectionStatusState('offline', 'Lokalno (Offline)');
     }
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'booking-master-html-app';
-
-    // PODRAZUMEVANA STRANICA I PODACI
-    const INITIAL_CATEGORIES = [
-      { id: 'edu', name: 'Edukacija', icon: '🎓', gradient: 'from-blue-500 to-indigo-600' },
-      { id: 'military', name: 'Vojna obuka', icon: '🪖', gradient: 'from-olive-600 to-green-800' },
-      { id: 'sport', name: 'Vojnički sport', icon: '⚽', gradient: 'from-emerald-500 to-teal-600' },
-      { id: 'gastro', name: 'Gastro', icon: '🍔', gradient: 'from-amber-500 to-orange-600' },
-      { id: 'other', name: 'Ostalo', icon: '✨', gradient: 'from-purple-500 to-violet-600' }
-    ];
-
-    const INITIAL_DUMMY_EVENTS = [
-      {
-        id: 'ev-1',
-        title: 'Seminar: Osnove Veštačke Inteligencije u Edukaciji',
-        description: 'Sveobuhvatni jednodnevni seminar o primeni modernih generativnih AI modela u nastavi i organizaciji učenja.',
-        location: 'Učionica 3, Edukativni Centar, Novi Sad',
-        date: '2026-06-25',
-        time: '10:00',
-        totalSeats: 45,
-        category: 'edu',
-        image: '',
-        isActive: true
-      }
-    ];
+    const appId = 'booking-master-html-app';
 
     let state = {
       user: null,
+      googleUser: null, // Čuva profilne podatke sa Google-a (ime, stvarni email, slika)
       isOnline: true,
       currentTab: 'events',
       adminSubTab: 'events_list',
@@ -467,6 +395,11 @@
       activeViewingTicket: null,
       editingEventId: null
     };
+
+    function safeAddEventListener(id, event, callback) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(event, callback);
+    }
 
     function showNotification(message, type = 'success') {
       const toast = document.getElementById('notification-toast');
@@ -486,23 +419,109 @@
       setTimeout(() => { toast.classList.add('hidden'); }, 4000);
     }
 
-    function safeAddEventListener(id, event, callback) {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener(event, callback);
-    }
-
-    async function initFirebaseAuthentication() {
-      if (!firebaseActive) return;
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
+    // --- SINHRONIZACIJA OFFLINE REDA ČEKANJA (QUEUE) ---
+    async function processSyncQueue() {
+      if (!firebaseActive || !state.isOnline || !state.user || state.syncQueue.length === 0) return;
+      
+      const remainingQueue = [...state.syncQueue];
+      for (const item of state.syncQueue) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', item.id);
+          await setDoc(docRef, { ...item, syncStatus: 'synced' });
+          const idx = remainingQueue.findIndex(q => q.id === item.id);
+          if (idx > -1) remainingQueue.splice(idx, 1);
+        } catch (err) {
+          console.error("Greška pri sinhronizaciji:", err);
         }
-      } catch (err) {
-        updateConnectionStatusState('offline', 'Lokalno (Offline)');
+      }
+      state.syncQueue = remainingQueue;
+      safeStorage.setItem('edubooker_sync_queue', JSON.stringify(remainingQueue));
+      updateSyncBanner();
+      
+      if (remainingQueue.length === 0) {
+        showNotification("Sve lokalno sačuvane rezervacije su uspešno sinhronizovane!", "success");
       }
     }
+
+    // --- VIZUELNI BANER ZA PROGRES SINHRONIZACIJE ---
+    function updateSyncBanner() {
+      const banner = document.getElementById('sync-banner');
+      const countSpan = document.getElementById('sync-count');
+      if (banner && countSpan) {
+        if (state.syncQueue.length > 0) {
+          countSpan.innerText = state.syncQueue.length;
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+    }
+
+    // --- INTEGRISANA GOOGLE PRIJAVA ZA KORISNIKE (SABIRANJE BAZA PODATAKA) ---
+    safeAddEventListener('btn-google-login', 'click', async () => {
+      if (!firebaseActive) {
+        showNotification("Google prijava nije dostupna u offline radu.", "warning");
+        return;
+      }
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        showNotification(`Dobrodošli nazad, ${result.user.displayName}!`, "success");
+      } catch (err) {
+        console.error("Greška pri Google prijavi:", err);
+        showNotification("Prijava prekinuta ili odbijena.", "warning");
+      }
+    });
+
+    safeAddEventListener('btn-google-logout', 'click', async () => {
+      if (!firebaseActive) return;
+      await signOut(auth);
+      state.googleUser = null;
+      document.getElementById('google-auth-container').classList.remove('hidden');
+      document.getElementById('google-user-profile').classList.add('hidden');
+      showNotification("Uspješno ste se odjavili sa Google profila.", "info");
+      renderUI();
+    });
+
+    function handleUserProfileUI(user) {
+      const loginBtn = document.getElementById('btn-google-login');
+      const profileDiv = document.getElementById('google-user-profile');
+      const userImg = document.getElementById('google-user-img');
+      const userEmail = document.getElementById('google-user-email');
+
+      if (user && !user.isAnonymous) {
+        state.googleUser = user;
+        if (loginBtn) loginBtn.classList.add('hidden');
+        if (profileDiv) profileDiv.classList.remove('hidden');
+        if (userImg) userImg.src = user.photoURL || '🎓';
+        if (userEmail) userEmail.innerText = user.email;
+      } else {
+        state.googleUser = null;
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        if (profileDiv) profileDiv.classList.add('hidden');
+      }
+    }
+
+    // --- STRUKTURA PODATAKA ---
+    const INITIAL_CATEGORIES = [
+      { id: 'edu', name: 'Edukacija', icon: '🎓', gradient: 'from-blue-500 to-indigo-600' },
+      { id: 'military', name: 'Vojna obuka', icon: '🪖', gradient: 'from-olive-600 to-green-800' },
+      { id: 'sport', name: 'Vojnički sport', icon: '⚽', gradient: 'from-emerald-500 to-teal-600' }
+    ];
+
+    const INITIAL_DUMMY_EVENTS = [
+      {
+        id: 'ev-1',
+        title: 'Seminar: Osnove Veštačke Inteligencije u Edukaciji',
+        description: 'Sveobuhvatni jednodnevni seminar o primeni modernih generativnih AI modela u nastavi i organizaciji učenja.',
+        location: 'Učionica 3, Edukativni Centar, Novi Sad',
+        date: '2026-06-25',
+        time: '10:00',
+        totalSeats: 45,
+        category: 'edu',
+        image: '',
+        isActive: true
+      }
+    ];
 
     function loadLocalCache() {
       const cachedEvents = safeStorage.getItem('edubooker_events');
@@ -517,23 +536,18 @@
     }
 
     function startRealtimeSync() {
-      if (!firebaseActive || !state.user || !state.isOnline) return;
+      if (!firebaseActive || !state.isOnline) return;
       const eventsRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
       const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
-      const categoriesRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
 
       onSnapshot(eventsRef, (snapshot) => {
         let list = [];
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-        if (list.length === 0) {
-          INITIAL_DUMMY_EVENTS.forEach(async (dev) => {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', dev.id), dev);
-          });
-          list = INITIAL_DUMMY_EVENTS;
+        if (list.length > 0) {
+          state.events = list;
+          safeStorage.setItem('edubooker_events', JSON.stringify(list));
+          renderUI();
         }
-        state.events = list;
-        safeStorage.setItem('edubooker_events', JSON.stringify(list));
-        renderUI();
       });
 
       onSnapshot(bookingsRef, (snapshot) => {
@@ -543,85 +557,38 @@
         safeStorage.setItem('edubooker_bookings', JSON.stringify(list));
         renderUI();
       });
-
-      onSnapshot(categoriesRef, (snapshot) => {
-        const list = [];
-        snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-        if (list.length > 0) {
-          state.categories = list;
-          safeStorage.setItem('edubooker_categories', JSON.stringify(list));
-        }
-        renderUI();
-      });
     }
 
-    async function processSyncQueue() {
-      if (!firebaseActive || !state.isOnline || !state.user || state.syncQueue.length === 0) return;
-      const remainingQueue = [...state.syncQueue];
-      for (const item of state.syncQueue) {
-        try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', item.id);
-          await setDoc(docRef, { ...item, syncStatus: 'synced' });
-          const idx = remainingQueue.findIndex(q => q.id === item.id);
-          if (idx > -1) remainingQueue.splice(idx, 1);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-      state.syncQueue = remainingQueue;
-      safeStorage.setItem('edubooker_sync_queue', JSON.stringify(remainingQueue));
-      updateSyncBanner();
-    }
-
-    function updateSyncBanner() {
-      const banner = document.getElementById('sync-banner');
-      const countSpan = document.getElementById('sync-count');
-      if (banner && countSpan) {
-        if (state.syncQueue.length > 0) {
-          countSpan.innerText = state.syncQueue.length;
-          banner.classList.remove('hidden');
-        } else {
-          banner.classList.add('hidden');
-        }
-      }
-    }
-
-    safeAddEventListener('event-image-file', 'change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const previewDiv = document.getElementById('event-image-preview');
-      const statusText = document.getElementById('event-image-status');
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = function(event) {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          if (width > 600) { height *= 600 / width; width = 600; }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          const base64Compressed = canvas.toDataURL('image/jpeg', 0.6);
-          state.tempEventImageBase64 = base64Compressed;
-          if (previewDiv) previewDiv.innerHTML = `<img src="${base64Compressed}" class="w-full h-full object-cover rounded-xl" />`;
-          if (statusText) statusText.innerText = `Slika uspešno optimizovana!`;
-        };
-      };
-    });
-
+    // --- REZERVACIJA OBUKE ---
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
+      state.selectedEventForBooking = event;
+      
       const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
       const remaining = Math.max(0, event.totalSeats - bookedCount);
-      if (remaining <= 0) return;
-      state.selectedEventForBooking = event;
+
       document.getElementById('modal-booking-title').innerText = event.title;
       document.getElementById('modal-booking-seats').innerText = `Slobodno još: ${remaining} mesta`;
+
+      const fNameEl = document.getElementById('booking-firstname');
+      const emailEl = document.getElementById('booking-email');
+      const noticeEl = document.getElementById('google-form-notice');
+
+      if (state.googleUser) {
+        if (noticeEl) noticeEl.classList.remove('hidden');
+        if (fNameEl && state.googleUser.displayName) {
+          fNameEl.value = state.googleUser.displayName.split(' ')[0] || '';
+        }
+        if (emailEl) {
+          emailEl.value = state.googleUser.email || '';
+          emailEl.setAttribute('disabled', 'true');
+        }
+      } else {
+        if (noticeEl) noticeEl.classList.add('hidden');
+        if (emailEl) emailEl.removeAttribute('disabled');
+      }
+
       document.getElementById('modal-booking').classList.remove('hidden');
     }
 
@@ -629,6 +596,7 @@
       e.preventDefault();
       const event = state.selectedEventForBooking;
       if (!event) return;
+      
       const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
       const newBooking = {
         id: bookingId,
@@ -639,23 +607,26 @@
         eventTime: event.time,
         firstName: document.getElementById('booking-firstname').value.trim(),
         lastName: document.getElementById('booking-lastname').value.trim(),
+        email: document.getElementById('booking-email').value.trim(),
         phone: document.getElementById('booking-phone').value.trim(),
         address: document.getElementById('booking-address').value.trim() || 'Nije navedena',
         note: document.getElementById('booking-note').value.trim(),
+        googleVerified: state.googleUser ? true : false,
         timestamp: new Date().toISOString(),
-        syncStatus: state.isOnline && firebaseActive ? 'synced' : 'pending',
         status: 'aktivna'
       };
 
       state.bookings = [newBooking, ...state.bookings];
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+      
       let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       myTickets.push(newBooking.id);
       safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
 
-      if (state.isOnline && state.user && firebaseActive) {
+      if (state.isOnline && firebaseActive) {
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id), newBooking);
+          showNotification("Rezervacija uspešno zavedena u bazu!", "success");
         } catch (err) {
           state.syncQueue.push(newBooking);
           safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
@@ -667,21 +638,8 @@
 
       document.getElementById('modal-booking').classList.add('hidden');
       document.getElementById('form-submit-booking').reset();
-      updateSyncBanner();
       renderUI();
       openTicketModal(newBooking);
-    });
-
-    safeAddEventListener('btn-search-my-tickets', 'click', () => {
-      const phone = document.getElementById('search-ticket-phone').value.trim();
-      const found = state.bookings.filter(b => b.phone.includes(phone));
-      if (found.length > 0) {
-        let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
-        found.forEach(f => { if (!myTickets.includes(f.id)) myTickets.push(f.id); });
-        safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
-        showNotification("Karte uspešno preuzete!");
-        renderUI();
-      }
     });
 
     function openTicketModal(booking) {
@@ -689,8 +647,8 @@
       document.getElementById('ticket-id-badge').innerText = `KOD: ${booking.id}`;
       document.getElementById('ticket-event-title').innerText = booking.eventTitle;
       document.getElementById('ticket-user-name').innerText = `${booking.firstName} ${booking.lastName}`;
+      document.getElementById('ticket-user-email').innerText = booking.email;
       document.getElementById('ticket-datetime').innerText = `${booking.eventDate} u ${booking.eventTime}h`;
-      document.getElementById('ticket-location').innerText = booking.eventLocation;
       setTimeout(() => {
         const canvas = document.getElementById('ticket-qr-canvas');
         if (canvas) new QRious({ element: canvas, value: booking.id, size: 160, background: '#ffffff', foreground: '#4f46e5', level: 'H' });
@@ -703,62 +661,7 @@
       if (b) openTicketModal(b);
     }
 
-    safeAddEventListener('btn-download-ticket-img', 'click', () => {
-      const b = state.activeViewingTicket;
-      if (!b) return;
-      const canvas = document.createElement('canvas');
-      canvas.width = 400; canvas.height = 560;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, 400, 560);
-      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(15, 15, 370, 530, 24); ctx.fill();
-      ctx.fillStyle = '#4f46e5'; ctx.beginPath(); ctx.roundRect(15, 15, 370, 80, [24, 24, 0, 0]); ctx.fill();
-      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('EduBooker POTVRDA', 40, 60);
-      ctx.fillStyle = '#1e293b'; ctx.font = 'bold 15px sans-serif'; ctx.fillText('KOD KARTE:', 40, 135);
-      ctx.fillStyle = '#4f46e5'; ctx.font = 'bold 18px monospace'; ctx.fillText(b.id, 40, 160);
-      ctx.fillStyle = '#64748b'; ctx.font = 'bold 12px sans-serif'; ctx.fillText('PROGRAM OBUKE', 40, 195);
-      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 14px sans-serif'; ctx.fillText(b.eventTitle.substring(0,35), 40, 215);
-      const qrCanvas = document.getElementById('ticket-qr-canvas');
-      if (qrCanvas) ctx.drawImage(qrCanvas, 120, 370, 160, 160);
-      const link = document.createElement('a');
-      link.download = `Karta-${b.id}.jpg`; link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
-    });
-
-    safeAddEventListener('btn-share-ticket', 'click', () => {
-      const b = state.activeViewingTicket;
-      if (!b) return;
-      const text = `Potvrda za obuku: ${b.eventTitle}\nKod karte: ${b.id}\nDatum: ${b.eventDate}`;
-      if (navigator.share) navigator.share({ title: 'Karta', text: text });
-      else window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-    });
-
-    safeAddEventListener('btn-admin-access', 'click', () => {
-      if (state.isAdminAuthenticated) switchTab('admin');
-      else document.getElementById('modal-admin-login').classList.remove('hidden');
-    });
-
-    safeAddEventListener('btn-submit-login', 'click', () => {
-      if (document.getElementById('admin-pin-input').value === '1234') {
-        state.isAdminAuthenticated = true;
-        document.getElementById('modal-admin-login').classList.add('hidden');
-        document.getElementById('nav-admin-panel-desktop').classList.remove('hidden');
-        document.getElementById('nav-admin-panel-mobile').classList.remove('hidden');
-        document.getElementById('btn-admin-access').classList.add('hidden');
-        document.getElementById('btn-admin-logout').classList.remove('hidden');
-        switchTab('admin');
-      } else {
-        document.getElementById('admin-login-error').classList.remove('hidden');
-      }
-    });
-
-    safeAddEventListener('btn-admin-logout', 'click', () => {
-      state.isAdminAuthenticated = false;
-      document.getElementById('nav-admin-panel-desktop').classList.add('hidden');
-      document.getElementById('nav-admin-panel-mobile').classList.add('hidden');
-      document.getElementById('btn-admin-access').classList.remove('hidden');
-      document.getElementById('btn-admin-logout').classList.add('hidden');
-      switchTab('events');
-    });
-
+    // --- KONTROLA TABOVA ---
     function switchTab(tabId) {
       state.currentTab = tabId;
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
@@ -774,78 +677,7 @@
     safeAddEventListener('nav-my-tickets-mobile', 'click', () => switchTab('my-tickets'));
     safeAddEventListener('nav-admin-panel-mobile', 'click', () => switchTab('admin'));
 
-    function switchAdminSubTab(subTabId) {
-      state.adminSubTab = subTabId;
-      document.querySelectorAll('.admin-view').forEach(v => v.classList.add('hidden'));
-      const activeSubTabEl = document.getElementById(`admin-view-${subTabId}`);
-      if (activeSubTabEl) activeSubTabEl.classList.remove('hidden');
-      renderUI();
-    }
-
-    safeAddEventListener('admin-subnav-events', 'click', () => switchAdminSubTab('events'));
-    safeAddEventListener('admin-subnav-categories', 'click', () => switchAdminSubTab('categories'));
-    safeAddEventListener('admin-subnav-scanner', 'click', () => switchAdminSubTab('scanner'));
-
-    safeAddEventListener('form-submit-event', 'submit', async (e) => {
-      e.preventDefault();
-      const id = state.editingEventId || `ev-${Date.now()}`;
-      const newEvent = {
-        id: id,
-        title: document.getElementById('event-title').value.trim(),
-        description: document.getElementById('event-description').value.trim(),
-        category: document.getElementById('event-category').value,
-        totalSeats: Number(document.getElementById('event-total-seats').value),
-        location: document.getElementById('event-location').value.trim(),
-        date: document.getElementById('event-date').value,
-        time: document.getElementById('event-time').value,
-        image: state.tempEventImageBase64 || '',
-        isActive: document.getElementById('event-is-active').checked
-      };
-
-      state.events = state.editingEventId ? state.events.map(ev => ev.id === id ? newEvent : ev) : [newEvent, ...state.events];
-      safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
-
-      if (state.isOnline && state.user && firebaseActive) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), newEvent);
-      }
-      document.getElementById('modal-event').classList.add('hidden');
-      renderUI();
-    });
-
-    window.verifyBookingCode = function(code) {
-      if (!code) return;
-      const cleanCode = code.trim().toUpperCase();
-      const b = state.bookings.find(booking => booking.id === cleanCode);
-      const panel = document.getElementById('scanner-result-panel');
-      if (!panel) return;
-      if (b) {
-        const isUsed = b.status === 'iskorišćena';
-        panel.innerHTML = `
-          <div class="space-y-4">
-            <div class="${isUsed ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'} rounded-2xl p-4">
-              <h4 class="text-sm font-black">${isUsed ? '🟡 KARTA JE VEĆ ISKORIŠĆENA' : '🟢 ISPRAVNA REZERVACIJA'}</h4>
-            </div>
-            <p class="text-xs">Polaznik: <strong>${b.firstName} ${b.lastName}</strong><br>Program: ${b.eventTitle}</p>
-            ${!isUsed ? `<button onclick="checkInBooking('${b.id}')" class="w-full py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold">✓ Evidentiraj dolazak</button>` : ''}
-          </div>
-        `;
-      }
-    }
-
-    window.checkInBooking = async function(bookingId) {
-      state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, status: 'iskorišćena' } : b);
-      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
-      if (state.isOnline && state.user && firebaseActive) {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { status: 'iskorišćena' });
-      }
-      verifyBookingCode(bookingId);
-      renderUI();
-    }
-
-    safeAddEventListener('btn-verify-manual', 'click', () => {
-      verifyBookingCode(document.getElementById('scanner-manual-input').value);
-    });
-
+    // --- RENDER UI ---
     function renderUI() {
       const eventsGrid = document.getElementById('events-grid');
       if (eventsGrid) {
@@ -876,30 +708,67 @@
       const myTicketsGrid = document.getElementById('my-tickets-grid');
       if (myTicketsGrid) {
         const savedTicketIds = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
-        const userBookings = state.bookings.filter(b => savedTicketIds.includes(b.id));
+        const userBookings = state.bookings.filter(b => {
+          const matchesLocalCache = savedTicketIds.includes(b.id);
+          const matchesGoogleEmail = state.googleUser && b.email === state.googleUser.email;
+          return matchesLocalCache || matchesGoogleEmail;
+        });
+        
         myTicketsGrid.innerHTML = userBookings.map(b => `
           <div class="bg-white rounded-3xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm">
             <h4 class="text-sm font-bold text-slate-900">${b.eventTitle}</h4>
-            <p class="text-xs text-slate-500">Polaznik: ${b.firstName} ${b.lastName}</p>
+            <p class="text-xs text-slate-500">Polaznik: ${b.firstName} ${b.lastName} (${b.email})</p>
             <button onclick="viewTicket('${b.id}')" class="mt-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl">🎫 Prikaži QR kartu</button>
           </div>
         `).join('');
       }
     }
 
+    // AUTORIZACIJA ADMINA (PIN: 1234)
+    safeAddEventListener('btn-admin-access', 'click', () => {
+      if (state.isAdminAuthenticated) switchTab('admin');
+      else document.getElementById('modal-admin-login').classList.remove('hidden');
+    });
+
+    safeAddEventListener('btn-submit-login', 'click', () => {
+      if (document.getElementById('admin-pin-input').value === '1234') {
+        state.isAdminAuthenticated = true;
+        document.getElementById('modal-admin-login').classList.add('hidden');
+        document.getElementById('nav-admin-panel-desktop').classList.remove('hidden');
+        document.getElementById('nav-admin-panel-mobile').classList.remove('hidden');
+        document.getElementById('btn-admin-access').classList.add('hidden');
+        document.getElementById('btn-admin-logout').classList.remove('hidden');
+        switchTab('admin');
+      } else {
+        document.getElementById('admin-login-error').classList.remove('hidden');
+      }
+    });
+
+    safeAddEventListener('btn-admin-logout', 'click', () => {
+      state.isAdminAuthenticated = false;
+      document.getElementById('nav-admin-panel-desktop').classList.add('hidden');
+      document.getElementById('nav-admin-panel-mobile').classList.add('hidden');
+      document.getElementById('btn-admin-access').classList.remove('hidden');
+      document.getElementById('btn-admin-logout').classList.add('hidden');
+      switchTab('events');
+    });
+
+    // Povezivanje sinhronizacije na klik banera
+    safeAddEventListener('btn-trigger-sync', 'click', () => {
+      processSyncQueue();
+    });
+
     safeAddEventListener('btn-close-booking-modal', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
     safeAddEventListener('btn-cancel-booking', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
     safeAddEventListener('btn-close-ticket-modal', 'click', () => document.getElementById('modal-ticket').classList.add('hidden'));
     safeAddEventListener('btn-close-login', 'click', () => document.getElementById('modal-admin-login').classList.add('hidden'));
-    safeAddEventListener('btn-close-event-modal', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
-    safeAddEventListener('btn-cancel-event', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
 
     window.addEventListener('DOMContentLoaded', async () => {
       loadLocalCache();
-      await initFirebaseAuthentication();
       if (firebaseActive) {
-        onAuthStateChanged(auth, (usr) => {
-          state.user = usr;
+        onAuthStateChanged(auth, (user) => {
+          state.user = user;
+          handleUserProfileUI(user);
           startRealtimeSync();
           processSyncQueue();
         });
