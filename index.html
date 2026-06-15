@@ -23,7 +23,6 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    /* SPAS ZA MOBILNE TELEFONE: Zabranjuje osvežavanje povlačenjem na dole */
     html, body {
       overscroll-behavior-y: none;
     }
@@ -50,7 +49,6 @@
       to { opacity: 1; transform: translateY(0); height: auto; }
     }
 
-    /* Forsiranje kvadratnog oblika videa u skeneru */
     #qrSkener video {
       object-fit: cover !important;
       border-radius: 1rem;
@@ -232,7 +230,7 @@
 
   <div id="modal-scan-result" class="hidden fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 text-center shadow-2xl space-y-4 slide-down" id="scan-result-content">
-        </div>
+    </div>
   </div>
 
   <div id="modal-info" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 overflow-y-auto">
@@ -269,6 +267,23 @@
               💡 Prijavljeni ste preko Google naloga, podaci su automatski popunjeni.
             </div>
 
+            <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm">
+               <div>
+                 <p class="text-base font-bold text-slate-700">Koliko mesta rezervišete?</p>
+                 <p class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1"><span>ℹ️</span> Maksimalno 2 po emailu</p>
+               </div>
+               <div class="flex gap-2">
+                 <label class="flex items-center gap-1 cursor-pointer bg-white px-3 py-2 border border-slate-200 rounded-xl shadow-sm">
+                    <input type="radio" name="booking-quantity" value="1" checked class="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
+                    <span class="text-base font-black text-slate-800">1</span>
+                 </label>
+                 <label id="label-qty-2" class="flex items-center gap-1 cursor-pointer bg-white px-3 py-2 border border-slate-200 rounded-xl shadow-sm">
+                    <input type="radio" name="booking-quantity" value="2" id="radio-qty-2" class="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
+                    <span class="text-base font-black text-slate-800">2</span>
+                 </label>
+               </div>
+            </div>
+
             <div id="wrapper-booking-name" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-base font-bold text-slate-700 mb-1.5">Ime polaznika *</label>
@@ -300,13 +315,9 @@
               <textarea id="booking-note" rows="2" placeholder="Ukoliko imate napomenu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-none"></textarea>
             </div>
 
-            <div class="pt-1">
-               <p class="text-sm font-bold text-rose-600 text-center bg-rose-50 p-3 rounded-xl border border-rose-200 shadow-inner">⚠️ Napomena: Sa jedne email adrese moguće je rezervisati maksimalno 2 karte za isti program.</p>
-            </div>
-
             <div class="pt-3 flex flex-col gap-3 border-t border-slate-100 mt-2">
-              <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-xl shadow-lg transition">POTVRDI I REZERVIŠI</button>
-              <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-xl transition border border-slate-200">✖ Zatvori formu</button>
+              <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-2xl shadow-lg transition">POTVRDI I REZERVIŠI</button>
+              <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-2xl transition border border-slate-200">✖ Zatvori formu</button>
             </div>
           </form>
       </div>
@@ -349,7 +360,7 @@
       <div class="p-5 overflow-y-auto no-scrollbar space-y-3 bg-slate-50" id="attendees-list-container"></div>
       
       <div class="p-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between shrink-0 gap-3 bg-white">
-         <div class="text-base text-slate-500 font-bold w-full sm:w-auto text-center">Ukupno prijava: <span id="attendees-total-count" class="text-slate-900 font-black text-lg ml-1">0</span></div>
+         <div class="text-base text-slate-500 font-bold w-full sm:w-auto text-center">Zauzeto mesta: <span id="attendees-total-count" class="text-slate-900 font-black text-lg ml-1">0</span></div>
          <button onclick="document.getElementById('modal-attendees').classList.add('hidden')" class="w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-black text-white text-base font-black rounded-xl transition shadow-lg">Zatvori spisak</button>
       </div>
     </div>
@@ -790,12 +801,12 @@
     };
 
     window.naUspesnoSkeniranje = function(dekodiranTekst) {
-        if (window.obradjujeSeKod) return; // Ignore if modal is already open
-        window.obradjujeSeKod = true; // Lock scanning
+        if (window.obradjujeSeKod) return;
+        window.obradjujeSeKod = true; 
         window.prikaziRezultatSkeniranja(dekodiranTekst);
     };
 
-    window.naGreskuSkeniranja = function(err) {}; // Ignore background noise
+    window.naGreskuSkeniranja = function(err) {};
 
     window.prikaziRezultatSkeniranja = function(code) {
         const cleanCode = code?.trim().toUpperCase();
@@ -803,32 +814,40 @@
         const content = document.getElementById('scan-result-content');
         
         if (b) {
-            const isUsed = b.status === 'iskorišćena';
-            if (!isUsed) {
+            const maxUlaza = b.ticketsCount || 1;
+            let trenutnoSkenirano = b.scannedCount || 0;
+            
+            // Unazad kompatibilnost: Ako je stara karta označena kao iskorišćena a nema brojač
+            if (b.status === 'iskorišćena' && trenutnoSkenirano === 0) {
+                trenutnoSkenirano = maxUlaza;
+            }
+
+            if (trenutnoSkenirano < maxUlaza) {
                 content.innerHTML = `
                     <div class="bg-emerald-50 text-emerald-700 border-2 border-emerald-200 p-5 rounded-2xl mb-4 shadow-sm">
                         <h4 class="text-2xl font-black tracking-wide">🟢 KARTA ISPRAVNA</h4>
                     </div>
                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Polaznik</p>
                     <p class="text-3xl font-black text-slate-900 leading-tight">${b.firstName} ${b.lastName}</p>
+                    ${maxUlaza > 1 ? `<p class="mt-3 text-lg font-black text-indigo-600 bg-indigo-50 inline-block px-4 py-2 rounded-xl border border-indigo-100">Ulazi ${trenutnoSkenirano + 1}. od ${maxUlaza} osobe</p>` : ''}
                     <div class="mt-4 pt-4 border-t border-slate-100">
                        <p class="text-lg font-bold text-indigo-700 leading-tight">${b.eventTitle}</p>
                        <p class="text-sm font-semibold text-slate-500 mt-1">${b.eventDate} u ${b.eventTime}h</p>
                     </div>
                     <div class="mt-6 flex flex-col gap-3">
-                        <button onclick="potvrdiKartuIzSkenera('${b.id}')" class="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xl font-black shadow-lg transition">✓ POTVRDI KARTU</button>
+                        <button onclick="potvrdiKartuIzSkenera('${b.id}')" class="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xl font-black shadow-lg transition">✓ POTVRDI ULAZ ${maxUlaza > 1 ? `(${trenutnoSkenirano + 1}/${maxUlaza})` : ''}</button>
                         <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-lg font-bold transition">✖ Poništi</button>
                     </div>
                 `;
             } else {
                 content.innerHTML = `
                     <div class="bg-amber-50 text-amber-800 border-2 border-amber-200 p-5 rounded-2xl mb-4 shadow-sm">
-                        <h4 class="text-xl font-black tracking-wide">🟡 VEĆ ISKORIŠĆENA</h4>
+                        <h4 class="text-xl font-black tracking-wide">🟡 KARTA JE POTROŠENA</h4>
                     </div>
                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Polaznik</p>
                     <p class="text-2xl font-black text-slate-900 leading-tight">${b.firstName} ${b.lastName}</p>
                     <p class="text-base font-bold text-indigo-700 mt-2">${b.eventTitle}</p>
-                    <p class="text-sm font-black text-rose-600 mt-3 bg-rose-50 py-2 rounded-lg">Karta je skenirana ranije!</p>
+                    <p class="text-sm font-black text-rose-600 mt-3 bg-rose-50 py-2 rounded-lg border border-rose-100">Iskorišćeno svih ${maxUlaza} ulaza!</p>
                     <div class="mt-6">
                         <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xl font-black shadow-lg transition">NASTAVI SKENIRANJE</button>
                     </div>
@@ -849,11 +868,26 @@
     };
 
     window.potvrdiKartuIzSkenera = async function(bookingId) {
-        state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, status: 'iskorišćena' } : b);
+        state.bookings = state.bookings.map(b => {
+            if (b.id === bookingId) {
+                const maxUlaza = b.ticketsCount || 1;
+                const novoSkenirano = (b.scannedCount || 0) + 1;
+                const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
+                return { ...b, scannedCount: novoSkenirano, status: noviStatus };
+            }
+            return b;
+        });
+        
         safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        
         if (state.isOnline && firebaseActive) {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { status: 'iskorišćena' });
+            const b = state.bookings.find(x => x.id === bookingId);
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { 
+                scannedCount: b.scannedCount,
+                status: b.status
+            });
         }
+        
         zatvoriRezultatSkeniranja();
         showNotification("Ulaz je evidentiran!", "success");
         renderUI();
@@ -861,7 +895,7 @@
 
     window.zatvoriRezultatSkeniranja = function() {
         document.getElementById('modal-scan-result').classList.add('hidden');
-        setTimeout(() => { window.obradjujeSeKod = false; }, 800); // Kratka pauza pre sledećeg skeniranja
+        setTimeout(() => { window.obradjujeSeKod = false; }, 800); 
     };
 
     window.proveriKodRucno = function() {
@@ -993,7 +1027,6 @@
       renderUI();
     });
 
-    // OTVARANJE INFO PROZORA
     window.openInfoModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
@@ -1013,17 +1046,18 @@
 
       const btnBook = document.getElementById('btn-info-book');
       
-      const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
+      const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
+      const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
       const remaining = Math.max(0, event.totalSeats - bookedCount);
       
       if (!event.isActive || remaining === 0) {
          btnBook.disabled = true;
-         btnBook.className = "w-full py-5 bg-slate-300 text-slate-500 text-xl font-black rounded-2xl shadow-sm cursor-not-allowed";
+         btnBook.className = "w-full py-5 sm:py-6 bg-slate-300 text-slate-500 text-lg sm:text-xl font-black rounded-2xl shadow-sm cursor-not-allowed";
          btnBook.innerText = !event.isActive ? "Prijave su zatvorene" : "Mesta su popunjena";
          btnBook.onclick = null;
       } else {
          btnBook.disabled = false;
-         btnBook.className = "w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black rounded-2xl shadow-lg transition";
+         btnBook.className = "w-full py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 text-white text-lg sm:text-xl font-black rounded-2xl shadow-lg transition";
          btnBook.innerText = "Prijavi se za program";
          btnBook.onclick = () => {
             document.getElementById('modal-info').classList.add('hidden');
@@ -1039,10 +1073,24 @@
       if (!event) return;
       state.selectedEventForBooking = event;
       
-      const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
+      const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
+      const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
       const remaining = Math.max(0, event.totalSeats - bookedCount);
+
       document.getElementById('modal-booking-title').innerText = event.title;
       document.getElementById('modal-booking-seats').innerText = `Još ${remaining} slobodnih mesta`;
+
+      const radio2 = document.getElementById('radio-qty-2');
+      const label2 = document.getElementById('label-qty-2');
+      if (remaining < 2) {
+          radio2.disabled = true;
+          label2.classList.add('opacity-50', 'cursor-not-allowed');
+          document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
+      } else {
+          radio2.disabled = false;
+          label2.classList.remove('opacity-50', 'cursor-not-allowed');
+          document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
+      }
       
       const reqName = event.formFields?.name !== false;
       const reqEmail = event.formFields?.email !== false;
@@ -1095,10 +1143,16 @@
       const emailEl = document.getElementById('booking-email');
       const emailValue = emailEl && emailEl.value ? emailEl.value.trim().toLowerCase() : '';
       
+      const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
+      const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+
       if (emailValue) {
-         const existingBookings = state.bookings.filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano');
-         if (existingBookings.length >= 2) {
-            showNotification("Dostigli ste limit! Maksimalno 2 karte sa iste email adrese.", "warning");
+         const existingTickets = state.bookings
+            .filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano')
+            .reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+            
+         if (existingTickets + qty > 2) {
+            showNotification(`Dostigli ste limit! Sa ovog emaila preostalo pravo na još ${2 - existingTickets} kartu.`, "warning");
             return;
          }
       }
@@ -1122,6 +1176,8 @@
         eventLocation: event.location,
         eventDate: event.date,
         eventTime: event.time,
+        ticketsCount: qty,
+        scannedCount: 0, 
         firstName: reqName && fNameEl && fNameEl.value ? fNameEl.value.trim() : 'Polaznik',
         lastName: reqName && lNameEl && lNameEl.value ? lNameEl.value.trim() : '',
         email: reqEmail && emailValue ? emailValue : 'Nije uneto',
@@ -1163,7 +1219,10 @@
       state.activeViewingTicket = booking;
       document.getElementById('ticket-id-badge').innerText = `KOD: ${booking.id}`;
       document.getElementById('ticket-event-title').innerText = booking.eventTitle;
-      document.getElementById('ticket-user-name').innerText = `${booking.firstName} ${booking.lastName}`;
+      
+      const badgeOsobe = booking.ticketsCount > 1 ? `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs ml-2 uppercase font-black align-middle">Važi za ${booking.ticketsCount} osobe</span>` : '';
+      document.getElementById('ticket-user-name').innerHTML = `${booking.firstName} ${booking.lastName} ${badgeOsobe}`;
+      
       document.getElementById('ticket-user-email').innerText = booking.email;
       document.getElementById('ticket-datetime').innerText = `${booking.eventDate} u ${booking.eventTime}h`;
       setTimeout(() => {
@@ -1210,133 +1269,12 @@
       }
     });
 
-    safeAddEventListener('btn-create-event', 'click', () => {
-      state.editingEventId = null;
-      state.tempEventImageBase64 = '';
-      const form = document.getElementById('form-submit-event');
-      if (form) form.reset();
-      const preview = document.getElementById('event-image-preview');
-      if (preview) preview.innerHTML = "🖼️";
-      document.getElementById('modal-event-action-title').innerText = "Novi obrazovni program";
-      
-      if (document.getElementById('req-name')) document.getElementById('req-name').checked = true;
-      if (document.getElementById('req-email')) document.getElementById('req-email').checked = true;
-      if (document.getElementById('req-phone')) document.getElementById('req-phone').checked = true;
-      if (document.getElementById('req-address')) document.getElementById('req-address').checked = true;
-
-      const select = document.getElementById('event-category');
-      if (select) {
-        select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-      }
-      document.getElementById('modal-event').classList.remove('hidden');
-    });
-
-    safeAddEventListener('form-submit-event', 'submit', async (e) => {
-      e.preventDefault();
-      const id = state.editingEventId || `ev-${Date.now()}`;
-      
-      const newEvent = {
-        id: id,
-        title: document.getElementById('event-title').value.trim(),
-        description: document.getElementById('event-description').value.trim(),
-        category: document.getElementById('event-category').value || 'edu',
-        totalSeats: Number(document.getElementById('event-total-seats').value),
-        location: document.getElementById('event-location').value.trim(),
-        date: document.getElementById('event-date').value,
-        time: document.getElementById('event-time').value,
-        image: state.tempEventImageBase64 || '',
-        isActive: document.getElementById('event-is-active').checked,
-        formFields: {
-           name: document.getElementById('req-name').checked,
-           email: document.getElementById('req-email').checked,
-           phone: document.getElementById('req-phone').checked,
-           address: document.getElementById('req-address').checked
-        }
-      };
-      
-      state.events = state.editingEventId ? state.events.map(ev => ev.id === id ? newEvent : ev) : [newEvent, ...state.events];
-      safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
-      
-      if (state.isOnline && firebaseActive) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), newEvent);
-      }
-      
-      document.getElementById('modal-event').classList.add('hidden');
-      renderUI();
-    });
-
-    safeAddEventListener('form-create-category', 'submit', async (e) => {
-      e.preventDefault();
-      const nameInput = document.getElementById('cat-name-input');
-      const iconSelect = document.getElementById('cat-icon-select');
-      const colorSelect = document.getElementById('cat-color-select');
-      if (!nameInput || !iconSelect || !colorSelect) return;
-      const name = nameInput.value.trim();
-      const icon = iconSelect.value;
-      const color = colorSelect.value;
-      const catId = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      const newCategory = { id: catId, name: name, icon: icon, gradient: color };
-      state.categories.push(newCategory);
-      safeStorage.setItem('edubooker_categories', JSON.stringify(state.categories));
-      if (state.isOnline && firebaseActive) {
-        try {
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', catId), newCategory);
-          showNotification(`Kategorija ${name} sačuvana`, "success");
-        } catch (err) {}
-      } else {
-        showNotification(`Smer sačuvan lokalno`, "info");
-      }
-      document.getElementById('form-create-category').reset();
-      renderUI();
-    });
-
-    window.openAttendeesModal = function(eventId) {
-      const event = state.events.find(e => e.id === eventId);
-      if (!event) return;
-      
-      document.getElementById('modal-attendees-event-title').innerText = event.title;
-      
-      const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
-      document.getElementById('attendees-total-count').innerText = eventBookings.length;
-      
-      const container = document.getElementById('attendees-list-container');
-      
-      if (eventBookings.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center bg-white rounded-2xl border border-slate-200"><p class="text-slate-500 font-bold text-lg">Još uvek nema prijavljenih polaznika.</p></div>`;
-      } else {
-        container.innerHTML = eventBookings.map((b, index) => `
-          <div class="bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:shadow-md transition shadow-sm">
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <span class="bg-indigo-100 text-indigo-800 text-xs font-black px-2 py-1 rounded uppercase">#${index + 1}</span>
-                <h4 class="font-black text-slate-900 text-lg">${b.firstName} ${b.lastName}</h4>
-                ${b.status === 'iskorišćena' ? `<span class="bg-emerald-100 text-emerald-700 text-xs font-black px-2 py-1 rounded uppercase">✓ Prisutan</span>` : ''}
-              </div>
-              <div class="text-sm font-medium text-slate-500 space-y-0.5 mt-2">
-                <p>📧 ${b.email}</p>
-                <p>📞 ${b.phone}</p>
-                ${b.note ? `<p class="mt-2 text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">📝 <strong class="font-bold">Napomena:</strong> ${b.note}</p>` : ''}
-              </div>
-            </div>
-            <div class="text-left sm:text-right shrink-0 border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0 mt-2 sm:mt-0">
-               <p class="text-[10px] text-slate-400 font-mono tracking-wider">${b.id}</p>
-               <p class="text-[11px] text-slate-400 font-bold mt-1">${new Date(b.timestamp).toLocaleTimeString('sr-RS', {hour: '2-digit', minute:'2-digit'})}h</p>
-            </div>
-          </div>
-        `).join('');
-      }
-      
-      document.getElementById('modal-attendees').classList.remove('hidden');
-    };
-
-    safeAddEventListener('btn-close-attendees-modal', 'click', () => document.getElementById('modal-attendees').classList.add('hidden'));
-
     function renderUI() {
       const filterContainer = document.getElementById('categories-filter-container');
       if (filterContainer) {
-        let catHTML = `<button onclick="selectCategory('all')" class="px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}">🌐 Sve obuke</button>`;
+        let catHTML = `<button onclick="selectCategory('all')" class="px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}">🌐 Sve obuke</button>`;
         state.categories.forEach(cat => {
-          catHTML += `<button onclick="selectCategory('${cat.id}')" class="px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}"><span class="text-lg">${cat.icon}</span> <span>${cat.name}</span></button>`;
+          catHTML += `<button onclick="selectCategory('${cat.id}')" class="px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}"><span class="text-lg">${cat.icon}</span> <span>${cat.name}</span></button>`;
         });
         filterContainer.innerHTML = catHTML;
       }
@@ -1357,23 +1295,25 @@
       const eventsGrid = document.getElementById('events-grid');
       if (eventsGrid) {
         eventsGrid.innerHTML = filteredEvents.map(evt => {
-          const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
+          const eventBookings = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano');
+          const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
           const remaining = Math.max(0, evt.totalSeats - bookedCount);
+          
           const headerHTML = evt.image 
-            ? `<div class="h-44 sm:h-48 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
-            : `<div class="h-3 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
+            ? `<div class="h-48 sm:h-56 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
+            : `<div class="h-4 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
           return `
             <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition duration-300">
               ${headerHTML}
-              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+              <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <h3 class="text-xl font-black text-slate-900 leading-tight">${evt.title}</h3>
-                  <p class="text-sm text-slate-600 mt-2 leading-snug line-clamp-2">${evt.description}</p>
-                  <button onclick="openInfoModal('${evt.id}')" class="text-indigo-600 font-black text-base mt-2 flex items-center gap-1 hover:text-indigo-800 transition">
+                  <h3 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">${evt.title}</h3>
+                  <p class="text-sm sm:text-base text-slate-600 mt-2 sm:mt-3 leading-snug line-clamp-2">${evt.description}</p>
+                  <button onclick="openInfoModal('${evt.id}')" class="text-indigo-600 font-black text-base sm:text-lg mt-3 flex items-center gap-1 hover:text-indigo-800 transition">
                      ℹ️ Detaljnije i prijava...
                   </button>
                 </div>
-                <div class="pt-3 border-t border-slate-100">
+                <div class="pt-4 border-t border-slate-100">
                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-2 px-1">
                       <span>Zauzeto mesta: <span class="text-slate-900">${bookedCount} / ${evt.totalSeats}</span></span>
                       ${remaining > 0 ? `<span class="text-emerald-600">Slobodno: ${remaining}</span>` : `<span class="text-rose-600">Popunjeno</span>`}
@@ -1401,15 +1341,19 @@
          if (myTicketsGrid) {
             myTicketsGrid.innerHTML = state.events.map(evt => {
                 const eventBookings = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano');
-                const checkedIn = eventBookings.filter(b => b.status === 'iskorišćena').length;
-                const remaining = Math.max(0, evt.totalSeats - eventBookings.length);
+                const issued = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+                const checkedIn = eventBookings.reduce((sum, b) => {
+                     if(b.scannedCount !== undefined) return sum + b.scannedCount;
+                     return sum + (b.status === 'iskorišćena' ? (b.ticketsCount || 1) : 0);
+                }, 0);
+                const remaining = Math.max(0, evt.totalSeats - issued);
 
                 return `
                 <div class="bg-white rounded-3xl border border-indigo-100 p-5 shadow-sm space-y-4 hover:shadow-md transition">
                     <h3 class="text-lg font-black text-slate-900 leading-tight border-b border-slate-100 pb-2">${evt.title}</h3>
                     <div class="grid grid-cols-4 gap-2 text-xs font-bold text-center">
                         <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-slate-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Svega</span> <span class="text-lg mt-1">${evt.totalSeats}</span></div>
-                        <div class="bg-indigo-50 p-2 rounded-xl border border-indigo-100 text-indigo-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Izdato</span> <span class="text-lg mt-1">${eventBookings.length}</span></div>
+                        <div class="bg-indigo-50 p-2 rounded-xl border border-indigo-100 text-indigo-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Izdato</span> <span class="text-lg mt-1">${issued}</span></div>
                         <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-100 text-emerald-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Tu</span> <span class="text-lg mt-1">${checkedIn}</span></div>
                         <div class="bg-amber-50 p-2 rounded-xl border border-amber-100 text-amber-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Prazno</span> <span class="text-lg mt-1">${remaining}</span></div>
                     </div>
@@ -1457,19 +1401,35 @@
                        </h3>
                      </div>
                      <div class="grid grid-cols-1 gap-4">
-                       ${tickets.map(b => `
-                         <div class="bg-slate-50 rounded-2xl p-4 border-2 border-slate-200 flex flex-col justify-between hover:bg-white transition">
-                           <div class="mb-4">
+                       ${tickets.map(b => {
+                         const maxUlaza = b.ticketsCount || 1;
+                         const iskorisceno = b.scannedCount || 0;
+                         const isPotpunoIskoriscena = iskorisceno >= maxUlaza || b.status === 'iskorišćena';
+                         
+                         const cardStyle = isPotpunoIskoriscena ? 'bg-slate-100 opacity-80' : 'bg-slate-50 hover:bg-white';
+                         const btnStyle = isPotpunoIskoriscena ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 shadow-none' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md';
+                         const btnText = isPotpunoIskoriscena ? '✅ Karta iskorišćena' : '🎫 Otvori QR kartu';
+                         const ticketsLabel = maxUlaza > 1 ? `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs ml-2 uppercase font-black align-middle">Važi za ${maxUlaza} osobe</span>` : '';
+                         
+                         const tagHtml = isPotpunoIskoriscena 
+                            ? `<div class="absolute -top-3 -right-3 bg-emerald-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">ISKORIŠĆENO</div>`
+                            : (maxUlaza > 1 && iskorisceno > 0 ? `<div class="absolute -top-3 -right-3 bg-indigo-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">OSTALA ${maxUlaza - iskorisceno} KARTA</div>` : '');
+                         
+                         return `
+                         <div class="${cardStyle} rounded-2xl p-4 border-2 border-slate-200 flex flex-col justify-between transition relative overflow-hidden">
+                           ${tagHtml}
+                           <div class="mb-4 relative z-0">
                              <p class="text-lg font-black text-slate-900 flex items-center gap-2">📅 ${b.eventDate} <span class="text-slate-400 text-sm font-semibold">|</span> ${b.eventTime}h</p>
                              <p class="text-sm font-bold text-slate-700 mt-1 flex items-start gap-2">📍 ${b.eventLocation}</p>
                              <div class="mt-4 pt-3 border-t-2 border-slate-200">
                                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Polaznik</p>
-                               <p class="text-xl font-black text-slate-900 mt-0.5">${b.firstName} ${b.lastName}</p>
+                               <p class="text-xl font-black text-slate-900 mt-0.5">${b.firstName} ${b.lastName} ${ticketsLabel}</p>
                              </div>
                            </div>
-                           <button onclick="viewTicket('${b.id}')" class="w-full py-4 bg-indigo-600 text-white text-base font-black rounded-xl shadow-md hover:bg-indigo-700 transition">🎫 Otvori QR kartu</button>
+                           <button onclick="viewTicket('${b.id}')" class="w-full py-4 ${btnStyle} text-base font-black rounded-xl transition relative z-0">${btnText}</button>
                          </div>
-                       `).join('')}
+                       `;
+                       }).join('')}
                      </div>
                    </div>
                  `;
@@ -1485,8 +1445,10 @@
         } else {
           adminEventsList.innerHTML = state.events.map(evt => {
             const cat = state.categories.find(c => c.id === evt.category) || { name: 'Edukacija', icon: '🎓' };
-            const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
+            const eventBookings = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano');
+            const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
             const remaining = Math.max(0, evt.totalSeats - bookedCount);
+            
             return `
               <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50 transition border-b-2 border-slate-100 last:border-0">
                 <div class="space-y-2">
@@ -1557,13 +1519,13 @@
       }
 
       document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
-        btn.classList.remove('text-indigo-600');
+        btn.classList.remove('text-indigo-600', 'scale-110');
         btn.classList.add('text-slate-400');
       });
       const activeMobile = document.getElementById(`nav-${tabId === 'admin' ? 'admin-panel' : tabId}-mobile`);
       if (activeMobile) {
          activeMobile.classList.remove('text-slate-400');
-         activeMobile.classList.add('text-indigo-600');
+         activeMobile.classList.add('text-indigo-600', 'scale-110');
       }
       renderUI();
     };
