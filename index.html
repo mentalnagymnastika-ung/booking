@@ -2,7 +2,7 @@
 <html lang="sr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduBooker PRO</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,8 +23,13 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
+    /* SPAS ZA MOBILNE TELEFONE: Zabranjuje osvežavanje povlačenjem na dole */
+    html, body {
+      overscroll-behavior-y: none;
+    }
+    
     .fade-in {
-      animation: fadeIn 0.25s ease-out;
+      animation: fadeIn 0.2s ease-out;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
@@ -44,39 +49,41 @@
       from { opacity: 0; transform: translateY(-10px); height: 0; }
       to { opacity: 1; transform: translateY(0); height: auto; }
     }
+
+    /* Forsiranje kvadratnog oblika videa u skeneru */
+    #qrSkener video {
+      object-fit: cover !important;
+      border-radius: 1rem;
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-28 lg:pb-0 relative">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-24 lg:pb-0 relative">
 
-  <div id="notification-toast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md fade-in">
-    <div id="toast-bg" class="p-4 sm:p-5 rounded-2xl shadow-xl flex items-center justify-between border bg-emerald-50 border-emerald-200 text-emerald-800">
-      <div class="flex items-center gap-3 sm:gap-4">
-        <span id="toast-icon" class="text-2xl sm:text-3xl">✅</span>
-        <p id="toast-message" class="text-sm sm:text-base font-bold">Obaveštenje...</p>
+  <div id="notification-toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md fade-in">
+    <div id="toast-bg" class="p-4 rounded-2xl shadow-xl flex items-center justify-between border-2 bg-emerald-50 border-emerald-200 text-emerald-800">
+      <div class="flex items-center gap-3">
+        <span id="toast-icon" class="text-2xl">✅</span>
+        <p id="toast-message" class="text-sm font-bold">Obaveštenje...</p>
       </div>
     </div>
   </div>
 
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
-    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-2 py-2 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
       
-      <div class="flex items-center gap-3">
-        <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xl sm:text-2xl text-white shadow-md shadow-indigo-500/20">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xl text-white shadow-md">
           E
         </div>
-        <div>
-          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            EduBooker 
-            <span id="network-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" title="Provera konekcije..."></span>
-          </h1>
-          <p class="text-[13px] text-slate-500 font-medium hidden sm:block">Sistem za rezervaciju edukacija i obuka</p>
-        </div>
+        <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
+          EduBooker 
+          <span id="network-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" title="Provera konekcije..."></span>
+        </h1>
       </div>
 
-      <div class="flex items-center gap-3">
-        
+      <div class="flex items-center gap-2">
         <div id="google-auth-container" class="flex items-center">
-          <button id="btn-google-login" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition shadow-sm" title="Prijava preko Google naloga">
+          <button id="btn-google-login" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-xl transition shadow-sm" title="Prijava preko Google-a">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -85,18 +92,17 @@
             </svg>
           </button>
           
-          <div id="google-user-profile" class="hidden items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full p-1 sm:p-1.5 pr-3 sm:pr-4 shadow-sm">
-            <img id="google-user-img" src="" class="w-8 h-8 rounded-full object-cover" />
-            <span id="google-user-email" class="text-xs sm:text-[13px] font-bold text-indigo-950 truncate max-w-[120px] hidden md:block">...</span>
-            <button id="btn-google-logout" class="text-lg sm:text-xl text-indigo-600 hover:text-indigo-900 px-1 font-black">✕</button>
+          <div id="google-user-profile" class="hidden items-center gap-1.5 bg-indigo-50 border border-indigo-100 rounded-full p-1 pr-3 shadow-sm">
+            <img id="google-user-img" src="" class="w-7 h-7 rounded-full object-cover" />
+            <button id="btn-google-logout" class="text-lg text-indigo-600 hover:text-indigo-900 px-1 font-black">✕</button>
           </div>
         </div>
 
-        <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition shadow-md">
+        <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition shadow-md">
           🔑 Admin
         </button>
 
-        <button id="btn-admin-logout" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs sm:text-sm font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition border border-rose-200">
+        <button id="btn-admin-logout" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition border border-rose-200">
           🚪 Izlaz
         </button>
       </div>
@@ -111,61 +117,54 @@
 
   <div class="bg-white border-b border-slate-200 px-4 py-3 hidden lg:block shadow-sm">
     <div class="max-w-6xl mx-auto flex gap-3">
-      <button id="nav-events-desktop" class="nav-btn-desktop active px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition bg-indigo-600 text-white shadow-md">
-        📅 Kalendar obuka
-      </button>
-      <button id="nav-my-tickets-desktop" class="nav-btn-desktop px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-        📋 Moje karte
-      </button>
-      <button id="nav-admin-panel-desktop" class="hidden nav-btn-desktop px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-        ⚙️ Administracija
-      </button>
+      <button id="nav-events-desktop" class="nav-btn-desktop active px-5 py-3 rounded-xl text-sm font-bold transition bg-indigo-600 text-white shadow-md">📅 Kalendar obuka</button>
+      <button id="nav-my-tickets-desktop" class="nav-btn-desktop px-5 py-3 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-50">📋 Moje karte</button>
+      <button id="nav-admin-panel-desktop" class="hidden nav-btn-desktop px-5 py-3 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-50">⚙️ Administracija</button>
     </div>
   </div>
 
-  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
 
-    <section id="tab-events" class="tab-section space-y-6 fade-in">
-      <div class="bg-white p-3 sm:p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-3">
+    <section id="tab-events" class="tab-section space-y-5 fade-in">
+      <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-3">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-1" id="categories-filter-container"></div>
           <button id="btn-toggle-search" class="w-12 h-12 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl shrink-0 transition text-xl">🔍</button>
         </div>
         <div id="search-container" class="hidden slide-down">
-          <input id="search-input" type="text" placeholder="Pretražite obuke po nazivu..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-base text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+          <input id="search-input" type="text" placeholder="Pretražite obuke po nazivu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3.5 text-base text-slate-800 focus:outline-none focus:border-indigo-500" />
         </div>
       </div>
-      
-      <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
+      <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
     <section id="tab-my-tickets" class="tab-section hidden space-y-6 fade-in">
-      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 id="my-tickets-heading" class="text-2xl font-black text-slate-900">Vaše rezervisane karte</h2>
-          <p id="my-tickets-desc" class="text-slate-500 text-sm mt-2">Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte.</p>
+          <h2 id="my-tickets-heading" class="text-xl font-black text-slate-900">Vaše rezervisane karte</h2>
+          <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte.</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto" id="my-tickets-search-wrapper">
-          <input id="search-ticket-phone" type="tel" placeholder="Pretraži po telefonu..." class="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-sm font-semibold focus:outline-none focus:border-indigo-500 w-full md:w-64" />
-          <button id="btn-search-my-tickets" class="bg-indigo-600 text-white text-sm font-bold px-6 py-3 rounded-2xl shadow-sm">Pronađi</button>
+          <input id="search-ticket-phone" type="tel" placeholder="Pretraži po telefonu..." class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-indigo-500 w-full md:w-56" />
+          <button id="btn-search-my-tickets" class="bg-indigo-600 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-sm">Pronađi</button>
         </div>
       </div>
-      <div id="my-tickets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      <div id="my-tickets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
     </section>
 
-    <section id="tab-admin" class="tab-section hidden space-y-6 sm:space-y-8 fade-in">
-      <div class="bg-white p-3 sm:p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap gap-2 sm:gap-3">
-        <button id="admin-subnav-events" onclick="window.switchAdminSubTab('events')" class="admin-subnav-btn active bg-indigo-600 text-white px-5 py-3 rounded-2xl text-sm sm:text-base font-bold transition shadow-md">📅 Upravljanje obukama</button>
-        <button id="admin-subnav-categories" onclick="window.switchAdminSubTab('categories')" class="admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-2xl text-sm sm:text-base font-bold transition hover:bg-slate-200">🛠️ Kategorije</button>
-        <button id="admin-subnav-scanner" onclick="window.switchAdminSubTab('scanner')" class="admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-2xl text-sm sm:text-base font-bold transition hover:bg-slate-200">🔍 QR Skener kamere</button>
+    <section id="tab-admin" class="tab-section hidden space-y-6 fade-in">
+      <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap gap-2">
+        <button id="admin-subnav-events" onclick="window.switchAdminSubTab('events')" class="admin-subnav-btn active bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-md">📅 Upravljanje obukama</button>
+        <button id="admin-subnav-categories" onclick="window.switchAdminSubTab('categories')" class="admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-xl text-sm font-bold transition">🛠️ Kategorije</button>
+        <button id="admin-subnav-scanner" onclick="window.switchAdminSubTab('scanner')" class="admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-xl text-sm font-bold transition">🔍 Očitavanje karata (Brzo)</button>
       </div>
 
-      <div id="admin-view-events" class="admin-view space-y-6">
-        <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div id="admin-view-events" class="admin-view space-y-5">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 class="text-xl font-black text-slate-900">Kontrolna tabla za događaje</h3>
           </div>
-          <button id="btn-create-event" class="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 text-white text-base font-black rounded-2xl shadow-md hover:bg-indigo-700 transition">➕ Nova obuka</button>
+          <button id="btn-create-event" class="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 text-white text-base font-black rounded-xl shadow-md">➕ Nova obuka</button>
         </div>
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div id="admin-events-list" class="divide-y divide-slate-100"></div>
@@ -173,81 +172,75 @@
       </div>
 
       <div id="admin-view-categories" class="admin-view hidden space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
             <h3 class="font-black text-slate-900 text-lg">Dodaj novi smer</h3>
             <form id="form-create-category" class="space-y-4">
               <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1.5">Naziv smera/kategorije *</label>
-                <input id="cat-name-input" type="text" required placeholder="Unesite naziv" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500" />
+                <label class="block text-sm font-bold text-slate-700 mb-1">Naziv smera</label>
+                <input id="cat-name-input" type="text" required placeholder="Unesite naziv" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500" />
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-sm font-bold text-slate-700 mb-1.5">Ikonica</label>
-                  <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base focus:outline-none">
-                    <option value="🎓">🎓 Edukacija</option>
-                    <option value="🏕️">🏕️ Priroda</option>
-                    <option value="🧩">🧩 Logika</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-bold text-slate-700 mb-1.5">Boja</label>
-                  <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base focus:outline-none">
-                    <option value="from-blue-500 to-indigo-600">Plava</option>
-                    <option value="from-emerald-600 to-green-800">Zelena</option>
-                  </select>
-                </div>
+              <div class="grid grid-cols-2 gap-3">
+                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
+                  <option value="🎓">🎓 Edukacija</option>
+                  <option value="🏕️">🏕️ Priroda</option>
+                  <option value="🧩">🧩 Logika</option>
+                </select>
+                <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
+                  <option value="from-blue-500 to-indigo-600">Plava</option>
+                  <option value="from-emerald-600 to-green-800">Zelena</option>
+                </select>
               </div>
-              <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-base font-black shadow-md hover:bg-indigo-700 transition">➕ Kreiraj smer</button>
+              <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl text-base font-black shadow-md">➕ Kreiraj smer</button>
             </form>
           </div>
-          <div class="lg:col-span-2 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <h3 class="font-black text-slate-900 text-lg mb-2">Postojeći smerovi</h3>
             <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
           </div>
         </div>
       </div>
 
-      <div id="admin-view-scanner" class="admin-view hidden space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <h4 class="font-black text-slate-900 text-xl text-center">Skeniranje uživo</h4>
+      <div id="admin-view-scanner" class="admin-view hidden">
+        <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm max-w-lg mx-auto">
+            <div class="text-center mb-5">
+              <h4 class="font-black text-slate-900 text-xl">Skeniranje QR koda</h4>
+              <p class="text-sm text-slate-500 mt-1">Uslikajte kartu za trenutnu validaciju</p>
+            </div>
             
-            <div id="qrSkenerSetup" class="flex flex-col items-center justify-center p-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl text-center h-[35vh] min-h-[250px]">
-               <div class="text-5xl mb-4">📷</div>
-               <p class="text-sm text-slate-600 mb-5 font-semibold">Kamera je isključena radi štednje baterije.</p>
-               <button onclick="pokreniQRProveru()" class="w-full max-w-xs py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl shadow-lg transition">Pokreni kameru</button>
+            <div id="qrSkenerSetup" class="flex flex-col items-center justify-center py-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl text-center">
+               <div class="text-5xl mb-4 opacity-50">📷</div>
+               <button onclick="pokreniQRProveru()" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-base rounded-2xl shadow-lg transition">Pokreni skener kameru</button>
             </div>
 
-            <div id="qrSkenerKontejner" class="hidden flex-col items-center space-y-4">
-               <div id="qrSkener" class="w-full mx-auto h-[40vh] max-h-[300px] overflow-hidden rounded-3xl border-4 border-slate-900 shadow-xl bg-black flex items-center justify-center relative">
+            <div id="qrSkenerKontejner" class="hidden flex-col items-center space-y-5">
+               <div class="w-[250px] h-[250px] rounded-2xl overflow-hidden border-4 border-slate-900 shadow-xl bg-black relative">
+                   <div id="qrSkener" class="w-full h-full absolute inset-0 object-cover"></div>
                </div>
-               <button id="btnSkenirajSada" onclick="okiniSkeniranje()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xl rounded-2xl shadow-lg transition">🎯 SKENIRAJ KARTU</button>
-               <button onclick="zaustaviQRProveru()" class="w-full py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-base rounded-2xl transition border border-rose-100">✖ Ugasi kameru</button>
+               
+               <button onclick="zaustaviQRProveru()" class="px-6 py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-sm rounded-xl transition border border-rose-100">✖ Ugasi kameru</button>
             </div>
 
-            <div class="flex gap-2 pt-3 border-t border-slate-100">
-              <input id="scanner-manual-input" type="text" placeholder="Ili unesite kod..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base font-mono font-bold focus:outline-none focus:border-indigo-500" />
-              <button id="btn-verify-manual" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-2xl text-sm font-black shadow-md transition">Proveri</button>
+            <div class="flex gap-2 pt-6 border-t border-slate-100 mt-6">
+              <input id="scanner-manual-input" type="text" placeholder="Ručni unos koda..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-mono font-bold focus:outline-none focus:border-indigo-500" />
+              <button onclick="window.proveriKodRucno()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3.5 rounded-xl text-sm font-black shadow-md transition">Proveri</button>
             </div>
-          </div>
-          
-          <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center min-h-[160px]" id="scanner-result-panel">
-            <div class="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl h-full flex flex-col items-center justify-center bg-slate-50">
-              <p class="text-lg font-bold text-slate-500">Sistem čeka očitavanje...</p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
   </main>
 
+  <div id="modal-scan-result" class="hidden fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 text-center shadow-2xl space-y-4 slide-down" id="scan-result-content">
+        </div>
+  </div>
+
   <div id="modal-info" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 overflow-y-auto">
     <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto no-scrollbar">
        <div id="modal-info-img" class="h-40 sm:h-56 w-full bg-slate-200 bg-cover bg-center shrink-0"></div>
-       <div class="p-6 space-y-5">
+       <div class="p-5 sm:p-6 space-y-5">
           <div>
-             <h3 id="modal-info-title" class="text-2xl font-black text-slate-900 leading-tight mb-3">...</h3>
+             <h3 id="modal-info-title" class="text-2xl font-black text-slate-900 leading-tight mb-2">...</h3>
              <p id="modal-info-desc" class="text-base text-slate-600 leading-relaxed">...</p>
           </div>
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
@@ -255,8 +248,8 @@
             <p class="text-base font-bold text-slate-700 flex items-center gap-2"><span class="text-xl">📅</span> <span id="modal-info-datetime">...</span></p>
           </div>
           <div class="pt-2 flex flex-col gap-3">
-             <button id="btn-info-book" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-2xl shadow-lg transition">Prijavi se za program</button>
-             <button type="button" onclick="document.getElementById('modal-info').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-2xl transition">✕ Nazad na ponudu</button>
+             <button id="btn-info-book" class="w-full py-4 sm:py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-xl shadow-lg transition">Prijavi se za program</button>
+             <button type="button" onclick="document.getElementById('modal-info').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-xl transition">✕ Nazad na ponudu</button>
           </div>
        </div>
     </div>
@@ -312,8 +305,8 @@
             </div>
 
             <div class="pt-3 flex flex-col gap-3 border-t border-slate-100 mt-2">
-              <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-2xl shadow-lg transition">POTVRDI I REZERVIŠI</button>
-              <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-2xl transition border border-slate-200">✖ Zatvori formu</button>
+              <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-xl shadow-lg transition">POTVRDI I REZERVIŠI</button>
+              <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-xl transition border border-slate-200">✖ Zatvori formu</button>
             </div>
           </form>
       </div>
@@ -337,15 +330,15 @@
         </div>
       </div>
       <div class="flex flex-col gap-3 pt-2">
-        <button id="btn-download-ticket-img" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-2xl text-base font-black shadow-md">💾 Preuzmi sliku</button>
-        <button id="btn-share-ticket" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-2xl text-base font-black shadow-md">📱 Kopiraj podatke</button>
+        <button id="btn-download-ticket-img" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-xl text-base font-black shadow-md">💾 Preuzmi sliku</button>
+        <button id="btn-share-ticket" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-xl text-base font-black shadow-md">📱 Kopiraj podatke</button>
       </div>
     </div>
   </div>
 
   <div id="modal-attendees" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
     <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-3xl flex flex-col max-h-[90vh]">
-      <div class="p-5 sm:p-6 border-b border-slate-200 shrink-0 flex items-start justify-between">
+      <div class="p-5 border-b border-slate-200 shrink-0 flex items-start justify-between">
         <div>
           <h3 class="text-xl font-black text-slate-900">Spisak polaznika</h3>
           <p id="modal-attendees-event-title" class="text-sm font-bold text-indigo-600 mt-1">...</p>
@@ -363,10 +356,10 @@
   </div>
 
   <div id="modal-admin-login" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-8 shadow-2xl text-center space-y-6">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl text-center space-y-6">
       <h3 class="text-xl font-black text-slate-900">Autorizacija Sekretara</h3>
-      <input id="admin-pin-input" type="password" maxlength="4" placeholder="••••" class="w-32 text-center text-3xl tracking-[0.5em] bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-4 focus:outline-none focus:border-indigo-500 mx-auto block font-mono" />
-      <div class="text-sm text-rose-600 font-black hidden bg-rose-50 p-3 rounded-xl border border-rose-200 shadow-inner" id="admin-login-error">Netačan PIN! Probajte 1234</div>
+      <input id="admin-pin-input" type="password" maxlength="4" placeholder="••••" class="w-32 text-center text-3xl tracking-[0.5em] bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-4 focus:outline-none focus:border-indigo-500 mx-auto block font-mono" />
+      <div class="text-sm text-rose-600 font-black hidden bg-rose-50 p-3 rounded-lg border border-rose-200 shadow-inner" id="admin-login-error">Netačan PIN! Probajte 1234</div>
       <div class="flex flex-col sm:flex-row gap-3 pt-3 border-t border-slate-100">
         <button id="btn-close-login" class="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-base font-bold transition border border-slate-200">Poništi</button>
         <button id="btn-submit-login" class="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-base font-black shadow-lg transition">Otključaj</button>
@@ -424,14 +417,14 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Smer/Kategorija *</label>
-                <select id="event-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white"></select>
+                <label class="block text-base font-bold text-slate-700 mb-1.5">Smer *</label>
+                <select id="event-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white"></select>
               </div>
               <div>
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Kapacitet mesta *</label>
-                <input id="event-total-seats" type="number" min="1" required placeholder="Broj mesta" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
+                <label class="block text-base font-bold text-slate-700 mb-1.5">Mesta *</label>
+                <input id="event-total-seats" type="number" min="1" required placeholder="Broj" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
               </div>
             </div>
             
@@ -440,14 +433,14 @@
                <input id="event-location" type="text" required placeholder="Gde se održava?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <div>
                  <label class="block text-base font-bold text-slate-700 mb-1.5">Datum *</label>
-                 <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
+                 <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
               </div>
               <div>
                  <label class="block text-base font-bold text-slate-700 mb-1.5">Vreme *</label>
-                 <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
+                 <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
               </div>
             </div>
             
@@ -465,19 +458,19 @@
     </div>
   </div>
 
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-3 flex items-center justify-around z-40 lg:hidden shadow-[0_-4px_25px_rgba(0,0,0,0.08)] pb-8 sm:pb-4">
-    <button id="nav-events-mobile" class="nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1 w-full py-2">
-      <span class="text-3xl mb-0.5">📅</span>
-      <span id="nav-events-mobile-text" class="text-sm font-black tracking-wide">Kalendar</span>
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 flex items-center justify-around z-40 lg:hidden shadow-[0_-4px_25px_rgba(0,0,0,0.08)] pb-6 sm:pb-3">
+    <button id="nav-events-mobile" class="nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1 w-full py-2.5">
+      <span class="text-2xl sm:text-3xl mb-0.5">📅</span>
+      <span id="nav-events-mobile-text" class="text-xs sm:text-sm font-black tracking-wide">Kalendar</span>
     </button>
-    <button id="nav-my-tickets-mobile" class="nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 relative w-full py-2">
-      <span class="text-3xl mb-0.5" id="nav-my-tickets-mobile-icon">📋</span>
-      <span id="nav-my-tickets-mobile-text" class="text-sm font-black tracking-wide">Moje karte</span>
-      <span id="badge-my-tickets-count" class="hidden absolute top-0 right-1/4 bg-rose-500 text-white text-[11px] w-6 h-6 rounded-full flex items-center justify-center font-black shadow-md border-2 border-white">0</span>
+    <button id="nav-my-tickets-mobile" class="nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 relative w-full py-2.5">
+      <span class="text-2xl sm:text-3xl mb-0.5" id="nav-my-tickets-mobile-icon">📋</span>
+      <span id="nav-my-tickets-mobile-text" class="text-xs sm:text-sm font-black tracking-wide">Moje karte</span>
+      <span id="badge-my-tickets-count" class="hidden absolute top-1 right-1/4 bg-rose-500 text-white text-[10px] sm:text-[11px] w-5 sm:w-6 h-5 sm:h-6 rounded-full flex items-center justify-center font-black shadow-md border-2 border-white">0</span>
     </button>
-    <button id="nav-admin-panel-mobile" class="hidden nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 w-full py-2">
-      <span class="text-3xl mb-0.5">⚙️</span>
-      <span class="text-sm font-black tracking-wide">Admin</span>
+    <button id="nav-admin-panel-mobile" class="hidden nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 w-full py-2.5">
+      <span class="text-2xl sm:text-3xl mb-0.5">⚙️</span>
+      <span class="text-xs sm:text-sm font-black tracking-wide">Admin</span>
     </button>
   </nav>
 
@@ -508,10 +501,10 @@
       const dot = document.getElementById('network-dot');
       if (dot) {
         if (status === 'online') {
-          dot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50 block";
+          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50 block";
           dot.title = "Sistem je na mreži";
         } else {
-          dot.className = "w-3 h-3 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 block";
+          dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 block";
           dot.title = "Lokalni režim rada";
         }
       }
@@ -575,7 +568,7 @@
       }
       
       toast.classList.remove('hidden');
-      setTimeout(() => { toast.classList.add('hidden'); }, 4000);
+      setTimeout(() => { toast.classList.add('hidden'); }, 3000);
     }
 
     async function processSyncQueue() {
@@ -594,9 +587,6 @@
       state.syncQueue = remainingQueue;
       safeStorage.setItem('edubooker_sync_queue', JSON.stringify(remainingQueue));
       updateSyncBanner();
-      if (remainingQueue.length === 0) {
-        showNotification("Lokalne promene su sinhronizovane sa bazom", "success");
-      }
     }
 
     function updateSyncBanner() {
@@ -752,9 +742,11 @@
       reader.readAsDataURL(file);
     });
 
-    // POBOLJŠANI QR SKENER SA OKIDAČEM
+    // -------------------------------------------------------------
+    // LOGIKA SKENERA SA OKIDAČEM I ISKAČUĆIM PROZORIMA
+    // -------------------------------------------------------------
     window.html5QrCode = null;
-    window.traziSeKod = false; 
+    window.obradjujeSeKod = false; 
     window.tajmerZaSkeniranje = null;
 
     window.pokreniQRProveru = function() {
@@ -764,19 +756,16 @@
 
         document.getElementById('qrSkenerSetup').style.display = 'none';
         document.getElementById('qrSkenerKontejner').style.display = 'flex';
-        window.traziSeKod = false; 
+        window.obradjujeSeKod = false; 
 
         if (!window.html5QrCode) {
             window.html5QrCode = new Html5Qrcode("qrSkener");
         }
         
-        const config = { fps: 15, qrbox: { width: 250, height: 250 } };
+        const config = { fps: 10, qrbox: { width: 220, height: 220 } };
         window.html5QrCode.start({ facingMode: "environment" }, config, window.naUspesnoSkeniranje, window.naGreskuSkeniranja)
         .then(() => {
             window.html5QrCode.isScanning = true; 
-            const btn = document.getElementById('btnSkenirajSada');
-            btn.innerText = "🎯 SKENIRAJ KARTU";
-            btn.style.opacity = "1";
         })
         .catch(err => {
             alert("Greška pri pokretanju kamere. Proverite da li ste dali dozvolu pretraživaču!");
@@ -800,36 +789,89 @@
         }
     };
 
-    window.okiniSkeniranje = function() {
-        window.traziSeKod = true; 
-        const btn = document.getElementById('btnSkenirajSada');
-        btn.innerText = "⏳ ČITAM...";
-        btn.style.opacity = "0.5";
-        
-        window.tajmerZaSkeniranje = setTimeout(() => {
-            window.traziSeKod = false;
-            btn.innerText = "🎯 SKENIRAJ KARTU";
-            btn.style.opacity = "1";
-            showNotification("Nisam pronašao kod. Postavite kartu tačno u okvir kamere.", "warning");
-        }, 2000);
-    }
-
     window.naUspesnoSkeniranje = function(dekodiranTekst) {
-        if(!window.traziSeKod) return; 
-
-        window.traziSeKod = false;
-        clearTimeout(window.tajmerZaSkeniranje);
-        
-        const btn = document.getElementById('btnSkenirajSada');
-        btn.innerText = "🎯 SKENIRAJ KARTU";
-        btn.style.opacity = "1";
-        
-        window.zaustaviQRProveru(); 
-        window.verifyBookingCode(dekodiranTekst);
-        showNotification("Kod uspešno skeniran!", "success");
+        if (window.obradjujeSeKod) return; // Ignore if modal is already open
+        window.obradjujeSeKod = true; // Lock scanning
+        window.prikaziRezultatSkeniranja(dekodiranTekst);
     };
 
-    window.naGreskuSkeniranja = function(err) {};
+    window.naGreskuSkeniranja = function(err) {}; // Ignore background noise
+
+    window.prikaziRezultatSkeniranja = function(code) {
+        const cleanCode = code?.trim().toUpperCase();
+        const b = state.bookings.find(booking => booking.id === cleanCode);
+        const content = document.getElementById('scan-result-content');
+        
+        if (b) {
+            const isUsed = b.status === 'iskorišćena';
+            if (!isUsed) {
+                content.innerHTML = `
+                    <div class="bg-emerald-50 text-emerald-700 border-2 border-emerald-200 p-5 rounded-2xl mb-4 shadow-sm">
+                        <h4 class="text-2xl font-black tracking-wide">🟢 KARTA ISPRAVNA</h4>
+                    </div>
+                    <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Polaznik</p>
+                    <p class="text-3xl font-black text-slate-900 leading-tight">${b.firstName} ${b.lastName}</p>
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                       <p class="text-lg font-bold text-indigo-700 leading-tight">${b.eventTitle}</p>
+                       <p class="text-sm font-semibold text-slate-500 mt-1">${b.eventDate} u ${b.eventTime}h</p>
+                    </div>
+                    <div class="mt-6 flex flex-col gap-3">
+                        <button onclick="potvrdiKartuIzSkenera('${b.id}')" class="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xl font-black shadow-lg transition">✓ POTVRDI KARTU</button>
+                        <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-lg font-bold transition">✖ Poništi</button>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="bg-amber-50 text-amber-800 border-2 border-amber-200 p-5 rounded-2xl mb-4 shadow-sm">
+                        <h4 class="text-xl font-black tracking-wide">🟡 VEĆ ISKORIŠĆENA</h4>
+                    </div>
+                    <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Polaznik</p>
+                    <p class="text-2xl font-black text-slate-900 leading-tight">${b.firstName} ${b.lastName}</p>
+                    <p class="text-base font-bold text-indigo-700 mt-2">${b.eventTitle}</p>
+                    <p class="text-sm font-black text-rose-600 mt-3 bg-rose-50 py-2 rounded-lg">Karta je skenirana ranije!</p>
+                    <div class="mt-6">
+                        <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xl font-black shadow-lg transition">NASTAVI SKENIRANJE</button>
+                    </div>
+                `;
+            }
+        } else {
+            content.innerHTML = `
+                <div class="bg-rose-50 text-rose-800 border-2 border-rose-200 p-5 rounded-2xl mb-4 shadow-sm">
+                    <h4 class="text-2xl font-black">🔴 NEPOSTOJEĆA KARTA</h4>
+                </div>
+                <p class="text-base font-medium text-slate-500 mb-2">Pročitani kod:</p>
+                <p class="text-xl font-mono font-bold text-slate-700 mb-6 bg-slate-50 py-2 rounded-xl border border-slate-200 break-all px-2">${cleanCode}</p>
+                <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xl font-black shadow-lg transition">POKUŠAJ PONOVO</button>
+            `;
+        }
+        
+        document.getElementById('modal-scan-result').classList.remove('hidden');
+    };
+
+    window.potvrdiKartuIzSkenera = async function(bookingId) {
+        state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, status: 'iskorišćena' } : b);
+        safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        if (state.isOnline && firebaseActive) {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { status: 'iskorišćena' });
+        }
+        zatvoriRezultatSkeniranja();
+        showNotification("Ulaz je evidentiran!", "success");
+        renderUI();
+    };
+
+    window.zatvoriRezultatSkeniranja = function() {
+        document.getElementById('modal-scan-result').classList.add('hidden');
+        setTimeout(() => { window.obradjujeSeKod = false; }, 800); // Kratka pauza pre sledećeg skeniranja
+    };
+
+    window.proveriKodRucno = function() {
+       const inputEl = document.getElementById('scanner-manual-input');
+       if(inputEl && inputEl.value) {
+          window.prikaziRezultatSkeniranja(inputEl.value);
+          inputEl.value = '';
+       }
+    };
+    // -------------------------------------------------------------
 
     window.toggleEventStatus = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
@@ -951,61 +993,6 @@
       renderUI();
     });
 
-    window.verifyBookingCode = function(code) {
-      if (!code) return;
-      const cleanCode = code.trim().toUpperCase();
-      const b = state.bookings.find(booking => booking.id === cleanCode);
-      const panel = document.getElementById('scanner-result-panel');
-      if (!panel) return;
-      
-      if (b) {
-        const isUsed = b.status === 'iskorišćena';
-        panel.innerHTML = `
-          <div class="space-y-4 h-full flex flex-col justify-center">
-            <div class="${isUsed ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'} rounded-2xl p-4 sm:p-5 text-center border-2 shadow-sm">
-              <h4 class="text-xl font-black tracking-wide">${isUsed ? '🟡 VEĆ ISKORIŠĆENO' : '🟢 KARTA JE ISPRAVNA'}</h4>
-            </div>
-            <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 text-center shadow-sm">
-              <p class="text-sm text-slate-500 font-bold uppercase tracking-wider mb-1">Polaznik</p>
-              <p class="text-2xl sm:text-3xl font-black text-slate-900 leading-none">${b.firstName} ${b.lastName}</p>
-              <div class="mt-3 pt-3 border-t-2 border-slate-100">
-                <p class="text-base sm:text-lg font-bold text-indigo-700 leading-tight">${b.eventTitle}</p>
-              </div>
-            </div>
-            ${!isUsed ? `<button onclick="checkInBooking('${b.id}')" class="w-full py-4 sm:py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xl font-black shadow-md mt-2 transition">✓ EVIDENTIRAJ ULAZ</button>` : ''}
-          </div>
-        `;
-      } else {
-         panel.innerHTML = `
-          <div class="space-y-4 h-full flex flex-col justify-center">
-            <div class="bg-rose-50 text-rose-800 border-2 border-rose-200 rounded-2xl p-6 sm:p-8 text-center shadow-sm">
-              <span class="text-5xl block mb-4 drop-shadow-sm">🔴</span>
-              <h4 class="text-2xl font-black mb-2">NEPOSTOJEĆA KARTA</h4>
-              <p class="text-base font-bold opacity-80">Proverite da li je kod oštećen ili kucajte ručno.</p>
-            </div>
-          </div>
-        `;
-      }
-    };
-
-    window.checkInBooking = async function(bookingId) {
-      state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, status: 'iskorišćena' } : b);
-      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
-      if (state.isOnline && firebaseActive) {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { status: 'iskorišćena' });
-      }
-      window.verifyBookingCode(bookingId);
-      renderUI();
-    };
-
-    safeAddEventListener('btn-verify-manual', 'click', () => {
-      window.verifyBookingCode(document.getElementById('scanner-manual-input').value);
-    });
-
-    safeAddEventListener('btn-trigger-sync', 'click', () => {
-      processSyncQueue();
-    });
-
     // OTVARANJE INFO PROZORA
     window.openInfoModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
@@ -1031,12 +1018,12 @@
       
       if (!event.isActive || remaining === 0) {
          btnBook.disabled = true;
-         btnBook.className = "w-full py-5 sm:py-6 bg-slate-300 text-slate-500 text-lg sm:text-xl font-black rounded-2xl shadow-sm cursor-not-allowed";
+         btnBook.className = "w-full py-5 bg-slate-300 text-slate-500 text-xl font-black rounded-2xl shadow-sm cursor-not-allowed";
          btnBook.innerText = !event.isActive ? "Prijave su zatvorene" : "Mesta su popunjena";
          btnBook.onclick = null;
       } else {
          btnBook.disabled = false;
-         btnBook.className = "w-full py-5 sm:py-6 bg-indigo-600 hover:bg-indigo-700 text-white text-lg sm:text-xl font-black rounded-2xl shadow-lg transition";
+         btnBook.className = "w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black rounded-2xl shadow-lg transition";
          btnBook.innerText = "Prijavi se za program";
          btnBook.onclick = () => {
             document.getElementById('modal-info').classList.add('hidden');
@@ -1108,7 +1095,6 @@
       const emailEl = document.getElementById('booking-email');
       const emailValue = emailEl && emailEl.value ? emailEl.value.trim().toLowerCase() : '';
       
-      // LOGIKA ZA LIMITIRANJE: Maksimalno 2 karte po emailu za isti događaj
       if (emailValue) {
          const existingBookings = state.bookings.filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano');
          if (existingBookings.length >= 2) {
@@ -1182,7 +1168,7 @@
       document.getElementById('ticket-datetime').innerText = `${booking.eventDate} u ${booking.eventTime}h`;
       setTimeout(() => {
         const canvas = document.getElementById('ticket-qr-canvas');
-        if (canvas) new QRious({ element: canvas, value: booking.id, size: 220, background: '#ffffff', foreground: '#4f46e5', level: 'H' });
+        if (canvas) new QRious({ element: canvas, value: booking.id, size: 200, background: '#ffffff', foreground: '#4f46e5', level: 'H' });
       }, 100);
       document.getElementById('modal-ticket').classList.remove('hidden');
     }
@@ -1200,7 +1186,7 @@
           link.download = `EduBooker_Karta_${state.activeViewingTicket?.id || 'rezervacija'}.png`;
           link.href = canvas.toDataURL();
           link.click();
-          showNotification("Karta je sačuvana", "success");
+          showNotification("Karta je sačuvana na uređaj", "success");
         });
       }
     });
@@ -1216,14 +1202,10 @@
             text: textToShare,
             url: window.location.href
           });
-        } catch (err) {
-          console.log("Deljenje prekinuto");
-        }
+        } catch (err) {}
       } else if (navigator.clipboard) {
          navigator.clipboard.writeText(textToShare).then(() => {
-            showNotification("Kopirano u memoriju", "success");
-         }).catch(() => {
-            showNotification("Kopiranje nije uspelo", "info");
+            showNotification("Podaci kopirani u memoriju", "success");
          });
       }
     });
@@ -1300,9 +1282,7 @@
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', catId), newCategory);
           showNotification(`Kategorija ${name} sačuvana`, "success");
-        } catch (err) {
-          console.error(err);
-        }
+        } catch (err) {}
       } else {
         showNotification(`Smer sačuvan lokalno`, "info");
       }
@@ -1325,23 +1305,22 @@
         container.innerHTML = `<div class="p-8 text-center bg-white rounded-2xl border border-slate-200"><p class="text-slate-500 font-bold text-lg">Još uvek nema prijavljenih polaznika.</p></div>`;
       } else {
         container.innerHTML = eventBookings.map((b, index) => `
-          <div class="bg-white border border-slate-200 p-5 sm:p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition shadow-sm">
+          <div class="bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:shadow-md transition shadow-sm">
             <div>
-              <div class="flex items-center gap-3 mb-2">
-                <span class="bg-indigo-100 text-indigo-800 text-xs font-black px-2.5 py-1 rounded-md uppercase">#${index + 1}</span>
-                <h4 class="font-black text-slate-900 text-lg sm:text-xl">${b.firstName} ${b.lastName}</h4>
-                ${b.status === 'iskorišćena' ? `<span class="bg-emerald-100 text-emerald-700 text-xs font-black px-2.5 py-1 rounded-md uppercase" title="Polaznik prisutan">✓ Prisutan</span>` : ''}
+              <div class="flex items-center gap-2 mb-1">
+                <span class="bg-indigo-100 text-indigo-800 text-xs font-black px-2 py-1 rounded uppercase">#${index + 1}</span>
+                <h4 class="font-black text-slate-900 text-lg">${b.firstName} ${b.lastName}</h4>
+                ${b.status === 'iskorišćena' ? `<span class="bg-emerald-100 text-emerald-700 text-xs font-black px-2 py-1 rounded uppercase">✓ Prisutan</span>` : ''}
               </div>
-              <div class="text-sm font-medium text-slate-600 space-y-1 mt-2">
+              <div class="text-sm font-medium text-slate-500 space-y-0.5 mt-2">
                 <p>📧 ${b.email}</p>
                 <p>📞 ${b.phone}</p>
-                <p>🏠 ${b.address}</p>
-                ${b.note ? `<p class="mt-3 text-amber-800 bg-amber-50 p-3 rounded-xl border border-amber-200">📝 <strong class="font-bold">Napomena:</strong> ${b.note}</p>` : ''}
+                ${b.note ? `<p class="mt-2 text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">📝 <strong class="font-bold">Napomena:</strong> ${b.note}</p>` : ''}
               </div>
             </div>
-            <div class="text-left sm:text-right shrink-0 border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0 mt-3 sm:mt-0">
-               <p class="text-xs text-slate-400 font-mono font-bold tracking-wider">${b.id}</p>
-               <p class="text-xs text-slate-400 font-bold mt-1">${new Date(b.timestamp).toLocaleDateString('sr-RS')} u ${new Date(b.timestamp).toLocaleTimeString('sr-RS', {hour: '2-digit', minute:'2-digit'})}</p>
+            <div class="text-left sm:text-right shrink-0 border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0 mt-2 sm:mt-0">
+               <p class="text-[10px] text-slate-400 font-mono tracking-wider">${b.id}</p>
+               <p class="text-[11px] text-slate-400 font-bold mt-1">${new Date(b.timestamp).toLocaleTimeString('sr-RS', {hour: '2-digit', minute:'2-digit'})}h</p>
             </div>
           </div>
         `).join('');
@@ -1355,9 +1334,9 @@
     function renderUI() {
       const filterContainer = document.getElementById('categories-filter-container');
       if (filterContainer) {
-        let catHTML = `<button onclick="selectCategory('all')" class="px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}">🌐 Sve obuke</button>`;
+        let catHTML = `<button onclick="selectCategory('all')" class="px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}">🌐 Sve obuke</button>`;
         state.categories.forEach(cat => {
-          catHTML += `<button onclick="selectCategory('${cat.id}')" class="px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}"><span class="text-lg">${cat.icon}</span> <span>${cat.name}</span></button>`;
+          catHTML += `<button onclick="selectCategory('${cat.id}')" class="px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}"><span class="text-lg">${cat.icon}</span> <span>${cat.name}</span></button>`;
         });
         filterContainer.innerHTML = catHTML;
       }
@@ -1381,25 +1360,25 @@
           const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
           const remaining = Math.max(0, evt.totalSeats - bookedCount);
           const headerHTML = evt.image 
-            ? `<div class="h-48 sm:h-56 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
-            : `<div class="h-4 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
+            ? `<div class="h-44 sm:h-48 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
+            : `<div class="h-3 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
           return `
             <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition duration-300">
               ${headerHTML}
-              <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <h3 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">${evt.title}</h3>
-                  <p class="text-sm sm:text-base text-slate-600 mt-2 sm:mt-3 leading-snug line-clamp-2">${evt.description}</p>
-                  <button onclick="openInfoModal('${evt.id}')" class="text-indigo-600 font-black text-base sm:text-lg mt-3 flex items-center gap-1 hover:text-indigo-800 transition">
+                  <h3 class="text-xl font-black text-slate-900 leading-tight">${evt.title}</h3>
+                  <p class="text-sm text-slate-600 mt-2 leading-snug line-clamp-2">${evt.description}</p>
+                  <button onclick="openInfoModal('${evt.id}')" class="text-indigo-600 font-black text-base mt-2 flex items-center gap-1 hover:text-indigo-800 transition">
                      ℹ️ Detaljnije i prijava...
                   </button>
                 </div>
-                <div class="pt-4 border-t border-slate-100">
-                   <div class="flex justify-between text-sm font-bold text-slate-600 mb-3 px-1">
+                <div class="pt-3 border-t border-slate-100">
+                   <div class="flex justify-between text-xs font-bold text-slate-600 mb-2 px-1">
                       <span>Zauzeto mesta: <span class="text-slate-900">${bookedCount} / ${evt.totalSeats}</span></span>
                       ${remaining > 0 ? `<span class="text-emerald-600">Slobodno: ${remaining}</span>` : `<span class="text-rose-600">Popunjeno</span>`}
                    </div>
-                   <button onclick="openBookingModal('${evt.id}')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-lg font-black shadow-md transition ${!evt.isActive || remaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${!evt.isActive || remaining === 0 ? 'disabled' : ''}>
+                   <button onclick="openBookingModal('${evt.id}')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-base font-black shadow-md transition ${!evt.isActive || remaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${!evt.isActive || remaining === 0 ? 'disabled' : ''}>
                      ${!evt.isActive ? 'Prijave su zatvorene' : remaining === 0 ? 'Trenutno su sve karte rezervisane' : 'Brza rezervacija mesta'}
                    </button>
                 </div>
@@ -1416,7 +1395,7 @@
 
       if (state.isAdminAuthenticated) {
          myTicketsHeading.innerText = "Pregled svih rezervacija";
-         myTicketsDesc.innerText = "Administrativni pregled po programima. Izaberite program za detaljan spisak polaznika i statistiku.";
+         myTicketsDesc.innerText = "Izaberite program za detaljan spisak polaznika.";
          if (myTicketsSearch) myTicketsSearch.style.display = 'none';
 
          if (myTicketsGrid) {
@@ -1426,22 +1405,22 @@
                 const remaining = Math.max(0, evt.totalSeats - eventBookings.length);
 
                 return `
-                <div class="bg-white rounded-3xl border border-indigo-100 p-5 sm:p-6 shadow-sm space-y-5 hover:shadow-md transition">
-                    <h3 class="text-lg sm:text-xl font-black text-slate-900 leading-tight border-b border-slate-100 pb-3">${evt.title}</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-bold text-center">
-                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-slate-700 flex flex-col"><span class="text-xs font-semibold uppercase opacity-70">Kapacitet</span> <span class="text-xl mt-1">${evt.totalSeats}</span></div>
-                        <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-100 text-indigo-700 flex flex-col"><span class="text-xs font-semibold uppercase opacity-70">Izdato</span> <span class="text-xl mt-1">${eventBookings.length}</span></div>
-                        <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100 text-emerald-700 flex flex-col"><span class="text-xs font-semibold uppercase opacity-70">Prisutno</span> <span class="text-xl mt-1">${checkedIn}</span></div>
-                        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100 text-amber-700 flex flex-col"><span class="text-xs font-semibold uppercase opacity-70">Preostalo</span> <span class="text-xl mt-1">${remaining}</span></div>
+                <div class="bg-white rounded-3xl border border-indigo-100 p-5 shadow-sm space-y-4 hover:shadow-md transition">
+                    <h3 class="text-lg font-black text-slate-900 leading-tight border-b border-slate-100 pb-2">${evt.title}</h3>
+                    <div class="grid grid-cols-4 gap-2 text-xs font-bold text-center">
+                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-slate-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Svega</span> <span class="text-lg mt-1">${evt.totalSeats}</span></div>
+                        <div class="bg-indigo-50 p-2 rounded-xl border border-indigo-100 text-indigo-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Izdato</span> <span class="text-lg mt-1">${eventBookings.length}</span></div>
+                        <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-100 text-emerald-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Tu</span> <span class="text-lg mt-1">${checkedIn}</span></div>
+                        <div class="bg-amber-50 p-2 rounded-xl border border-amber-100 text-amber-700 flex flex-col"><span class="text-[10px] uppercase opacity-70">Prazno</span> <span class="text-lg mt-1">${remaining}</span></div>
                     </div>
-                    <button onclick="openAttendeesModal('${evt.id}')" class="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-xl text-sm sm:text-base font-black shadow-md mt-2 transition">👥 Otvori spisak polaznika</button>
+                    <button onclick="openAttendeesModal('${evt.id}')" class="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-black shadow-md transition">👥 Otvori spisak polaznika</button>
                 </div>
                 `;
             }).join('');
          }
       } else {
          myTicketsHeading.innerText = "Vaše rezervisane karte";
-         myTicketsDesc.innerText = "Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte.";
+         myTicketsDesc.innerText = "Ovde se nalaze sve karte koje ste rezervisali.";
          if (myTicketsSearch) myTicketsSearch.style.display = 'flex';
 
          if (myTicketsGrid) {
@@ -1465,30 +1444,30 @@
             });
 
             if (Object.keys(groupedBookings).length === 0) {
-               myTicketsGrid.innerHTML = `<div class="col-span-full p-10 text-center bg-slate-50 rounded-3xl border border-slate-200"><p class="text-lg text-slate-500 font-bold">Trenutno nemate sačuvanih karata</p></div>`;
+               myTicketsGrid.innerHTML = `<div class="col-span-full p-8 text-center bg-slate-50 rounded-3xl border border-slate-200"><p class="text-base text-slate-500 font-bold">Trenutno nemate sačuvanih karata</p></div>`;
             } else {
                myTicketsGrid.innerHTML = Object.keys(groupedBookings).map(eventName => {
                  const tickets = groupedBookings[eventName];
                  return `
-                   <div class="col-span-1 bg-white rounded-3xl border border-indigo-100 p-6 shadow-sm space-y-5 hover:shadow-md transition">
-                     <div class="border-b border-slate-100 pb-4">
-                       <h3 class="text-lg font-black text-slate-900 flex items-start gap-3">
-                         <span class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-xl text-base shrink-0">${tickets.length}</span>
-                         <span class="leading-snug pt-1">${eventName}</span>
+                   <div class="col-span-1 bg-white rounded-3xl border border-indigo-100 p-5 shadow-sm space-y-4 hover:shadow-md transition">
+                     <div class="border-b border-slate-100 pb-3">
+                       <h3 class="text-base font-black text-slate-900 flex items-start gap-2">
+                         <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-sm shrink-0">${tickets.length}</span>
+                         <span class="leading-snug pt-0.5">${eventName}</span>
                        </h3>
                      </div>
-                     <div class="grid grid-cols-1 gap-5">
+                     <div class="grid grid-cols-1 gap-4">
                        ${tickets.map(b => `
-                         <div class="bg-slate-50 rounded-3xl p-5 sm:p-6 border-2 border-slate-200 flex flex-col justify-between hover:bg-white transition">
-                           <div class="mb-5">
-                             <p class="text-xl font-black text-slate-900 flex items-center gap-2">📅 ${b.eventDate} <span class="text-slate-400 text-base font-semibold">|</span> ${b.eventTime}h</p>
-                             <p class="text-base font-bold text-slate-700 mt-2 flex items-start gap-2"><span class="mt-0.5">📍</span> ${b.eventLocation}</p>
-                             <div class="mt-5 pt-4 border-t-2 border-slate-200">
-                               <p class="text-sm font-bold text-slate-500 uppercase tracking-wider">Polaznik</p>
-                               <p class="text-2xl font-black text-slate-900 mt-1">${b.firstName} ${b.lastName}</p>
+                         <div class="bg-slate-50 rounded-2xl p-4 border-2 border-slate-200 flex flex-col justify-between hover:bg-white transition">
+                           <div class="mb-4">
+                             <p class="text-lg font-black text-slate-900 flex items-center gap-2">📅 ${b.eventDate} <span class="text-slate-400 text-sm font-semibold">|</span> ${b.eventTime}h</p>
+                             <p class="text-sm font-bold text-slate-700 mt-1 flex items-start gap-2">📍 ${b.eventLocation}</p>
+                             <div class="mt-4 pt-3 border-t-2 border-slate-200">
+                               <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Polaznik</p>
+                               <p class="text-xl font-black text-slate-900 mt-0.5">${b.firstName} ${b.lastName}</p>
                              </div>
                            </div>
-                           <button onclick="viewTicket('${b.id}')" class="w-full py-4 bg-indigo-600 text-white text-lg font-black rounded-2xl shadow-md hover:bg-indigo-700 transition">🎫 Otvori QR kartu</button>
+                           <button onclick="viewTicket('${b.id}')" class="w-full py-4 bg-indigo-600 text-white text-base font-black rounded-xl shadow-md hover:bg-indigo-700 transition">🎫 Otvori QR kartu</button>
                          </div>
                        `).join('')}
                      </div>
@@ -1502,36 +1481,39 @@
       const adminEventsList = document.getElementById('admin-events-list');
       if (adminEventsList) {
         if (state.events.length === 0) {
-          adminEventsList.innerHTML = `<div class="p-10 text-center text-lg font-bold text-slate-400">Sistem je prazan, kreirajte prvu obuku</div>`;
+          adminEventsList.innerHTML = `<div class="p-8 text-center text-base font-bold text-slate-400">Sistem je prazan, kreirajte prvu obuku</div>`;
         } else {
           adminEventsList.innerHTML = state.events.map(evt => {
             const cat = state.categories.find(c => c.id === evt.category) || { name: 'Edukacija', icon: '🎓' };
             const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
             const remaining = Math.max(0, evt.totalSeats - bookedCount);
             return `
-              <div class="p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-slate-50 transition border-b-2 border-slate-100 last:border-0">
-                <div class="space-y-3">
-                  <div class="flex items-center gap-3">
-                    <span class="text-sm font-black bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-xl uppercase tracking-wide flex items-center gap-2">${cat.icon} ${cat.name}</span>
-                    <h4 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">${evt.title}</h4>
+              <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50 transition border-b-2 border-slate-100 last:border-0">
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg uppercase tracking-wide flex items-center gap-1">${cat.icon} ${cat.name}</span>
+                    <h4 class="text-lg sm:text-xl font-black text-slate-900 leading-tight">${evt.title}</h4>
                   </div>
-                  <p class="text-base text-slate-600 font-bold flex flex-wrap gap-x-5 gap-y-2 mt-2">
+                  <p class="text-sm text-slate-600 font-bold flex flex-wrap gap-x-4 gap-y-1 mt-1">
                     <span>📍 ${evt.location}</span> 
                     <span>📅 ${evt.date} u ${evt.time}h</span>
                   </p>
-                  <div class="flex items-center gap-3 pt-3 border-t border-slate-200 mt-3">
-                    <span class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold">Mesta: ${evt.totalSeats}</span>
-                    <span class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-sm font-black">Slobodno: ${remaining}</span>
+                  <div class="flex items-center gap-2 pt-2 border-t border-slate-200 mt-2">
+                    <span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold">Mesta: ${evt.totalSeats}</span>
+                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-black">Slobodno: ${remaining}</span>
                   </div>
                 </div>
-                <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0 pt-5 lg:pt-0 w-full lg:w-auto">
-                  <button onclick="toggleEventStatus('${evt.id}')" class="flex-1 lg:flex-none px-6 py-4 rounded-2xl text-base font-black transition shadow-sm border-2 ${evt.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'}">
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 pt-4 lg:pt-0 w-full lg:w-auto">
+                  <button onclick="openAttendeesModal('${evt.id}')" class="flex-1 lg:flex-none px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-sm font-black transition shadow-sm border border-indigo-200">
+                    👥 Prijave (${bookedCount})
+                  </button>
+                  <button onclick="toggleEventStatus('${evt.id}')" class="flex-1 lg:flex-none px-4 py-3 rounded-xl text-sm font-black transition shadow-sm border ${evt.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'}">
                     ${evt.isActive ? '🔓 Otvoreno' : '🔒 Zatvoreno'}
                   </button>
-                  <button onclick="openEditEventModal('${evt.id}')" class="flex-1 lg:flex-none px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-base font-bold transition shadow-sm border border-slate-200">
+                  <button onclick="openEditEventModal('${evt.id}')" class="flex-1 lg:flex-none px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition border border-slate-200 shadow-sm">
                     ✏️ Izmeni
                   </button>
-                  <button onclick="deleteEvent('${evt.id}')" class="flex-1 lg:flex-none px-6 py-4 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-base font-bold transition border border-rose-100 shadow-sm">
+                  <button onclick="deleteEvent('${evt.id}')" class="flex-1 lg:flex-none px-4 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-sm font-bold transition border border-rose-100 shadow-sm">
                     🗑️ Briši
                   </button>
                 </div>
@@ -1544,15 +1526,15 @@
       const adminCategoriesGrid = document.getElementById('admin-categories-grid');
       if (adminCategoriesGrid) {
         adminCategoriesGrid.innerHTML = state.categories.map(cat => `
-          <div class="flex items-center justify-between p-5 rounded-3xl bg-slate-50 border-2 border-slate-200 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center gap-5">
-              <span class="text-4xl bg-white w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm border border-slate-100">${cat.icon}</span>
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 shadow-sm hover:shadow-md transition">
+            <div class="flex items-center gap-4">
+              <span class="text-3xl bg-white w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-slate-100">${cat.icon}</span>
               <div>
-                <p class="text-xl font-black text-slate-900">${cat.name}</p>
-                <p class="text-sm font-mono font-bold text-slate-400 mt-1">Sifra: ${cat.id}</p>
+                <p class="text-lg font-black text-slate-900">${cat.name}</p>
+                <p class="text-xs font-mono font-bold text-slate-400">Sifra: ${cat.id}</p>
               </div>
             </div>
-            <button onclick="deleteCategory('${cat.id}')" class="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white font-black text-2xl w-14 h-14 rounded-2xl transition shadow-sm">✕</button>
+            <button onclick="deleteCategory('${cat.id}')" class="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white font-black text-xl w-10 h-10 rounded-xl transition shadow-sm">✕</button>
           </div>
         `).join('');
       }
@@ -1575,13 +1557,13 @@
       }
 
       document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
-        btn.classList.remove('text-indigo-600', 'scale-110');
+        btn.classList.remove('text-indigo-600');
         btn.classList.add('text-slate-400');
       });
       const activeMobile = document.getElementById(`nav-${tabId === 'admin' ? 'admin-panel' : tabId}-mobile`);
       if (activeMobile) {
          activeMobile.classList.remove('text-slate-400');
-         activeMobile.classList.add('text-indigo-600', 'scale-110');
+         activeMobile.classList.add('text-indigo-600');
       }
       renderUI();
     };
@@ -1602,11 +1584,11 @@
       if (activeSubTabEl) activeSubTabEl.classList.remove('hidden');
 
       document.querySelectorAll('.admin-subnav-btn').forEach(btn => {
-        btn.className = "admin-subnav-btn bg-slate-100 text-slate-600 px-6 py-4 rounded-2xl text-base sm:text-lg font-bold transition hover:bg-slate-200";
+        btn.className = "admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-xl text-sm font-bold transition hover:bg-slate-200";
       });
       const activeBtn = document.getElementById(`admin-subnav-${subTabId}`);
       if (activeBtn) {
-        activeBtn.className = "admin-subnav-btn active bg-indigo-600 text-white px-6 py-4 rounded-2xl text-base sm:text-lg font-bold transition shadow-md";
+        activeBtn.className = "admin-subnav-btn active bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-md";
       }
       
       if (subTabId !== 'scanner' && window.html5QrCode && window.html5QrCode.isScanning) {
@@ -1648,7 +1630,8 @@
         if (adminLogoutBtn) adminLogoutBtn.classList.remove('hidden');
         
         document.getElementById('nav-my-tickets-mobile-text').innerText = "Rezervacije";
-        document.getElementById('nav-my-tickets-desktop').innerText = "📋 Rezervacije";
+        document.getElementById('nav-my-tickets-mobile-icon').innerText = "🗂️";
+        document.getElementById('nav-my-tickets-desktop').innerText = "🗂️ Rezervacije";
         
         window.switchTab('admin');
       } else if (errorMsg) {
@@ -1675,6 +1658,7 @@
       if (adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
       
       document.getElementById('nav-my-tickets-mobile-text').innerText = "Moje karte";
+      document.getElementById('nav-my-tickets-mobile-icon').innerText = "📋";
       document.getElementById('nav-my-tickets-desktop').innerText = "📋 Moje karte";
       
       showNotification("Sistem je bezbedno zaključan", "info");
