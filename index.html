@@ -37,6 +37,13 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+    .slide-down {
+      animation: slideDown 0.3s ease-out forwards;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); height: 0; }
+      to { opacity: 1; transform: translateY(0); height: auto; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-28 lg:pb-0 relative">
@@ -119,13 +126,17 @@
   <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
 
     <section id="tab-events" class="tab-section space-y-6 fade-in">
-      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-        <div class="relative">
-          <span class="absolute left-4 top-4 text-xl text-slate-400">🔍</span>
-          <input id="search-input" type="text" placeholder="Pretražite obuke..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-5 py-4 text-base text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+      
+      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-3 overflow-x-auto pb-1 no-scrollbar flex-1" id="categories-filter-container"></div>
+          <button id="btn-toggle-search" class="w-12 h-12 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl shrink-0 transition text-xl">🔍</button>
         </div>
-        <div class="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar" id="categories-filter-container"></div>
+        <div id="search-container" class="hidden slide-down">
+          <input id="search-input" type="text" placeholder="Pretražite obuke po nazivu..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-base text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+        </div>
       </div>
+      
       <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
     </section>
 
@@ -221,54 +232,75 @@
     </section>
   </main>
 
+  <div id="modal-info" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 overflow-y-auto">
+    <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-xl shadow-2xl flex flex-col overflow-hidden">
+       <div id="modal-info-img" class="h-48 sm:h-64 w-full bg-slate-200 bg-cover bg-center"></div>
+       <div class="p-6 sm:p-8 space-y-5">
+          <div>
+             <h3 id="modal-info-title" class="text-2xl font-black text-slate-900 leading-none mb-3">...</h3>
+             <p id="modal-info-desc" class="text-base sm:text-lg text-slate-600 leading-snug">...</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+            <p class="text-base font-bold text-slate-700 flex items-center gap-2"><span class="text-xl">📍</span> <span id="modal-info-loc">...</span></p>
+            <p class="text-base font-bold text-slate-700 flex items-center gap-2"><span class="text-xl">📅</span> <span id="modal-info-datetime">...</span></p>
+          </div>
+          <div class="pt-4 flex flex-col gap-3 border-t border-slate-100">
+             <button id="btn-info-book" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black rounded-2xl shadow-lg transition">Prijavi se za program</button>
+             <button type="button" onclick="document.getElementById('modal-info').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold rounded-2xl transition">✕ Nazad</button>
+          </div>
+       </div>
+    </div>
+  </div>
+
   <div id="modal-booking" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 overflow-y-auto">
     <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-xl p-6 sm:p-8 shadow-2xl space-y-5">
-      <div class="flex items-start justify-between pb-2 border-b border-slate-100">
-        <div>
-          <h3 id="modal-booking-title" class="text-xl font-bold text-slate-900">...</h3>
-          <p id="modal-booking-seats" class="text-sm font-semibold text-emerald-600 mt-1">...</p>
-        </div>
-        <button id="btn-close-booking-modal" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-xl font-black">✕</button>
+      <div class="pb-3 border-b border-slate-100">
+         <h3 id="modal-booking-title" class="text-2xl font-black text-slate-900 leading-tight">...</h3>
+         <p id="modal-booking-seats" class="text-base font-bold text-emerald-600 mt-2 bg-emerald-50 inline-block px-3 py-1 rounded-lg">...</p>
       </div>
-      <form id="form-submit-booking" class="space-y-4 pt-2">
-        <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-4 rounded-2xl text-sm font-semibold hidden">
+      <form id="form-submit-booking" class="space-y-5 pt-1">
+        <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-4 rounded-2xl text-base font-semibold hidden">
           💡 Prijavljeni ste preko Google naloga, podaci su automatski popunjeni.
         </div>
-        
+
         <div id="wrapper-booking-name" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-bold text-slate-600 mb-1.5">Ime polaznika *</label>
-            <input id="booking-firstname" type="text" placeholder="Unesite ime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+            <label class="block text-base sm:text-lg font-bold text-slate-700 mb-2">Ime polaznika *</label>
+            <input id="booking-firstname" type="text" placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-600 mb-1.5">Prezime polaznika *</label>
-            <input id="booking-lastname" type="text" placeholder="Unesite prezime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+            <label class="block text-base sm:text-lg font-bold text-slate-700 mb-2">Prezime polaznika *</label>
+            <input id="booking-lastname" type="text" placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
           </div>
         </div>
 
         <div id="wrapper-booking-email">
-          <label class="block text-sm font-bold text-slate-600 mb-1.5">Email za potvrdu *</label>
-          <input id="booking-email" type="email" placeholder="Unesite email adresu" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+          <label class="block text-base sm:text-lg font-bold text-slate-700 mb-2">Email za potvrdu *</label>
+          <input id="booking-email" type="email" placeholder="vas@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
         </div>
 
         <div id="wrapper-booking-phone">
-          <label class="block text-sm font-bold text-slate-600 mb-1.5">Kontakt telefon *</label>
-          <input id="booking-phone" type="tel" placeholder="npr. 064 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+          <label class="block text-base sm:text-lg font-bold text-slate-700 mb-2">Kontakt telefon *</label>
+          <input id="booking-phone" type="tel" placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
         </div>
 
         <div id="wrapper-booking-address">
-          <label class="block text-sm font-bold text-slate-600 mb-1.5">Adresa i Grad *</label>
-          <input id="booking-address" type="text" placeholder="npr. Novi Sad" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+          <label class="block text-base sm:text-lg font-bold text-slate-700 mb-2">Adresa i Grad *</label>
+          <input id="booking-address" type="text" placeholder="Ulica, Grad" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-slate-600 mb-1.5">Napomena (opcionalno)</label>
-          <textarea id="booking-note" rows="3" placeholder="Unesite napomene..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-none"></textarea>
+          <label class="block text-base sm:text-lg font-bold text-slate-700 mb-2">Dodatna napomena</label>
+          <textarea id="booking-note" rows="2" placeholder="Ukoliko imate napomenu..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-none"></textarea>
         </div>
 
-        <div class="pt-4 flex flex-col sm:flex-row items-center justify-end gap-3">
-          <button type="button" id="btn-cancel-booking" class="w-full sm:w-auto px-6 py-4 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition">Odustani</button>
-          <button type="submit" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-base font-bold rounded-2xl shadow-lg transition">Potvrdi i rezerviši</button>
+        <div class="pt-2">
+           <p class="text-sm font-bold text-rose-600 text-center bg-rose-50 p-3 rounded-xl border border-rose-100">⚠️ Napomena: Sa jedne email adrese moguće je rezervisati maksimalno 2 karte za ovaj program.</p>
+        </div>
+
+        <div class="pt-4 flex flex-col gap-3 border-t border-slate-100">
+          <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black rounded-2xl shadow-lg transition">Potvrdi i rezerviši</button>
+          <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-lg font-bold rounded-2xl transition">✕ Zatvori prozor</button>
         </div>
       </form>
     </div>
@@ -307,8 +339,7 @@
         <button id="btn-close-attendees-modal" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-xl font-black shrink-0 ml-2">✕</button>
       </div>
       
-      <div class="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-3" id="attendees-list-container">
-      </div>
+      <div class="flex-1 overflow-y-auto pr-2 no-scrollbar space-y-3" id="attendees-list-container"></div>
       
       <div class="pt-4 border-t border-slate-100 flex items-center justify-between shrink-0">
          <div class="text-sm text-slate-500 font-bold">Ukupno prijava: <span id="attendees-total-count" class="text-slate-900">0</span></div>
@@ -629,6 +660,19 @@
       });
     }
 
+    safeAddEventListener('btn-toggle-search', 'click', () => {
+       const searchContainer = document.getElementById('search-container');
+       if(searchContainer.classList.contains('hidden')) {
+          searchContainer.classList.remove('hidden');
+          document.getElementById('search-input').focus();
+       } else {
+          searchContainer.classList.add('hidden');
+          document.getElementById('search-input').value = '';
+          state.searchTerm = '';
+          renderUI();
+       }
+    });
+
     safeAddEventListener('event-image-file', 'change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -705,7 +749,7 @@
           }
 
           if (code) {
-            showNotification("QR kod uspešno prepoznat", "success");
+            showNotification("QR kod uspešno prepoznat sa slike", "success");
             const inputEl = document.getElementById('scanner-manual-input');
             if(inputEl) inputEl.value = code.data;
             window.verifyBookingCode(code.data);
@@ -898,6 +942,47 @@
       processSyncQueue();
     });
 
+    // OTVARANJE INFO PROZORA
+    window.openInfoModal = function(eventId) {
+      const event = state.events.find(e => e.id === eventId);
+      if (!event) return;
+      
+      document.getElementById('modal-info-title').innerText = event.title;
+      document.getElementById('modal-info-desc').innerText = event.description;
+      document.getElementById('modal-info-loc').innerText = event.location;
+      document.getElementById('modal-info-datetime').innerText = `${event.date} u ${event.time}h`;
+      
+      const imgDiv = document.getElementById('modal-info-img');
+      if(event.image) {
+         imgDiv.style.backgroundImage = `url(${event.image})`;
+         imgDiv.style.display = 'block';
+      } else {
+         imgDiv.style.display = 'none';
+      }
+
+      const btnBook = document.getElementById('btn-info-book');
+      
+      const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
+      const remaining = Math.max(0, event.totalSeats - bookedCount);
+      
+      if (!event.isActive || remaining === 0) {
+         btnBook.disabled = true;
+         btnBook.className = "w-full py-5 bg-slate-300 text-slate-500 text-xl font-black rounded-2xl shadow-sm cursor-not-allowed";
+         btnBook.innerText = !event.isActive ? "Prijave su zatvorene" : "Mesta su popunjena";
+         btnBook.onclick = null;
+      } else {
+         btnBook.disabled = false;
+         btnBook.className = "w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-black rounded-2xl shadow-lg transition";
+         btnBook.innerText = "Prijavi se za program";
+         btnBook.onclick = () => {
+            document.getElementById('modal-info').classList.add('hidden');
+            window.openBookingModal(eventId);
+         };
+      }
+      
+      document.getElementById('modal-info').classList.remove('hidden');
+    };
+
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
@@ -906,7 +991,7 @@
       const bookedCount = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano').length;
       const remaining = Math.max(0, event.totalSeats - bookedCount);
       document.getElementById('modal-booking-title').innerText = event.title;
-      document.getElementById('modal-booking-seats').innerText = `Slobodnih mesta: ${remaining}`;
+      document.getElementById('modal-booking-seats').innerText = `Još ${remaining} slobodnih mesta`;
       
       const reqName = event.formFields?.name !== false;
       const reqEmail = event.formFields?.email !== false;
@@ -955,6 +1040,18 @@
       e.preventDefault();
       const event = state.selectedEventForBooking;
       if (!event) return;
+
+      const emailEl = document.getElementById('booking-email');
+      const emailValue = emailEl && emailEl.value ? emailEl.value.trim().toLowerCase() : '';
+      
+      // LOGIKA ZA LIMITIRANJE: Maksimalno 2 karte po emailu za isti događaj
+      if (emailValue) {
+         const existingBookings = state.bookings.filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano');
+         if (existingBookings.length >= 2) {
+            showNotification("Dostigli ste limit! Maksimalno 2 karte sa iste email adrese.", "warning");
+            return;
+         }
+      }
       
       const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
       
@@ -965,7 +1062,6 @@
 
       const fNameEl = document.getElementById('booking-firstname');
       const lNameEl = document.getElementById('booking-lastname');
-      const emailEl = document.getElementById('booking-email');
       const phoneEl = document.getElementById('booking-phone');
       const addressEl = document.getElementById('booking-address');
       
@@ -978,7 +1074,7 @@
         eventTime: event.time,
         firstName: reqName && fNameEl && fNameEl.value ? fNameEl.value.trim() : 'Polaznik',
         lastName: reqName && lNameEl && lNameEl.value ? lNameEl.value.trim() : '',
-        email: reqEmail && emailEl && emailEl.value ? emailEl.value.trim() : 'Nije uneto',
+        email: reqEmail && emailValue ? emailValue : 'Nije uneto',
         phone: reqPhone && phoneEl && phoneEl.value ? phoneEl.value.trim() : 'Nije traženo',
         address: reqAddress && addressEl && addressEl.value ? addressEl.value.trim() : 'Nije traženo',
         note: document.getElementById('booking-note').value.trim(),
@@ -1221,25 +1317,24 @@
           const bookedCount = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano').length;
           const remaining = Math.max(0, evt.totalSeats - bookedCount);
           const headerHTML = evt.image 
-            ? `<div class="h-56 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
+            ? `<div class="h-48 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
             : `<div class="h-4 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
           return `
             <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition duration-300">
               ${headerHTML}
-              <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <h3 class="text-xl font-bold text-slate-900 leading-tight">${evt.title}</h3>
-                  <p class="text-sm text-slate-500 mt-3 leading-relaxed">${evt.description}</p>
+                  <h3 class="text-2xl font-black text-slate-900 leading-none">${evt.title}</h3>
+                  <p class="text-base text-slate-600 mt-3 leading-tight line-clamp-2">${evt.description}</p>
+                  <button onclick="openInfoModal('${evt.id}')" class="text-indigo-600 font-bold text-base mt-2 flex items-center gap-1 hover:text-indigo-800 transition">
+                     ℹ️ Detaljnije...
+                  </button>
                 </div>
-                <div class="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p class="text-sm font-bold text-slate-700 flex items-center gap-2"><span class="text-lg">📍</span> ${evt.location}</p>
-                  <p class="text-sm font-bold text-slate-700 flex items-center gap-2"><span class="text-lg">📅</span> ${evt.date} u ${evt.time}h</p>
+                <div class="pt-3">
+                   <button onclick="openBookingModal('${evt.id}')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-lg font-black shadow-md transition ${!evt.isActive || remaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${!evt.isActive || remaining === 0 ? 'disabled' : ''}>
+                     ${!evt.isActive ? 'Prijave su zatvorene' : remaining === 0 ? 'Mesta su popunjena' : 'Rezerviši svoje mesto'}
+                   </button>
                 </div>
-                <div class="flex items-center justify-between pt-2">
-                   <div class="text-sm font-bold text-slate-500">Slobodna mesta</div>
-                   <div class="text-lg font-black ${remaining > 0 ? 'text-emerald-600' : 'text-rose-500'} bg-white px-3 py-1 rounded-xl shadow-sm border border-slate-200">${remaining}</div>
-                </div>
-                <button onclick="openBookingModal('${evt.id}')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base font-bold shadow-md transition mt-2 ${!evt.isActive || remaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${!evt.isActive || remaining === 0 ? 'disabled' : ''}>${!evt.isActive ? 'Prijave su zatvorene' : remaining === 0 ? 'Mesta su popunjena' : 'Rezerviši svoje mesto'}</button>
               </div>
             </div>
           `;
