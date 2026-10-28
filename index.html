@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduBooker PRO</title>
   
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EduBooker">
+
+  <link rel="icon" type="image/png" href="logo EduBook.png">
+  <link rel="apple-touch-icon" href="logo EduBook.png">
+
+  <!-- Manifest ugrađen direktno u kod -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"EduBooker PRO","short_name":"EduBooker","start_url":"./","display":"standalone","background_color":"#f8fafc","theme_color":"#4f46e5","icons":[{"src":"logo EduBook.png","sizes":"192x192","type":"image/png"}]}'>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -69,8 +80,8 @@
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-2 py-2 shadow-sm">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xl text-white shadow-md">
+   <div class="flex items-center gap-2 select-none">
+        <div id="secret-admin-trigger" class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xl text-white shadow-md cursor-pointer active:scale-95 transition-transform" title="EduBooker">
           E
         </div>
         <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
@@ -96,12 +107,8 @@
           </div>
         </div>
 
-        <button id="btn-admin-access" class="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition shadow-md">
-          🔑 Admin
-        </button>
-
         <button id="btn-admin-logout" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition border border-rose-200">
-          🚪 Izlaz
+          Izlaz iz Admina
         </button>
       </div>
 
@@ -125,9 +132,14 @@
 
     <section id="tab-events" class="tab-section space-y-5 fade-in">
       <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-3">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-1" id="categories-filter-container"></div>
-          <button id="btn-toggle-search" class="w-12 h-12 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl shrink-0 transition text-xl">🔍</button>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 overflow-x-auto py-1 px-1 no-scrollbar flex-1 scroll-smooth" id="categories-filter-container"></div>
+          <button id="btn-toggle-search" class="w-11 h-11 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl shrink-0 transition" title="Pretraži obuke">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
         </div>
         <div id="search-container" class="hidden slide-down">
           <input id="search-input" type="text" placeholder="Pretražite obuke po nazivu..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3.5 text-base text-slate-800 focus:outline-none focus:border-indigo-500" />
@@ -228,9 +240,44 @@
     </section>
   </main>
 
-  <div id="modal-scan-result" class="hidden fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 text-center shadow-2xl space-y-4 slide-down" id="scan-result-content">
+  <!-- Agresivni PWA modal za instalaciju -->
+  <div id="modal-pwa-install" class="hidden fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl space-y-5 border border-slate-200 fade-in">
+      <div class="w-20 h-20 mx-auto rounded-2xl p-1 bg-indigo-50 border border-indigo-100 shadow-md flex items-center justify-center overflow-hidden">
+        <img src="logo EduBook.png" alt="EduBooker" class="w-full h-full object-contain rounded-xl">
+      </div>
+      
+      <div>
+        <h3 class="text-xl font-black text-slate-900">Instalirajte EduBooker</h3>
+        <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+          Dodajte aplikaciju na početni ekran svog uređaja za brži pristup obukama i nesmetan rad sa kartama.
+        </p>
+      </div>
+
+      <div id="pwa-install-standard-actions" class="space-y-2.5">
+        <button id="btn-pwa-confirm-install" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-200 transition">
+          📲 INSTALIRAJ ODMAH
+        </button>
+        <button id="btn-pwa-dismiss-install" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-sm font-bold transition">
+          Možda kasnije
+        </button>
+      </div>
+
+      <div id="pwa-ios-instructions" class="hidden text-left bg-indigo-50/70 border border-indigo-100 p-4 rounded-2xl text-xs space-y-2 text-indigo-950">
+        <p class="font-bold flex items-center gap-1.5">
+          <span>🍏</span> Uputstvo za iPhone i iPad:
+        </p>
+        <p>1. Dodirnite dugme <strong>Deli (Share)</strong> na dnu Safari pretraživača.</p>
+        <p>2. Izaberite opciju <strong>Dodaj na početni ekran (Add to Home Screen)</strong>.</p>
+        <button onclick="document.getElementById('modal-pwa-install').classList.add('hidden')" class="w-full mt-2 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-center">
+          Razumem
+        </button>
+      </div>
     </div>
+  </div>
+
+  <div id="modal-scan-result" class="hidden fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 text-center shadow-2xl space-y-4 slide-down" id="scan-result-content"></div>
   </div>
 
   <div id="modal-info" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 overflow-y-auto">
@@ -255,7 +302,6 @@
 
   <div id="modal-booking" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
     <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh]">
-      
       <div class="p-5 border-b border-slate-100 shrink-0 text-center sm:text-left">
          <h3 id="modal-booking-title" class="text-2xl font-black text-slate-900 leading-tight truncate">...</h3>
          <p id="modal-booking-seats" class="text-sm font-black text-emerald-600 mt-2 bg-emerald-50 inline-block px-3 py-1.5 rounded-lg border border-emerald-100">...</p>
@@ -446,12 +492,12 @@
             
             <div class="grid grid-cols-2 gap-4">
               <div>
-                 <label class="block text-base font-bold text-slate-700 mb-1.5">Datum *</label>
-                 <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
+                  <label class="block text-base font-bold text-slate-700 mb-1.5">Datum *</label>
+                  <input id="event-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
               </div>
               <div>
-                 <label class="block text-base font-bold text-slate-700 mb-1.5">Vreme *</label>
-                 <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
+                  <label class="block text-base font-bold text-slate-700 mb-1.5">Vreme *</label>
+                  <input id="event-time" type="time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
               </div>
             </div>
             
@@ -753,9 +799,6 @@
       reader.readAsDataURL(file);
     });
 
-    // -------------------------------------------------------------
-    // LOGIKA SKENERA SA OKIDAČEM I ISKAČUĆIM PROZORIMA
-    // -------------------------------------------------------------
     window.html5QrCode = null;
     window.obradjujeSeKod = false; 
     window.tajmerZaSkeniranje = null;
@@ -817,7 +860,6 @@
             const maxUlaza = b.ticketsCount || 1;
             let trenutnoSkenirano = b.scannedCount || 0;
             
-            // Unazad kompatibilnost: Ako je stara karta označena kao iskorišćena a nema brojač
             if (b.status === 'iskorišćena' && trenutnoSkenirano === 0) {
                 trenutnoSkenirano = maxUlaza;
             }
@@ -905,7 +947,6 @@
           inputEl.value = '';
        }
     };
-    // -------------------------------------------------------------
 
     window.toggleEventStatus = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
@@ -1036,13 +1077,17 @@
       document.getElementById('modal-info-loc').innerText = event.location;
       document.getElementById('modal-info-datetime').innerText = `${event.date} u ${event.time}h`;
       
-      const imgDiv = document.getElementById('modal-info-img');
-      if(event.image) {
-         imgDiv.style.backgroundImage = `url(${event.image})`;
-         imgDiv.style.display = 'block';
-      } else {
-         imgDiv.style.display = 'none';
-      }
+const imgDiv = document.getElementById('modal-info-img');
+if(event.image) {
+   imgDiv.style.backgroundImage = `url(${event.image})`;
+   imgDiv.style.backgroundSize = 'contain';
+   imgDiv.style.backgroundRepeat = 'no-repeat';
+   imgDiv.style.backgroundPosition = 'center';
+   imgDiv.style.backgroundColor = '#f1f5f9';
+   imgDiv.style.display = 'block';
+} else {
+   imgDiv.style.display = 'none';
+}
 
       const btnBook = document.getElementById('btn-info-book');
       
@@ -1269,12 +1314,47 @@
       }
     });
 
+
+    function getCategorySvgIcon(catId, catName = '') {
+      const id = (catId || '').toLowerCase();
+      const name = (catName || '').toLowerCase();
+
+      if (id === 'all') {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>`;
+      }
+      if (id.includes('edu') || name.includes('edukacij') || name.includes('obuk')) {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>`;
+      }
+      if (id.includes('pesac') || id.includes('pešač') || name.includes('pešač') || name.includes('prirod') || name.includes('planin')) {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>`;
+      }
+      if (id.includes('predav') || name.includes('predav') || name.includes('govor') || name.includes('radionic')) {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line><path d="m7 10 3 3 2-2 4 4"></path></svg>`;
+      }
+      if (id.includes('logik') || name.includes('logik') || name.includes('mozgalic')) {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+      }
+      return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`;
+    }
+
     function renderUI() {
       const filterContainer = document.getElementById('categories-filter-container');
       if (filterContainer) {
-        let catHTML = `<button onclick="selectCategory('all')" class="px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${state.activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}">🌐 Sve obuke</button>`;
+        const isAllActive = state.activeCategory === 'all';
+        let catHTML = `
+          <button onclick="selectCategory('all')" class="shrink-0 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${isAllActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            ${getCategorySvgIcon('all')}
+            <span>Sve obuke</span>
+          </button>
+        `;
         state.categories.forEach(cat => {
-          catHTML += `<button onclick="selectCategory('${cat.id}')" class="px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${state.activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}"><span class="text-lg">${cat.icon}</span> <span>${cat.name}</span></button>`;
+          const isActive = state.activeCategory === cat.id;
+          catHTML += `
+            <button onclick="selectCategory('${cat.id}')" class="shrink-0 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              ${getCategorySvgIcon(cat.id, cat.name)}
+              <span>${cat.name}</span>
+            </button>
+          `;
         });
         filterContainer.innerHTML = catHTML;
       }
@@ -1300,25 +1380,25 @@
           const remaining = Math.max(0, evt.totalSeats - bookedCount);
           
           const headerHTML = evt.image 
-            ? `<div class="h-48 sm:h-56 w-full relative overflow-hidden"><img src="${evt.image}" class="w-full h-full object-cover" /></div>`
-            : `<div class="h-4 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
+          ? `<div class="h-48 sm:h-56 w-full bg-slate-100 flex items-center justify-center overflow-hidden border-b border-slate-100"><img src="${evt.image}" class="w-full h-full object-contain p-1" /></div>`
+          : `<div class="h-4 bg-gradient-to-r from-blue-500 to-indigo-600"></div>`;
           return `
-            <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition duration-300">
+            <div onclick="openInfoModal('${evt.id}')" class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm transition-all duration-200 cursor-pointer select-none active:scale-[0.99] sm:hover:shadow-lg sm:hover:border-indigo-300 sm:hover:-translate-y-0.5">
               ${headerHTML}
               <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div>
                   <h3 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">${evt.title}</h3>
                   <p class="text-sm sm:text-base text-slate-600 mt-2 sm:mt-3 leading-snug line-clamp-2">${evt.description}</p>
-                  <button onclick="openInfoModal('${evt.id}')" class="text-indigo-600 font-black text-base sm:text-lg mt-3 flex items-center gap-1 hover:text-indigo-800 transition">
+                  <span class="text-indigo-600 font-black text-base sm:text-lg mt-3 inline-flex items-center gap-1 group-hover:text-indigo-800 transition">
                      ℹ️ Detaljnije i prijava...
-                  </button>
+                  </span>
                 </div>
                 <div class="pt-4 border-t border-slate-100">
                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-2 px-1">
                       <span>Zauzeto mesta: <span class="text-slate-900">${bookedCount} / ${evt.totalSeats}</span></span>
                       ${remaining > 0 ? `<span class="text-emerald-600">Slobodno: ${remaining}</span>` : `<span class="text-rose-600">Popunjeno</span>`}
                    </div>
-                   <button onclick="openBookingModal('${evt.id}')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-base font-black shadow-md transition ${!evt.isActive || remaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${!evt.isActive || remaining === 0 ? 'disabled' : ''}>
+                   <button onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-base font-black shadow-md transition ${!evt.isActive || remaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${!evt.isActive || remaining === 0 ? 'disabled' : ''}>
                      ${!evt.isActive ? 'Prijave su zatvorene' : remaining === 0 ? 'Trenutno su sve karte rezervisane' : 'Brza rezervacija mesta'}
                    </button>
                 </div>
@@ -1560,16 +1640,31 @@
       renderUI();
     };
 
-    safeAddEventListener('btn-admin-access', 'click', () => {
-      const loginModal = document.getElementById('modal-admin-login');
-      const errorMsg = document.getElementById('admin-login-error');
-      const pinInput = document.getElementById('admin-pin-input');
-      if (errorMsg) errorMsg.classList.add('hidden');
-      if (pinInput) pinInput.value = '';
-      if (state.isAdminAuthenticated) {
-        window.switchTab('admin');
-      } else if (loginModal) {
-        loginModal.classList.remove('hidden');
+    // Skriveni pristup administraciji: 5 brzih klikova na ikonu 'E'
+    let adminClickCount = 0;
+    let adminClickTimer = null;
+
+    safeAddEventListener('secret-admin-trigger', 'click', () => {
+      adminClickCount++;
+      clearTimeout(adminClickTimer);
+
+      adminClickTimer = setTimeout(() => {
+        adminClickCount = 0;
+      }, 2000);
+
+      if (adminClickCount >= 5) {
+        adminClickCount = 0;
+        const loginModal = document.getElementById('modal-admin-login');
+        const errorMsg = document.getElementById('admin-login-error');
+        const pinInput = document.getElementById('admin-pin-input');
+        if (errorMsg) errorMsg.classList.add('hidden');
+        if (pinInput) pinInput.value = '';
+
+        if (state.isAdminAuthenticated) {
+          window.switchTab('admin');
+        } else if (loginModal) {
+          loginModal.classList.remove('hidden');
+        }
       }
     });
 
@@ -1650,6 +1745,71 @@
             }
           }
         });
+      }
+    });
+
+    // Registracija servisnog radnika iz eksternog fajla SW_EduPro.js
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./SW_EduPro.js').catch((err) => {
+          console.error('Service Worker greška:', err);
+        });
+      });
+    }
+
+    // PWA agresivna instalaciona logika
+    let deferredPrompt = null;
+    const pwaModal = document.getElementById('modal-pwa-install');
+    const btnConfirm = document.getElementById('btn-pwa-confirm-install');
+    const btnDismiss = document.getElementById('btn-pwa-dismiss-install');
+    const standardActions = document.getElementById('pwa-install-standard-actions');
+    const iosInstructions = document.getElementById('pwa-ios-instructions');
+
+    const isIos = () => {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      return /iphone|ipad|ipod/.test(userAgent);
+    };
+
+    const isInStandaloneMode = () => {
+      return ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
+    };
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!isInStandaloneMode() && pwaModal) {
+        pwaModal.classList.remove('hidden');
+      }
+    });
+
+    if (btnConfirm) {
+      btnConfirm.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          if (pwaModal) pwaModal.classList.add('hidden');
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    if (btnDismiss) {
+      btnDismiss.addEventListener('click', () => {
+        if (pwaModal) pwaModal.classList.add('hidden');
+      });
+    }
+
+    // Provera za iOS uređaje (Safari)
+    window.addEventListener('DOMContentLoaded', () => {
+      if (isIos() && !isInStandaloneMode()) {
+        const iosShown = sessionStorage.getItem('pwa_ios_prompt_shown');
+        if (!iosShown && pwaModal && standardActions && iosInstructions) {
+          standardActions.classList.add('hidden');
+          iosInstructions.classList.remove('hidden');
+          pwaModal.classList.remove('hidden');
+          sessionStorage.setItem('pwa_ios_prompt_shown', 'true');
+        }
       }
     });
   </script>
