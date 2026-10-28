@@ -205,55 +205,41 @@
     </section>
 
     <section id="tab-admin" class="tab-section hidden space-y-6 fade-in">
-      <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap gap-2">
-        <button id="admin-subnav-events" onclick="window.switchAdminSubTab('events')" class="admin-subnav-btn active bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-md">📅 Upravljanje obukama</button>
-        <button id="admin-subnav-categories" onclick="window.switchAdminSubTab('categories')" class="admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-xl text-sm font-bold transition">🛠️ Kategorije</button>
-        <button id="admin-subnav-scanner" onclick="window.switchAdminSubTab('scanner')" class="admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-xl text-sm font-bold transition">🔍 Očitavanje karata (Brzo)</button>
+      <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-2.5">
+        <button id="admin-subnav-scanner" onclick="window.switchAdminSubTab('scanner')" class="admin-subnav-btn active flex-1 sm:flex-initial flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-sm sm:text-base font-black transition bg-indigo-600 text-white shadow-md shadow-indigo-100">
+          <svg class="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+            <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+            <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+            <rect x="7" y="7" width="10" height="10" rx="1.5"></rect>
+            <line x1="7" y1="12" x2="17" y2="12"></line>
+          </svg>
+          <span>Očitavanje karata (Brzo)</span>
+        </button>
+
+        <button id="admin-subnav-events" onclick="window.switchAdminSubTab('events')" class="admin-subnav-btn flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Upravljanje</span>
+        </button>
+
+        <button id="admin-subnav-categories" onclick="window.switchAdminSubTab('categories')" class="admin-subnav-btn flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <span>Kreiraj</span>
+        </button>
       </div>
 
-      <div id="admin-view-events" class="admin-view space-y-5">
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h3 class="text-xl font-black text-slate-900">Kontrolna tabla za događaje</h3>
-          </div>
-          <button id="btn-create-event" class="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 text-white text-base font-black rounded-xl shadow-md">➕ Nova obuka</button>
-        </div>
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div id="admin-events-list" class="divide-y divide-slate-100"></div>
-        </div>
-      </div>
-
-      <div id="admin-view-categories" class="admin-view hidden space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
-            <h3 class="font-black text-slate-900 text-lg">Dodaj novi smer</h3>
-            <form id="form-create-category" class="space-y-4">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Naziv smera</label>
-                <input id="cat-name-input" type="text" required placeholder="Unesite naziv" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500" />
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
-                  <option value="🎓">🎓 Edukacija</option>
-                  <option value="🏕️">🏕️ Priroda</option>
-                  <option value="🧩">🧩 Logika</option>
-                </select>
-                <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
-                  <option value="from-blue-500 to-indigo-600">Plava</option>
-                  <option value="from-emerald-600 to-green-800">Zelena</option>
-                </select>
-              </div>
-              <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl text-base font-black shadow-md">➕ Kreiraj smer</button>
-            </form>
-          </div>
-          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <h3 class="font-black text-slate-900 text-lg mb-2">Postojeći smerovi</h3>
-            <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="admin-view-scanner" class="admin-view hidden">
+      <!-- 1. PANEL: SKENER (Podrazumevano aktivan) -->
+      <div id="admin-view-scanner" class="admin-view space-y-5">
         <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm max-w-lg mx-auto">
             <div class="text-center mb-5">
               <h4 class="font-black text-slate-900 text-xl">Skeniranje QR koda</h4>
@@ -279,6 +265,53 @@
             </div>
         </div>
       </div>
+
+      <!-- 2. PANEL: UPRAVLJANJE OBUKAMA (Skriven po ulasku) -->
+      <div id="admin-view-events" class="admin-view hidden space-y-5">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-black text-slate-900">Kontrolna tabla za događaje</h3>
+          </div>
+          <button id="btn-create-event" class="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 text-white text-base font-black rounded-xl shadow-md">➕ Nova obuka</button>
+        </div>
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div id="admin-events-list" class="divide-y divide-slate-100"></div>
+        </div>
+      </div>
+
+      <!-- 3. PANEL: KREIRAJ KATEGORIJE (Skriven po ulasku) -->
+      <div id="admin-view-categories" class="admin-view hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
+            <h3 class="font-black text-slate-900 text-lg">Dodaj novi smer</h3>
+            <form id="form-create-category" class="space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Naziv smera</label>
+                <input id="cat-name-input" type="text" required placeholder="Unesite naziv" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
+                  <option value="🎓"> Edukacija</option>
+                  <option value="🏕️"> Priroda</option>
+                  <option value="💼"> Usluge</option>
+                  <option value="✅"> Preporuka</option>
+                  
+                </select>
+                <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
+                  <option value="from-blue-500 to-indigo-600">Plava</option>
+                  <option value="from-emerald-600 to-green-800">Zelena</option>
+                </select>
+              </div>
+              <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl text-base font-black shadow-md">➕ Dodaj Oblast</button>
+            </form>
+          </div>
+          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-black text-slate-900 text-lg mb-2">Postojeće oblasti</h3>
+            <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+          </div>
+        </div>
+      </div>
+
     </section>
   </main>
 
@@ -600,8 +633,6 @@
     </button>
   </nav>
 
-
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -659,7 +690,7 @@
       googleUser: null,
       isOnline: true,
       currentTab: 'events',
-      adminSubTab: 'events_list',
+      adminSubTab: 'scanner',
       isAdminAuthenticated: false,
       activeCategory: 'all',
       searchTerm: '',
@@ -1183,8 +1214,6 @@
       document.getElementById('modal-info').classList.remove('hidden');
     };
 
-
-
     window.podeliObuku = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
       const naslov = ev ? ev.title : "Obuka";
@@ -1195,7 +1224,7 @@
         try {
           await navigator.share({
             title: `EduBooks, ${naslov}`,
-            text: `Meni se ovo dopada, pogledaj info događaja  "${naslov}"  na UMG - EduBooks platformi:`,
+            text: `Meni se ovo dopada, pogledaj info događaja "${naslov}" na UMG - EduBooks platformi:`,
             url: linkAplikacije
           });
         } catch (err) {}
@@ -1207,9 +1236,6 @@
         showNotification("Deljenje nije podržano u ovom pregledaču", "warning");
       }
     };
-
-
-
 
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
@@ -1432,6 +1458,12 @@
       if (id.includes('logik') || name.includes('logik') || name.includes('mozgalic')) {
         return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
       }
+      if (id.includes('uslug') || name.includes('uslug') || id.includes('servis') || name.includes('servis')) {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`;
+      }
+      if (id.includes('preporuk') || name.includes('preporuk')) {
+        return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+      }
       return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`;
     }
 
@@ -1441,7 +1473,6 @@
     let prevlacenjeAktivno = false;
 
     window.pocetakPrevlacenja = function(e) {
-      // Ako korisnik koristi dva ili više prstiju za zumiranje, ne pokrećemo okretanje
       if (e.touches && e.touches.length > 1) {
         prevlacenjeAktivno = false;
         return;
@@ -1461,7 +1492,6 @@
       const razlikaX = krajX - prevlacenjeStartX;
       const razlikaY = krajY - prevlacenjeStartY;
 
-      // Prag pomeraja podignut na 95px (oko 2,5 do 3 cm) uz zaštitu od vertikalnog listanja
       if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
         element.classList.toggle('is-flipped');
       }
@@ -1474,7 +1504,7 @@
         let catHTML = `
           <button onclick="selectCategory('all')" class="shrink-0 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${isAllActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
             ${getCategorySvgIcon('all')}
-            <span>Sve obuke</span>
+            <span>Sve</span>
           </button>
         `;
         state.categories.forEach(cat => {
@@ -1822,11 +1852,17 @@
       if (activeSubTabEl) activeSubTabEl.classList.remove('hidden');
 
       document.querySelectorAll('.admin-subnav-btn').forEach(btn => {
-        btn.className = "admin-subnav-btn bg-slate-100 text-slate-600 px-5 py-3 rounded-xl text-sm font-bold transition hover:bg-slate-200";
+        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-100');
+        btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
       });
+
       const activeBtn = document.getElementById(`admin-subnav-${subTabId}`);
       if (activeBtn) {
-        activeBtn.className = "admin-subnav-btn active bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-md";
+        activeBtn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-md');
+        if (subTabId === 'scanner') {
+          activeBtn.classList.add('shadow-indigo-100');
+        }
       }
       
       if (subTabId !== 'scanner' && window.html5QrCode && window.html5QrCode.isScanning) {
@@ -1885,6 +1921,7 @@
         document.getElementById('nav-my-tickets-desktop').innerText = "🗂️ Rezervacije";
         
         window.switchTab('admin');
+        window.switchAdminSubTab('scanner');
       } else if (errorMsg) {
         errorMsg.classList.remove('hidden');
       }
@@ -1913,12 +1950,158 @@
       showNotification("Sistem je bezbedno zaključan", "info");
     });
 
+    // Otvaranje modala za kreiranje novog događaja
+    safeAddEventListener('btn-create-event', 'click', () => {
+      state.editingEventId = null;
+      state.tempEventImageBase64 = '';
+      const actionTitle = document.getElementById('modal-event-action-title');
+      if (actionTitle) actionTitle.innerText = "Nova obuka";
+      const form = document.getElementById('form-submit-event');
+      if (form) form.reset();
+      const preview = document.getElementById('event-image-preview');
+      if (preview) preview.innerHTML = "🖼️";
+      const select = document.getElementById('event-category');
+      if (select) {
+        select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+      }
+      document.getElementById('modal-event').classList.remove('hidden');
+    });
+
+    // Čuvanje ili izmena događaja
+    safeAddEventListener('form-submit-event', 'submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('event-title').value.trim();
+      const desc = document.getElementById('event-description').value.trim();
+      const category = document.getElementById('event-category').value;
+      const seats = parseInt(document.getElementById('event-total-seats').value) || 10;
+      const location = document.getElementById('event-location').value.trim();
+      const date = document.getElementById('event-date').value;
+      const time = document.getElementById('event-time').value;
+      const isActive = document.getElementById('event-is-active').checked;
+      
+      const formFields = {
+        name: document.getElementById('req-name')?.checked !== false,
+        email: document.getElementById('req-email')?.checked !== false,
+        phone: document.getElementById('req-phone')?.checked !== false,
+        address: document.getElementById('req-address')?.checked !== false,
+      };
+
+      const eventId = state.editingEventId || `EV-${Date.now()}`;
+      const eventData = {
+        id: eventId,
+        title,
+        description: desc,
+        category,
+        totalSeats: seats,
+        location,
+        date,
+        time,
+        isActive,
+        formFields,
+        image: state.tempEventImageBase64 || (state.editingEventId ? (state.events.find(x => x.id === eventId)?.image || '') : '')
+      };
+
+      if (state.editingEventId) {
+        state.events = state.events.map(ev => ev.id === eventId ? { ...ev, ...eventData } : ev);
+      } else {
+        state.events = [eventData, ...state.events];
+      }
+
+      safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), eventData);
+          showNotification("Obuka je uspešno sačuvana!", "success");
+        } catch(err) {
+          console.error(err);
+        }
+      } else {
+        showNotification("Obuka je sačuvana lokalno", "info");
+      }
+
+      document.getElementById('modal-event').classList.add('hidden');
+      renderUI();
+    });
+
+    // Kreiranje nove kategorije/oblasti
+    safeAddEventListener('form-create-category', 'submit', async (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('cat-name-input');
+      const iconSelect = document.getElementById('cat-icon-select');
+      const colorSelect = document.getElementById('cat-color-select');
+      if (!nameInput || !nameInput.value.trim()) return;
+
+      const name = nameInput.value.trim();
+      const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const icon = iconSelect ? iconSelect.value : '🎓';
+      const gradient = colorSelect ? colorSelect.value : 'from-blue-500 to-indigo-600';
+
+      const newCat = { id, name, icon, gradient };
+      state.categories = [...state.categories, newCat];
+      safeStorage.setItem('edubooker_categories', JSON.stringify(state.categories));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', id), newCat);
+          showNotification("Nova oblast je uspešno kreirana!", "success");
+        } catch(err) {
+          console.error(err);
+        }
+      } else {
+        showNotification("Oblast je sačuvana lokalno", "info");
+      }
+
+      nameInput.value = '';
+      renderUI();
+    });
+
+    // Prikaz spiska prijavljenih polaznika za odabranu obuku
+    window.openAttendeesModal = function(eventId) {
+      const ev = state.events.find(e => e.id === eventId);
+      if (!ev) return;
+      const titleEl = document.getElementById('modal-attendees-event-title');
+      if (titleEl) titleEl.innerText = ev.title;
+
+      const list = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
+      const totalCountEl = document.getElementById('attendees-total-count');
+      const totalTickets = list.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+      if (totalCountEl) totalCountEl.innerText = `${totalTickets} / ${ev.totalSeats}`;
+
+      const container = document.getElementById('attendees-list-container');
+      if (container) {
+        if (list.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-400 font-bold">Još uvek nema rezervacija za ovaj program.</div>`;
+        } else {
+          container.innerHTML = list.map((b, i) => `
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">${i + 1}</span>
+                  <p class="font-black text-slate-900">${b.firstName} ${b.lastName} ${b.ticketsCount > 1 ? `<span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full ml-1 font-bold">(${b.ticketsCount} karte)</span>` : ''}</p>
+                </div>
+                <p class="text-xs text-slate-500 font-bold mt-1">📧 ${b.email} | 📞 ${b.phone}</p>
+                ${b.address && b.address !== 'Nije traženo' ? `<p class="text-xs text-slate-400">📍 ${b.address}</p>` : ''}
+                ${b.note ? `<p class="text-xs text-amber-700 bg-amber-50 p-1.5 rounded-lg mt-1.5 border border-amber-100">📝 ${b.note}</p>` : ''}
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-mono font-bold text-slate-400 block">${b.id}</span>
+                <span class="text-xs font-black px-2.5 py-1 rounded-lg ${b.status === 'iskorišćena' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} mt-1 inline-block uppercase">${b.status}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+      document.getElementById('modal-attendees').classList.remove('hidden');
+    };
+
     safeAddEventListener('btn-close-booking-modal', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
     safeAddEventListener('btn-cancel-booking', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
     safeAddEventListener('btn-close-ticket-modal', 'click', () => document.getElementById('modal-ticket').classList.add('hidden'));
     safeAddEventListener('btn-close-login', 'click', () => document.getElementById('modal-admin-login').classList.add('hidden'));
     safeAddEventListener('btn-close-event-modal', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
     safeAddEventListener('btn-cancel-event', 'click', () => document.getElementById('modal-event').classList.add('hidden'));
+    safeAddEventListener('btn-close-attendees-modal', 'click', () => document.getElementById('modal-attendees').classList.add('hidden'));
 
     window.addEventListener('DOMContentLoaded', async () => {
       loadLocalCache();
