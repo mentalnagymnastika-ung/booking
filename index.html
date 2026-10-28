@@ -123,6 +123,16 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <button id="btn-share-app" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-xl transition shadow-sm text-slate-700" title="Podeli aplikaciju">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+        </button>
+
         <div id="google-auth-container" class="flex items-center">
           <button id="btn-google-login" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-xl transition shadow-sm" title="Prijava preko Google naloga">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -303,6 +313,33 @@
         <p>2. Izaberite opciju <strong>Dodaj na početni ekran (Add to Home Screen)</strong>.</p>
         <button onclick="document.getElementById('modal-pwa-install').classList.add('hidden')" class="w-full mt-2 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-center">
           Razumem
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal za deljenje aplikacije sa QR kodom -->
+  <div id="modal-share-app-view" class="hidden fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 sm:p-7 shadow-2xl text-center space-y-4 relative fade-in">
+      <button id="btn-close-share-app-modal" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-lg font-black border border-slate-200">✕</button>
+      
+      <div class="pt-1">
+        <h3 class="text-xl font-black text-slate-900">Podelite EduBooker</h3>
+        <p class="text-xs text-slate-500 mt-1">Skenirajte QR kod kamerom telefona kako biste otvorili aplikaciju</p>
+      </div>
+
+      <div class="flex justify-center py-2">
+        <div class="p-3 bg-white border-2 border-indigo-100 rounded-2xl shadow-inner">
+          <canvas id="app-share-qr-canvas"></canvas>
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <button id="btn-copy-app-link" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition flex items-center justify-center gap-2">
+          <span>📋</span> Kopiraj link aplikacije
+        </button>
+        <button onclick="document.getElementById('modal-share-app-view').classList.add('hidden')" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold transition">
+          Zatvori
         </button>
       </div>
     </div>
@@ -562,6 +599,8 @@
       <span class="text-xs sm:text-sm font-black tracking-wide">Admin</span>
     </button>
   </nav>
+
+
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -1850,6 +1889,42 @@
                console.error("Mreža nije inicijalizovana:", err);
             }
           }
+        });
+      }
+    });
+
+    // Logika za prozor deljenja aplikacije i QR kod
+    const APP_PUBLIC_URL = "https://mentalnagymnastika-ung.github.io/booking/";
+
+    safeAddEventListener('btn-share-app', 'click', () => {
+      const modal = document.getElementById('modal-share-app-view');
+      const canvas = document.getElementById('app-share-qr-canvas');
+      
+      if (canvas && typeof QRious !== 'undefined') {
+        new QRious({
+          element: canvas,
+          value: APP_PUBLIC_URL,
+          size: 210,
+          background: '#ffffff',
+          foreground: '#4338ca',
+          level: 'H'
+        });
+      }
+
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    });
+
+    safeAddEventListener('btn-close-share-app-modal', 'click', () => {
+      const modal = document.getElementById('modal-share-app-view');
+      if (modal) modal.classList.add('hidden');
+    });
+
+    safeAddEventListener('btn-copy-app-link', () => {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(APP_PUBLIC_URL).then(() => {
+          showNotification("Link je uspešno kopiran u memoriju", "success");
         });
       }
     });
