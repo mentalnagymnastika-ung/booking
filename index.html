@@ -355,7 +355,7 @@
        <div class="p-5 sm:p-6 space-y-5">
           <div>
              <h3 id="modal-info-title" class="text-2xl font-black text-slate-900 leading-tight mb-2">...</h3>
-             <p id="modal-info-desc" class="text-base text-slate-600 leading-relaxed">...</p>
+             <p id="modal-info-desc" class="text-base text-slate-700 leading-relaxed whitespace-pre-line break-words">...</p>
           </div>
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
             <p class="text-base font-bold text-slate-700 flex items-center gap-2"><span class="text-xl">📍</span> <span id="modal-info-loc">...</span></p>
@@ -1183,6 +1183,34 @@
       document.getElementById('modal-info').classList.remove('hidden');
     };
 
+
+
+    window.podeliObuku = async function(eventId) {
+      const ev = state.events.find(e => e.id === eventId);
+      const naslov = ev ? ev.title : "Obuka";
+      const linkAplikacije = "https://mentalnagymnastika-ung.github.io/booking/";
+      const tekstPoruke = `Meni se ovo dopada, pogledaj info događaja "${naslov}" na UMG - EduBooks platformi: ${linkAplikacije}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `EduBooks, ${naslov}`,
+            text: `Meni se ovo dopada, pogledaj info događaja  "${naslov}"  na UMG - EduBooks platformi:`,
+            url: linkAplikacije
+          });
+        } catch (err) {}
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(tekstPoruke).then(() => {
+          showNotification("Link i podaci o obuci su kopirani u memoriju!", "success");
+        });
+      } else {
+        showNotification("Deljenje nije podržano u ovom pregledaču", "warning");
+      }
+    };
+
+
+
+
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
@@ -1413,6 +1441,11 @@
     let prevlacenjeAktivno = false;
 
     window.pocetakPrevlacenja = function(e) {
+      // Ako korisnik koristi dva ili više prstiju za zumiranje, ne pokrećemo okretanje
+      if (e.touches && e.touches.length > 1) {
+        prevlacenjeAktivno = false;
+        return;
+      }
       prevlacenjeAktivno = true;
       prevlacenjeStartX = e.touches ? e.touches[0].clientX : e.clientX;
       prevlacenjeStartY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -1428,7 +1461,8 @@
       const razlikaX = krajX - prevlacenjeStartX;
       const razlikaY = krajY - prevlacenjeStartY;
 
-      if (Math.abs(razlikaX) > 40 && Math.abs(razlikaX) > Math.abs(razlikaY)) {
+      // Prag pomeraja podignut na 95px (oko 2,5 do 3 cm) uz zaštitu od vertikalnog listanja
+      if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
         element.classList.toggle('is-flipped');
       }
     };
@@ -1511,12 +1545,16 @@
 
                   <div class="p-5 flex-1 flex flex-col justify-between">
                     <div>
-                      <div class="flex items-center gap-2 mb-1.5">
-                        <span class="text-[11px] font-black bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-md uppercase">${cat.name}</span>
-                        <span class="text-xs font-bold text-slate-400">📅 ${evt.date}</span>
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md uppercase tracking-wide">${cat.name}</span>
+                        <span class="text-xs font-bold text-slate-500">📅 ${evt.date}</span>
                       </div>
-                      <h3 class="text-xl font-black text-slate-900 leading-tight">${evt.title}</h3>
-                      <p class="text-xs sm:text-sm text-slate-600 mt-2 line-clamp-2">${evt.description}</p>
+                      <h3 onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="text-lg sm:text-xl font-black text-slate-900 leading-snug line-clamp-2 hover:text-indigo-600 transition cursor-pointer">${evt.title}</h3>
+                      <p onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="text-sm text-slate-600 mt-2 leading-relaxed line-clamp-3 cursor-pointer">${evt.description}</p>
+                      
+                      <button onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="text-indigo-600 hover:text-indigo-800 font-bold text-xs sm:text-sm mt-2.5 inline-flex items-center gap-1.5 transition">
+                        📖 Pročitaj ceo opis...
+                      </button>
                     </div>
 
                     <div class="pt-3 border-t border-slate-100">
@@ -1537,8 +1575,17 @@
                   <img src="${evt.image}" class="relative z-10 w-full h-full object-contain p-2" />
 
                   <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none">
-                    <span class="bg-slate-900/85 backdrop-blur-md text-white text-xs font-black px-3 py-1.5 rounded-xl border border-white/10 shadow-sm truncate max-w-[70%]">${evt.title}</span>
-                    <span class="bg-white/20 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1.5 rounded-xl border border-white/10 shadow-sm">🔄 Okreni</span>
+                    <span class="bg-slate-900/85 backdrop-blur-md text-white text-xs font-black px-3 py-1.5 rounded-xl border border-white/10 shadow-sm truncate max-w-[65%]">${evt.title}</span>
+                    <button onclick="event.stopPropagation(); podeliObuku('${evt.id}')" class="pointer-events-auto bg-slate-900/85 hover:bg-black active:scale-95 backdrop-blur-md text-white text-xs font-black px-3 py-1.5 rounded-xl border border-white/20 shadow-md flex items-center gap-1.5 transition cursor-pointer" title="Podeli sa prijateljem">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                      </svg>
+                      <span>Podeli</span>
+                    </button>
                   </div>
 
                   <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent z-20 flex gap-2">
