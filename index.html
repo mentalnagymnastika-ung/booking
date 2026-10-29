@@ -244,6 +244,16 @@
           </svg>
           <span>Kreiraj</span>
         </button>
+
+        <button id="admin-subnav-members" onclick="window.switchAdminSubTab('members')" class="admin-subnav-btn flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-bold transition bg-slate-100 text-slate-600 hover:bg-slate-200">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>Članovi</span>
+        </button>
       </div>
 
       <!-- 1. PANEL: SKENER (Podrazumevano aktivan) -->
@@ -297,16 +307,16 @@
                 <label class="block text-sm font-bold text-slate-700 mb-1">Naziv smera</label>
                 <input id="cat-name-input" type="text" required placeholder="Unesite naziv" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500" />
               </div>
-              <div class="grid grid-cols-2 gap-3">
-                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
-                  <option value="🎓">Edukacija</option>
-                  <option value="🏕️">Priroda</option>
-                  <option value="💼">Usluge</option>
-                  <option value="✅">Preporuka</option>
-                </select>
-                <select id="cat-color-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none">
-                  <option value="from-blue-500 to-indigo-600">Plava</option>
-                  <option value="from-emerald-600 to-green-800">Zelena</option>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Simbol oblasti</label>
+                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                  <option value="none">— Bez ikone (samo čist tekst) —</option>
+                  <option value="medicinski_stit">Medicinski štit (Preventiva i ordinacije)</option>
+                  <option value="zdrava_aktivnost">Zdrava aktivnost (Staze i boravak u prirodi)</option>
+                  <option value="mentalni_razvoj">Mentalni razvoj (Mozgalice, logika i fokus)</option>
+                  <option value="postura_rast">Postura i rast (Fizijatrija i motorika)</option>
+                  <option value="govor_komunikacija">Govor i komunikacija (Logopedija)</option>
+                  <option value="edukacija">Edukacija i radionice (Knjiga i materijali)</option>
                 </select>
               </div>
               <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-xl text-base font-black shadow-md">➕ Dodaj Oblast</button>
@@ -316,6 +326,74 @@
             <h3 class="font-black text-slate-900 text-lg mb-2">Postojeće oblasti</h3>
             <div id="admin-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- 4. PANEL: EVIDENCIJA CLANOVA -->
+      <div id="admin-view-members" class="admin-view hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Forma za unos novog clana -->
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
+            <h3 class="font-black text-slate-900 text-lg">➕ Dodaj novog člana</h3>
+            <form id="form-create-member" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Broj članske kartice *</label>
+                <input id="member-card-input" type="text" required placeholder="npr. MG-104" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 uppercase focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Ime *</label>
+                  <input id="member-firstname-input" type="text" required placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Prezime *</label>
+                  <input id="member-lastname-input" type="text" required placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Kontakt telefon *</label>
+                <input id="member-phone-input" type="tel" required placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Email adresa</label>
+                <input id="member-email-input" type="email" placeholder="clan@primer.rs" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+              </div>
+              <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition">
+                Sačuvaj člana u bazu
+              </button>
+            </form>
+          </div>
+
+          <!-- Tabela i pregled postojecih clanova -->
+          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="font-black text-slate-900 text-lg">Aktivni članovi</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Automatsko praćenje broja dolazaka u tekućem mesecu</p>
+              </div>
+              <div class="w-full sm:w-56">
+                <input id="search-member-input" type="text" placeholder="Pretraži člana..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
+              </div>
+            </div>
+
+            <div class="overflow-x-auto no-scrollbar">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="text-[11px] font-black text-slate-400 uppercase border-b border-slate-100">
+                    <th class="py-2.5 px-3">Kartica</th>
+                    <th class="py-2.5 px-3">Ime i Prezime</th>
+                    <th class="py-2.5 px-3">Kontakt</th>
+                    <th class="py-2.5 px-3 text-center">Dolazaka ovog meseca</th>
+                    <th class="py-2.5 px-3 text-right">Akcija</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-members-table-body" class="divide-y divide-slate-100">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -489,10 +567,21 @@
 
          <div id="modal-booking-seats-grid" class="flex flex-wrap gap-1.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl max-h-28 overflow-y-auto no-scrollbar">
          </div>
+
+         <!-- Jasno istaknuta cijena programa -->
+         <div id="modal-booking-price-box" class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mt-2">
+           <div>
+             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider" id="modal-booking-price-type">Kotizacija</p>
+             <p class="text-xs text-slate-600 font-semibold" id="modal-booking-price-calc">1 osoba</p>
+           </div>
+           <div class="text-right">
+             <span id="modal-booking-price-display" class="text-lg font-black text-slate-900">0 RSD</span>
+           </div>
+         </div>
       </div>
       
       <div class="p-5 overflow-y-auto no-scrollbar space-y-5">
-          <form id="form-submit-booking" class="space-y-4">
+          <form id="form-submit-booking" novalidate class="space-y-4">
             <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-4 rounded-xl text-sm font-semibold hidden shadow-inner">
               💡 Prijavljeni ste preko Google naloga, podaci su automatski popunjeni.
             </div>
@@ -514,30 +603,52 @@
                </div>
             </div>
 
-            <div id="wrapper-booking-name" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Ime polaznika *</label>
-                <input id="booking-firstname" type="text" placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+            <!-- 1. Korak: Provera clanske kartice -->
+            <div id="membership-verification-box" class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Broj članske kartice</label>
+                <button type="button" id="btn-toggle-non-member" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline">Nemam člansku karticu</button>
               </div>
-              <div>
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Prezime polaznika *</label>
-                <input id="booking-lastname" type="text" placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+              <div class="flex gap-2" id="membership-input-row">
+                <input id="booking-member-code" type="text" placeholder="Unesite broj kartice (npr. MG-101)..." class="flex-1 bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500 uppercase" />
+                <button type="button" id="btn-apply-membership" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition shadow-sm">Potvrdi</button>
+              </div>
+              <div id="membership-confirmed-card" class="hidden bg-white border-2 border-emerald-300 rounded-xl p-3 flex items-center justify-between shadow-sm">
+                <div>
+                  <p class="text-xs font-black text-emerald-800" id="membership-member-name">Član</p>
+                  <p class="text-[11px] font-bold text-slate-500" id="membership-member-info">Kartica proverena</p>
+                </div>
+                <button type="button" id="btn-reset-membership" class="text-xs font-bold text-rose-600 hover:text-rose-800 px-2 py-1 bg-rose-50 rounded-lg">Promeni</button>
               </div>
             </div>
 
-            <div id="wrapper-booking-email">
-              <label class="block text-base font-bold text-slate-700 mb-1.5">Email za potvrdu *</label>
-              <input id="booking-email" type="email" placeholder="vas@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-            </div>
+            <!-- 2. Korak: Polja za prijavu novog polaznika (otvaraju se samo ako nema kartice) -->
+            <div id="regular-user-fields" class="hidden space-y-4 pt-1 border-t border-slate-100">
+              <div id="wrapper-booking-name" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-base font-bold text-slate-700 mb-1.5">Ime polaznika *</label>
+                  <input id="booking-firstname" type="text" placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+                </div>
+                <div>
+                  <label class="block text-base font-bold text-slate-700 mb-1.5">Prezime polaznika *</label>
+                  <input id="booking-lastname" type="text" placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+                </div>
+              </div>
 
-            <div id="wrapper-booking-phone">
-              <label class="block text-base font-bold text-slate-700 mb-1.5">Kontakt telefon *</label>
-              <input id="booking-phone" type="tel" placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-            </div>
+              <div id="wrapper-booking-email">
+                <label class="block text-base font-bold text-slate-700 mb-1.5">Email za potvrdu *</label>
+                <input id="booking-email" type="email" placeholder="vas@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+              </div>
 
-            <div id="wrapper-booking-address">
-              <label class="block text-base font-bold text-slate-700 mb-1.5">Adresa i Grad *</label>
-              <input id="booking-address" type="text" placeholder="Ulica, Grad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+              <div id="wrapper-booking-phone">
+                <label class="block text-base font-bold text-slate-700 mb-1.5">Kontakt telefon *</label>
+                <input id="booking-phone" type="tel" placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+              </div>
+
+              <div id="wrapper-booking-address">
+                <label class="block text-base font-bold text-slate-700 mb-1.5">Adresa i Grad *</label>
+                <input id="booking-address" type="text" placeholder="Ulica, Grad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+              </div>
             </div>
 
             <div>
@@ -579,17 +690,21 @@
         </div>
 
         <div id="payment-switch-container" class="hidden grid grid-cols-2 gap-2 pt-1">
-          <button type="button" id="btn-view-ticket-qr" class="py-2 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-sm transition">Ulaznica</button>
-          <button type="button" id="btn-view-ips-qr" class="py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center gap-1">
-            <span id="ips-button-icon">💳</span> <span id="ips-button-text">NBS IPS Uplata</span>
+          <button type="button" id="btn-view-ticket-qr" class="py-2.5 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-sm transition">Ulaznica</button>
+          <button type="button" id="btn-view-ips-qr" class="py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+            <span id="ips-button-text">Uplati (IPS)</span>
           </button>
         </div>
 
-        <div class="flex flex-col items-center justify-center pt-2 pb-1">
-          <canvas id="ticket-qr-canvas" class="bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm"></canvas>
-          <div id="ips-qr-wrapper" class="hidden flex-col items-center text-center space-y-2">
-            <canvas id="ticket-ips-canvas" class="bg-white p-3 rounded-2xl border-2 border-indigo-200 shadow-md"></canvas>
-            <p class="text-[11px] font-bold text-slate-500">Skenirajte m-banking aplikacijom (opcija IPS Skeniraj)</p>
+        <div class="flex flex-col items-center justify-center pt-2 pb-1 w-full">
+          <canvas id="ticket-qr-canvas" class="bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm mx-auto block"></canvas>
+          <div id="ips-qr-wrapper" class="hidden flex-col items-center justify-center text-center space-y-2 w-full mx-auto">
+            <canvas id="ticket-ips-canvas" class="bg-white p-3 rounded-2xl border-2 border-slate-300 shadow-md mx-auto block"></canvas>
+            <p class="text-[11px] font-bold text-slate-500 text-center">Skenirajte m-banking aplikacijom (opcija IPS Skeniraj)</p>
           </div>
         </div>
       </div>
@@ -820,6 +935,22 @@
 
     const appId = 'booking-master-html-app';
 
+
+    const ICONS_LIBRARY = {
+      none: '',
+      medicinski_stit: `<svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11h8"/><path d="M12 7v8"/></svg>`,
+      zdrava_aktivnost: `<svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`,
+      mentalni_razvoj: `<svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+      postura_rast: `<svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>`,
+      govor_komunikacija: `<svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>`,
+      edukacija: `<svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`
+    };
+
+    function getSafeSvgIcon(iconKey) {
+      if (!iconKey || iconKey === 'none') return '';
+      return ICONS_LIBRARY[iconKey] || '';
+    }
+
     let state = {
       user: null,
       googleUser: null,
@@ -837,7 +968,13 @@
       tempEventImageBase64: '',
       selectedEventForBooking: null,
       activeViewingTicket: null,
-      editingEventId: null
+      editingEventId: null,
+      activeMembership: null,
+      membersList: [
+        { card: "MG-101", firstName: "Lidija", lastName: "Brzak", phone: "0601234567", email: "lidija@example.com" },
+        { card: "MG-102", firstName: "Andrea", lastName: "Brzak", phone: "0607654321", email: "andrea@example.com" },
+        { card: "MG-103", firstName: "Goran", lastName: "Brzak", phone: "0609998887", email: "goran@example.com" }
+      ]
     };
 
     function safeAddEventListener(id, event, callback) {
@@ -934,7 +1071,11 @@
     }
 
     const INITIAL_CATEGORIES = [
-      { id: 'edu', name: 'Edukacija', icon: '🎓', gradient: 'from-blue-500 to-indigo-600' }
+      { id: 'umg', name: 'UMG Aktivnosti', icon: 'staza' },
+      { id: 'edukacija', name: 'Edukacija', icon: 'edukacija' },
+      { id: 'stomatolog', name: 'Stomatološki pregled', icon: 'stomatolog' },
+      { id: 'fizijatar', name: 'Fizijatrijski skrining', icon: 'fizijatar' },
+      { id: 'logoped', name: 'Logopedsko savetovanje', icon: 'logoped' }
     ];
 
     function loadLocalCache() {
@@ -942,10 +1083,22 @@
       const cachedBookings = safeStorage.getItem('edubooker_bookings');
       const cachedCategories = safeStorage.getItem('edubooker_categories');
       const cachedQueue = safeStorage.getItem('edubooker_sync_queue');
+      const cachedMembers = safeStorage.getItem('edubooker_members');
       state.events = cachedEvents ? JSON.parse(cachedEvents) : [];
       state.bookings = cachedBookings ? JSON.parse(cachedBookings) : [];
-      state.categories = cachedCategories ? JSON.parse(cachedCategories) : INITIAL_CATEGORIES;
+      let ucitaneKategorije = cachedCategories ? JSON.parse(cachedCategories) : null;
+      const imaStariEmotikon = ucitaneKategorije && ucitaneKategorije.some(c => c.icon && c.icon.includes('🎓'));
+
+      if (!ucitaneKategorije || imaStariEmotikon) {
+        state.categories = INITIAL_CATEGORIES;
+        safeStorage.setItem('edubooker_categories', JSON.stringify(INITIAL_CATEGORIES));
+      } else {
+        state.categories = ucitaneKategorije;
+      }
       state.syncQueue = cachedQueue ? JSON.parse(cachedQueue) : [];
+      if (cachedMembers) {
+        state.membersList = JSON.parse(cachedMembers);
+      }
       renderUI();
     }
 
@@ -1248,8 +1401,9 @@
       const select = document.getElementById('event-category');
       if (select) {
         select.innerHTML = state.categories.map(c => `
-          <option value="${c.id}" ${c.id === ev.category ? 'selected' : ''}>${c.icon} ${c.name}</option>
+          <option value="${c.id}" ${c.id === ev.category ? 'selected' : ''}>${c.name}</option>
         `).join('');
+        select.value = ev.category || (state.categories[0] ? state.categories[0].id : '');
       }
       document.getElementById('modal-event').classList.remove('hidden');
     };
@@ -1376,17 +1530,153 @@
       }
     };
 
-    window.openBookingModal = function(eventId) {
+window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
       state.selectedEventForBooking = event;
-      
+
       const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
       const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
       const remaining = Math.max(0, event.totalSeats - bookedCount);
 
       document.getElementById('modal-booking-title').innerText = event.title;
       document.getElementById('modal-booking-seats').innerText = `Još ${remaining} slobodnih mesta (od ${event.totalSeats})`;
+
+      // Resetujemo stanje provere clana pri svakom novom otvaranju
+      state.activeMembership = null;
+      const memberInput = document.getElementById('booking-member-code');
+      const inputRow = document.getElementById('membership-input-row');
+      const confirmedCard = document.getElementById('membership-confirmed-card');
+      const regularFields = document.getElementById('regular-user-fields');
+      const toggleNonMemberBtn = document.getElementById('btn-toggle-non-member');
+
+      if (memberInput) memberInput.value = '';
+      if (inputRow) inputRow.classList.remove('hidden');
+      if (confirmedCard) confirmedCard.classList.add('hidden');
+      if (regularFields) regularFields.classList.add('hidden');
+      if (toggleNonMemberBtn) toggleNonMemberBtn.innerText = "Nemam člansku karticu";
+
+      const pricePerTicket = event.price || 0;
+
+      // Funkcija za obracun i prikaz precrtane cene
+      window.azurirajPrikazCeneRezervacije = function() {
+        const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
+        const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+        const total = pricePerTicket * qty;
+
+        const priceDisplay = document.getElementById('modal-booking-price-display');
+        const priceType = document.getElementById('modal-booking-price-type');
+        const priceCalc = document.getElementById('modal-booking-price-calc');
+
+        let tipNaziv = 'Kotizacija za učešće';
+        if (event.paymentType === 'donacija') tipNaziv = 'Preporučena donacija';
+        else if (event.paymentType === 'clanarina') tipNaziv = 'Članarina podmlatka';
+
+        if (priceType) priceType.innerText = tipNaziv;
+
+        if (state.activeMembership) {
+          if (total > 0) {
+            if (priceDisplay) {
+              priceDisplay.innerHTML = `<span class="line-through text-slate-400 font-bold mr-2 text-base">${total} RSD</span><span class="text-emerald-600 font-black">0 RSD</span>`;
+            }
+          } else {
+            if (priceDisplay) priceDisplay.innerHTML = '<span class="text-emerald-600 font-black">0 RSD</span>';
+          }
+          if (priceCalc) priceCalc.innerText = `Pokriveno mesečnom članarinom (${state.activeMembership.usageCount + 1}. dolazak ovog meseca)`;
+        } else if (pricePerTicket === 0) {
+          if (priceDisplay) priceDisplay.innerHTML = '<span class="text-emerald-600 font-black">Besplatno (0 RSD)</span>';
+          if (priceCalc) priceCalc.innerText = 'Slobodan ulaz bez plaćanja';
+        } else {
+          if (priceDisplay) priceDisplay.innerHTML = `<span class="text-indigo-600 font-black">${total} RSD</span>`;
+          if (priceCalc) priceCalc.innerText = qty > 1 ? `Ukupno za 2 osobe (${qty} x ${pricePerTicket} RSD)` : `Iznos za 1 osobu`;
+        }
+      };
+
+      // Potvrda clanskog broja iz baze clanova
+      const btnApplyMember = document.getElementById('btn-apply-membership');
+      if (btnApplyMember) {
+        btnApplyMember.onclick = () => {
+          const rawCode = (memberInput?.value || '').trim().toUpperCase();
+          if (!rawCode) {
+            showNotification("Unesite broj članske kartice", "warning");
+            return;
+          }
+
+          const spisakClanova = state.membersList || [];
+          const pronadjenClan = spisakClanova.find(m => m.card.toUpperCase() === rawCode || (m.phone && m.phone.includes(rawCode)));
+
+          if (!pronadjenClan) {
+            showNotification("Broj kartice nije pronađen u evidenciji", "warning");
+            return;
+          }
+
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const previousUsages = state.bookings.filter(b => {
+            const matchesCode = (b.memberCode && b.memberCode.toUpperCase() === rawCode) || (b.phone && b.phone.includes(rawCode));
+            const inCurrentMonth = b.timestamp && b.timestamp.startsWith(currentMonth);
+            return matchesCode && inCurrentMonth && b.status !== 'otkazano';
+          });
+
+          const usageCount = previousUsages.length;
+          state.activeMembership = {
+            card: pronadjenClan.card,
+            firstName: pronadjenClan.firstName,
+            lastName: pronadjenClan.lastName,
+            phone: pronadjenClan.phone,
+            email: pronadjenClan.email,
+            usageCount: usageCount
+          };
+
+          if (inputRow) inputRow.classList.add('hidden');
+          if (confirmedCard) {
+            confirmedCard.classList.remove('hidden');
+            const nameEl = document.getElementById('membership-member-name');
+            const infoEl = document.getElementById('membership-member-info');
+            if (nameEl) nameEl.innerText = `${pronadjenClan.firstName} ${pronadjenClan.lastName} (${pronadjenClan.card})`;
+            if (infoEl) infoEl.innerText = `${usageCount + 1}. dolazak u ovom mesecu, podaci su uspešno povezani`;
+          }
+
+          if (regularFields) regularFields.classList.add('hidden');
+
+          showNotification(`Član prepoznat: ${pronadjenClan.firstName} ${pronadjenClan.lastName}`, "success");
+          window.azurirajPrikazCeneRezervacije();
+        };
+      }
+
+      // Taster za promenu clana
+      const btnResetMember = document.getElementById('btn-reset-membership');
+      if (btnResetMember) {
+        btnResetMember.onclick = () => {
+          state.activeMembership = null;
+          if (inputRow) inputRow.classList.remove('hidden');
+          if (confirmedCard) confirmedCard.classList.add('hidden');
+          if (memberInput) memberInput.value = '';
+          window.azurirajPrikazCeneRezervacije();
+        };
+      }
+
+      // Prebacivanje na rucni unos ako posetilac nema clansku karticu
+      if (toggleNonMemberBtn) {
+        toggleNonMemberBtn.onclick = () => {
+          const isHidden = regularFields.classList.contains('hidden');
+          if (isHidden) {
+            regularFields.classList.remove('hidden');
+            toggleNonMemberBtn.innerText = "Imam članski broj";
+            state.activeMembership = null;
+            if (confirmedCard) confirmedCard.classList.add('hidden');
+            if (inputRow) inputRow.classList.remove('hidden');
+          } else {
+            regularFields.classList.add('hidden');
+            toggleNonMemberBtn.innerText = "Nemam člansku karticu";
+          }
+          window.azurirajPrikazCeneRezervacije();
+        };
+      }
+window.azurirajPrikazCeneRezervacije();
+
+      document.querySelectorAll('input[name="booking-quantity"]').forEach(radio => {
+        radio.onchange = window.azurirajPrikazCeneRezervacije;
+      });
 
       const seatsGrid = document.getElementById('modal-booking-seats-grid');
       if (seatsGrid) {
@@ -1403,15 +1693,15 @@
       const radio2 = document.getElementById('radio-qty-2');
       const label2 = document.getElementById('label-qty-2');
       if (remaining < 2) {
-          radio2.disabled = true;
-          label2.classList.add('opacity-50', 'cursor-not-allowed');
-          document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
+        radio2.disabled = true;
+        label2.classList.add('opacity-50', 'cursor-not-allowed');
+        document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
       } else {
-          radio2.disabled = false;
-          label2.classList.remove('opacity-50', 'cursor-not-allowed');
-          document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
+        radio2.disabled = false;
+        label2.classList.remove('opacity-50', 'cursor-not-allowed');
+        document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
       }
-      
+
       const reqName = event.formFields?.name !== false;
       const reqEmail = event.formFields?.email !== false;
       const reqPhone = event.formFields?.phone !== false;
@@ -1420,24 +1710,24 @@
       const nameWrapper = document.getElementById('wrapper-booking-name');
       if (nameWrapper) nameWrapper.style.display = reqName ? 'grid' : 'none';
       const fNameInput = document.getElementById('booking-firstname');
-      if (fNameInput) fNameInput.required = reqName;
+      if (fNameInput) fNameInput.required = false;
       const lNameInput = document.getElementById('booking-lastname');
-      if (lNameInput) lNameInput.required = reqName;
+      if (lNameInput) lNameInput.required = false;
 
       const emailWrapper = document.getElementById('wrapper-booking-email');
       if (emailWrapper) emailWrapper.style.display = reqEmail ? 'block' : 'none';
       const emailInput = document.getElementById('booking-email');
-      if (emailInput) emailInput.required = reqEmail;
+      if (emailInput) emailInput.required = false;
 
       const phoneWrapper = document.getElementById('wrapper-booking-phone');
       if (phoneWrapper) phoneWrapper.style.display = reqPhone ? 'block' : 'none';
       const phoneInput = document.getElementById('booking-phone');
-      if (phoneInput) phoneInput.required = reqPhone;
+      if (phoneInput) phoneInput.required = false;
 
       const addressWrapper = document.getElementById('wrapper-booking-address');
       if (addressWrapper) addressWrapper.style.display = reqAddress ? 'block' : 'none';
       const addressInput = document.getElementById('booking-address');
-      if (addressInput) addressInput.required = reqAddress;
+      if (addressInput) addressInput.required = false;
 
       const noticeEl = document.getElementById('google-form-notice');
       if (state.googleUser && reqEmail) {
@@ -1451,7 +1741,7 @@
         if (noticeEl) noticeEl.classList.add('hidden');
         if (emailInput) emailInput.removeAttribute('disabled');
       }
-      
+
       document.getElementById('modal-booking').classList.remove('hidden');
     };
 
@@ -1460,37 +1750,72 @@
       const event = state.selectedEventForBooking;
       if (!event) return;
 
-      const emailEl = document.getElementById('booking-email');
-      const emailValue = emailEl && emailEl.value ? emailEl.value.trim().toLowerCase() : '';
-      
+      const isMemberCovered = !!state.activeMembership;
       const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
       const qty = qtyInput ? parseInt(qtyInput.value) : 1;
 
-      if (emailValue) {
-         const existingTickets = state.bookings
-            .filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano')
-            .reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
-            
-         if (existingTickets + qty > 2) {
-            showNotification(`Dostigli ste limit! Sa ovog emaila preostalo pravo na još ${2 - existingTickets} kartu.`, "warning");
-            return;
-         }
+      let emailValue = '';
+      if (isMemberCovered) {
+        emailValue = (state.activeMembership.email || '').toLowerCase();
+      } else {
+        const emailEl = document.getElementById('booking-email');
+        emailValue = emailEl && emailEl.value ? emailEl.value.trim().toLowerCase() : '';
       }
-      
+
+      if (emailValue && emailValue !== 'članska evidencija') {
+        const existingTickets = state.bookings
+          .filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano')
+          .reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+
+        if (existingTickets + qty > 2) {
+          showNotification(`Dostigli ste limit, sa ovog emaila preostalo je pravo na još ${2 - existingTickets} kartu.`, "warning");
+          return;
+        }
+      }
+
       const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
-      
+
       const reqName = event.formFields?.name !== false;
       const reqEmail = event.formFields?.email !== false;
       const reqPhone = event.formFields?.phone !== false;
       const reqAddress = event.formFields?.address !== false;
 
-      const fNameEl = document.getElementById('booking-firstname');
-      const lNameEl = document.getElementById('booking-lastname');
-      const phoneEl = document.getElementById('booking-phone');
-      const addressEl = document.getElementById('booking-address');
-      
-      const pricePerTicket = event.price || 0;
+      const pricePerTicket = isMemberCovered ? 0 : (event.price || 0);
       const totalPrice = pricePerTicket * qty;
+
+      let finalFirstName = 'Polaznik';
+      let finalLastName = '';
+      let finalEmail = 'Nije uneto';
+      let finalPhone = 'Nije traženo';
+      let finalAddress = 'Nije traženo';
+
+      if (isMemberCovered) {
+        finalFirstName = state.activeMembership.firstName;
+        finalLastName = state.activeMembership.lastName;
+        finalEmail = state.activeMembership.email || 'Članska evidencija';
+        finalPhone = state.activeMembership.phone || 'Članska evidencija';
+        finalAddress = 'Redovan član';
+      } else {
+        const fNameEl = document.getElementById('booking-firstname');
+        const lNameEl = document.getElementById('booking-lastname');
+        const phoneEl = document.getElementById('booking-phone');
+        const addressEl = document.getElementById('booking-address');
+
+        if (reqName && (!fNameEl?.value.trim() || !lNameEl?.value.trim())) {
+          showNotification("Molimo unesite ime i prezime polaznika", "warning");
+          return;
+        }
+        if (reqEmail && !emailValue) {
+          showNotification("Molimo unesite ispravnu email adresu", "warning");
+          return;
+        }
+
+        finalFirstName = fNameEl ? fNameEl.value.trim() : 'Polaznik';
+        finalLastName = lNameEl ? lNameEl.value.trim() : '';
+        finalEmail = emailValue || 'Nije uneto';
+        finalPhone = reqPhone && phoneEl && phoneEl.value ? phoneEl.value.trim() : 'Nije traženo';
+        finalAddress = reqAddress && addressEl && addressEl.value ? addressEl.value.trim() : 'Nije traženo';
+      }
 
       const newBooking = {
         id: bookingId,
@@ -1502,27 +1827,30 @@
         ticketsCount: qty,
         pricePerTicket: pricePerTicket,
         totalPrice: totalPrice,
-        paymentType: event.paymentType || 'kotizacija',
+        originalPrice: (event.price || 0) * qty,
+        paymentType: isMemberCovered ? 'clanarina_pokriveno' : (event.paymentType || 'kotizacija'),
+        memberCode: isMemberCovered ? state.activeMembership.card : '',
+        membershipVisitNumber: isMemberCovered ? (state.activeMembership.usageCount + 1) : null,
         bankAccount: event.bankAccount || '',
         recipientName: event.recipientName || '',
-        scannedCount: 0, 
-        firstName: reqName && fNameEl && fNameEl.value ? fNameEl.value.trim() : 'Polaznik',
-        lastName: reqName && lNameEl && lNameEl.value ? lNameEl.value.trim() : '',
-        email: reqEmail && emailValue ? emailValue : 'Nije uneto',
-        phone: reqPhone && phoneEl && phoneEl.value ? phoneEl.value.trim() : 'Nije traženo',
-        address: reqAddress && addressEl && addressEl.value ? addressEl.value.trim() : 'Nije traženo',
+        scannedCount: 0,
+        firstName: finalFirstName,
+        lastName: finalLastName,
+        email: finalEmail,
+        phone: finalPhone,
+        address: finalAddress,
         note: document.getElementById('booking-note').value.trim(),
         googleVerified: state.googleUser ? true : false,
         timestamp: new Date().toISOString(),
         status: 'aktivna'
       };
-      
+
       state.bookings = [newBooking, ...state.bookings];
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
       let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       myTickets.push(newBooking.id);
       safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
-      
+
       if (state.isOnline && firebaseActive) {
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id), newBooking);
@@ -1536,7 +1864,7 @@
         safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
         updateSyncBanner();
       }
-      
+
       document.getElementById('modal-booking').classList.add('hidden');
       document.getElementById('form-submit-booking').reset();
       renderUI();
@@ -1592,17 +1920,19 @@
         if (priceAmountEl) priceAmountEl.innerText = `${totalPrice} RSD`;
         if (paymentSwitch) paymentSwitch.classList.remove('hidden');
 
-        if (booking.paymentType === 'donacija') {
+        if (booking.paymentType === 'clanarina_pokriveno') {
+          if (priceContainer) priceContainer.classList.remove('hidden');
+          if (priceLabelEl) priceLabelEl.innerText = "Status:";
+          if (priceAmountEl) priceAmountEl.innerText = `Mesečna članarina (${booking.membershipVisitNumber || 1}. termin)`;
+          if (paymentSwitch) paymentSwitch.classList.add('hidden');
+        } else if (booking.paymentType === 'donacija') {
           if (priceLabelEl) priceLabelEl.innerText = "Iznos donacije:";
-          if (ipsBtnIcon) ipsBtnIcon.innerText = "❤️";
           if (ipsBtnText) ipsBtnText.innerText = "Doniraj (IPS)";
         } else if (booking.paymentType === 'clanarina') {
           if (priceLabelEl) priceLabelEl.innerText = "Članarina podmlatka:";
-          if (ipsBtnIcon) ipsBtnIcon.innerText = "🌱";
           if (ipsBtnText) ipsBtnText.innerText = "Uplati članarinu (IPS)";
         } else {
           if (priceLabelEl) priceLabelEl.innerText = "Iznos kotizacije:";
-          if (ipsBtnIcon) ipsBtnIcon.innerText = "💳";
           if (ipsBtnText) ipsBtnText.innerText = "NBS IPS Uplata";
         }
       } else {
@@ -1733,7 +2063,7 @@
       const razlikaX = krajX - prevlacenjeStartX;
       const razlikaY = krajY - prevlacenjeStartY;
 
-      if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
+if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
         element.classList.toggle('is-flipped');
       }
     };
@@ -1744,15 +2074,15 @@
         const isAllActive = state.activeCategory === 'all';
         let catHTML = `
           <button onclick="selectCategory('all')" class="shrink-0 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${isAllActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-            ${getCategorySvgIcon('all')}
             <span>Sve</span>
           </button>
         `;
         state.categories.forEach(cat => {
           const isActive = state.activeCategory === cat.id;
+          const ikonaSvg = getSafeSvgIcon(cat.icon);
           catHTML += `
             <button onclick="selectCategory('${cat.id}')" class="shrink-0 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-              ${getCategorySvgIcon(cat.id, cat.name)}
+              ${ikonaSvg ? `<span class="shrink-0">${ikonaSvg}</span>` : ''}
               <span>${cat.name}</span>
             </button>
           `;
@@ -1991,7 +2321,8 @@
           adminEventsList.innerHTML = `<div class="p-8 text-center text-base font-bold text-slate-400">Sistem je prazan, kreirajte prvu obuku</div>`;
         } else {
           adminEventsList.innerHTML = state.events.map(evt => {
-            const cat = state.categories.find(c => c.id === evt.category) || { name: 'Edukacija', icon: '🎓' };
+            const cat = state.categories.find(c => c.id === evt.category) || { name: 'Edukacija', icon: 'none' };
+            const ikonaSvg = getSafeSvgIcon(cat.icon);
             const eventBookings = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano');
             const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
             const remaining = Math.max(0, evt.totalSeats - bookedCount);
@@ -2000,7 +2331,10 @@
               <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50 transition border-b-2 border-slate-100 last:border-0">
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg uppercase tracking-wide flex items-center gap-1">${cat.icon} ${cat.name}</span>
+                    <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg uppercase tracking-wide flex items-center gap-1.5">
+                      ${ikonaSvg ? `<span class="shrink-0">${ikonaSvg}</span>` : ''}
+                      <span>${cat.name}</span>
+                    </span>
                     <h4 class="text-lg sm:text-xl font-black text-slate-900 leading-tight">${evt.title}</h4>
                   </div>
                   <p class="text-sm text-slate-600 font-bold flex flex-wrap gap-x-4 gap-y-1 mt-1">
@@ -2032,23 +2366,71 @@
         }
       }
 
-      const adminCategoriesGrid = document.getElementById('admin-categories-grid');
+const adminCategoriesGrid = document.getElementById('admin-categories-grid');
       if (adminCategoriesGrid) {
-        adminCategoriesGrid.innerHTML = state.categories.map(cat => `
-          <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center gap-4">
-              <span class="text-3xl bg-white w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-slate-100">${cat.icon}</span>
-              <div>
-                <p class="text-lg font-black text-slate-900">${cat.name}</p>
-                <p class="text-xs font-mono font-bold text-slate-400">Sifra: ${cat.id}</p>
+        adminCategoriesGrid.innerHTML = state.categories.map(cat => {
+          const ikonaSvg = getSafeSvgIcon(cat.icon);
+          return `
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 shadow-sm hover:shadow-md transition">
+              <div class="flex items-center gap-3">
+                ${ikonaSvg ? `<span class="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-200 shadow-sm shrink-0">${ikonaSvg}</span>` : ''}
+                <div>
+                  <p class="text-base font-black text-slate-900">${cat.name}</p>
+                  <p class="text-xs font-mono font-bold text-slate-400">Šifra: ${cat.id}</p>
+                </div>
               </div>
+              <button onclick="deleteCategory('${cat.id}')" class="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white font-black text-lg w-9 h-9 rounded-xl transition shadow-sm flex items-center justify-center">✕</button>
             </div>
-            <button onclick="deleteCategory('${cat.id}')" class="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white font-black text-xl w-10 h-10 rounded-xl transition shadow-sm">✕</button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
+      }
+
+      const membersTableBody = document.getElementById('admin-members-table-body');
+      if (membersTableBody) {
+        const searchTerm = (document.getElementById('search-member-input')?.value || '').toLowerCase().trim();
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
+        let filteredMembers = state.membersList || [];
+        if (searchTerm) {
+          filteredMembers = filteredMembers.filter(m => 
+            m.card.toLowerCase().includes(searchTerm) ||
+            m.firstName.toLowerCase().includes(searchTerm) ||
+            m.lastName.toLowerCase().includes(searchTerm) ||
+            m.phone.includes(searchTerm)
+          );
+        }
+
+        if (filteredMembers.length === 0) {
+          membersTableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 font-bold">Nema pronađenih članova</td></tr>`;
+        } else {
+          membersTableBody.innerHTML = filteredMembers.map(m => {
+            const dolasci = state.bookings.filter(b => {
+              const matchesCode = (b.memberCode && b.memberCode.toUpperCase() === m.card.toUpperCase()) || (b.phone && b.phone.includes(m.phone));
+              const inMonth = b.timestamp && b.timestamp.startsWith(currentMonth);
+              return matchesCode && inMonth && b.status !== 'otkazano';
+            }).length;
+
+            return `
+              <tr class="hover:bg-slate-50 transition">
+                <td class="py-3 px-3 font-mono font-black text-indigo-700">${m.card}</td>
+                <td class="py-3 px-3 font-bold text-slate-900">${m.firstName} ${m.lastName}</td>
+                <td class="py-3 px-3 text-xs text-slate-600">📞 ${m.phone}</td>
+                <td class="py-3 px-3 text-center">
+                  <span class="inline-block px-3 py-1 rounded-xl text-xs font-black ${dolasci > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                    ${dolasci} dolazaka
+                  </span>
+                </td>
+                <td class="py-3 px-3 text-right">
+                  <button onclick="window.obrisiClana('${m.card}')" class="text-rose-600 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 transition font-bold text-xs" title="Obriši člana">
+                    Briši
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
       }
     }
-
     window.switchTab = function(tabId) {
       state.currentTab = tabId;
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
@@ -2201,7 +2583,7 @@
       if (preview) preview.innerHTML = "🖼️";
       const select = document.getElementById('event-category');
       if (select) {
-        select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+        select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       }
       document.getElementById('modal-event').classList.remove('hidden');
     });
@@ -2302,6 +2684,66 @@
       renderUI();
     });
 
+    safeAddEventListener('form-create-member', 'submit', async (e) => {
+      e.preventDefault();
+      const cardInput = document.getElementById('member-card-input');
+      const firstNameInput = document.getElementById('member-firstname-input');
+      const lastNameInput = document.getElementById('member-lastname-input');
+      const phoneInput = document.getElementById('member-phone-input');
+      const emailInput = document.getElementById('member-email-input');
+
+      const card = cardInput.value.trim().toUpperCase();
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const email = emailInput.value.trim();
+
+      const postoji = (state.membersList || []).some(m => m.card.toUpperCase() === card);
+      if (postoji) {
+        showNotification("Članska kartica sa ovim brojem već postoji!", "warning");
+        return;
+      }
+
+      const noviClan = { card, firstName, lastName, phone, email };
+      state.membersList = [noviClan, ...(state.membersList || [])];
+      safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', card), noviClan);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      showNotification(`Član ${firstName} ${lastName} je uspešno dodat!`, "success");
+      document.getElementById('form-create-member').reset();
+      renderUI();
+    });
+
+    safeAddEventListener('search-member-input', 'input', () => {
+      renderUI();
+    });
+
+    window.obrisiClana = async function(cardCode) {
+      if (confirm(`Da li ste sigurni da želite obrisati člana sa karticom ${cardCode}?`)) {
+        state.membersList = state.membersList.filter(m => m.card !== cardCode);
+        safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+
+        if (state.isOnline && firebaseActive) {
+          try {
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', cardCode));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        showNotification("Član je uspešno obrisan", "info");
+        renderUI();
+      }
+    };
+
     window.openAttendeesModal = function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
       if (!ev) return;
@@ -2323,7 +2765,11 @@
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">${i + 1}</span>
-                  <p class="font-black text-slate-900">${b.firstName} ${b.lastName} ${b.ticketsCount > 1 ? `<span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full ml-1 font-bold">(${b.ticketsCount} karte)</span>` : ''}</p>
+                  <p class="font-black text-slate-900">
+                    ${b.firstName} ${b.lastName}
+                    ${b.ticketsCount > 1 ? `<span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full ml-1 font-bold">(${b.ticketsCount} karte)</span>` : ''}
+                    ${b.paymentType === 'clanarina_pokriveno' ? `<span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md ml-1.5 font-bold">Mesečni član (${b.membershipVisitNumber || 1}. dolazak)</span>` : ''}
+                  </p>
                 </div>
                 <p class="text-xs text-slate-500 font-bold mt-1">📧 ${b.email} | 📞 ${b.phone}</p>
                 ${b.address && b.address !== 'Nije traženo' ? `<p class="text-xs text-slate-400">📍 ${b.address}</p>` : ''}
