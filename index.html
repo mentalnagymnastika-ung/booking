@@ -891,7 +891,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
@@ -1130,6 +1130,7 @@
         state.bookings = list;
         safeStorage.setItem('edubooker_bookings', JSON.stringify(list));
         renderUI();
+        ocistiIstekleRezervacije();
       });
 
       onSnapshot(categoriesRef, (snapshot) => {
@@ -2118,6 +2119,65 @@ window.azurirajPrikazCeneRezervacije();
       document.getElementById('modal-ticket').classList.add('hidden');
       renderUI();
     };
+
+    let ciscenjeUToku = false;
+
+    async function ocistiIstekleRezervacije() {
+      if (ciscenjeUToku || !state.bookings || state.bookings.length === 0) return;
+
+      const sada = Date.now();
+      const CETERDESET_OSAM_SATI = 48 * 60 * 60 * 1000;
+
+      const zaUklanjanje = state.bookings.filter(b => {
+        if (b.status === 'otkazano') {
+          const vremeOtkaza = b.cancelledAt ? new Date(b.cancelledAt).getTime() : (b.timestamp ? new Date(b.timestamp).getTime() : 0);
+          if (vremeOtkaza && (sada - vremeOtkaza >= CETERDESET_OSAM_SATI)) {
+            return true;
+          }
+        }
+
+        const vremeTekst = (b.eventTime || '00:00').length === 5 ? b.eventTime : '00:00';
+        let datumDogadjaja = new Date(`${b.eventDate}T${vremeTekst}`).getTime();
+        if (isNaN(datumDogadjaja)) {
+          datumDogadjaja = new Date(`${b.eventDate} ${b.eventTime || ''}`).getTime();
+        }
+
+        if (!isNaN(datumDogadjaja)) {
+          const prosloOdTermina = sada - datumDogadjaja;
+          if (prosloOdTermina >= CETERDESET_OSAM_SATI) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
+      if (zaUklanjanje.length === 0) return;
+
+      ciscenjeUToku = true;
+
+      for (const b of zaUklanjanje) {
+        if (state.isOnline && firebaseActive) {
+          try {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id);
+            await deleteDoc(docRef);
+          } catch (err) {
+            console.error("Greška pri automatskom uklanjanju karte sa servera:", err);
+          }
+        }
+      }
+
+      const idUklonjenih = new Set(zaUklanjanje.map(b => b.id));
+      state.bookings = state.bookings.filter(b => !idUklonjenih.has(b.id));
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+      myTickets = myTickets.filter(id => !idUklonjenih.has(id));
+      safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+
+      ciscenjeUToku = false;
+      renderUI();
+    }
 
     function getCategorySvgIcon(catId, catName = '') {
       const id = (catId || '').toLowerCase();
