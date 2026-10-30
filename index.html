@@ -172,7 +172,7 @@
 
   <div class="bg-white border-b border-slate-200 px-4 py-3 hidden lg:block shadow-sm">
     <div class="max-w-6xl mx-auto flex gap-3">
-      <button id="nav-events-desktop" class="nav-btn-desktop active px-5 py-3 rounded-xl text-sm font-bold transition bg-indigo-600 text-white shadow-md">📅 Kalendar obuka</button>
+      <button id="nav-events-desktop" class="nav-btn-desktop active px-5 py-3 rounded-xl text-sm font-bold transition bg-indigo-600 text-white shadow-md">📅 Kalendar</button>
       <button id="nav-my-tickets-desktop" class="nav-btn-desktop px-5 py-3 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-50">📋 Moje karte</button>
       <button id="nav-admin-panel-desktop" class="hidden nav-btn-desktop px-5 py-3 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-50">⚙️ Administracija</button>
     </div>
@@ -709,9 +709,14 @@
         </div>
       </div>
 
+      <div id="ticket-cancel-container" class="w-full pt-1"></div>
+
       <div class="flex flex-col gap-2.5 pt-1">
         <button id="btn-download-ticket-img" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-xl text-sm font-black shadow-md">💾 Preuzmi sliku</button>
         <button id="btn-share-ticket" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-xl text-sm font-black shadow-md">📱 Kopiraj podatke</button>
+        <button onclick="window.obrisiKartuTrajno()" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 mt-1">
+          🗑️ Obriši ovu kartu (testno čišćenje)
+        </button>
       </div>
     </div>
   </div>
@@ -1971,6 +1976,38 @@ window.azurirajPrikazCeneRezervacije();
         };
       }
 
+      const cancelContainer = document.getElementById('ticket-cancel-container');
+      if (cancelContainer) {
+        if (booking.status === 'otkazano') {
+          cancelContainer.innerHTML = `
+            <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold text-center">
+              Ova rezervacija je otkazana.
+            </div>
+          `;
+        } else {
+          const vremeTekst = (booking.eventTime || '00:00').length === 5 ? booking.eventTime : '00:00';
+          let datumTermina = new Date(`${booking.eventDate}T${vremeTekst}`);
+          if (isNaN(datumTermina.getTime())) {
+            datumTermina = new Date(`${booking.eventDate} ${booking.eventTime || ''}`);
+          }
+          const satiDoPocetka = (datumTermina - new Date()) / (1000 * 60 * 60);
+
+          if (satiDoPocetka >= 24) {
+            cancelContainer.innerHTML = `
+              <button onclick="window.otkaziRezervaciju('${booking.id}')" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                <span>✕</span> Otkaži rezervaciju (dozvoljeno do 24h ranije)
+              </button>
+            `;
+          } else {
+            cancelContainer.innerHTML = `
+              <div class="p-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-2xl text-xs font-semibold text-center leading-relaxed">
+                Rok za otkazivanje je istekao (manje od 24h do termina). Mesto se tretira kao iskorišćeno.
+              </div>
+            `;
+          }
+        }
+      }
+
       document.getElementById('modal-ticket').classList.remove('hidden');
     }
 
@@ -1992,6 +2029,48 @@ window.azurirajPrikazCeneRezervacije();
       }
     });
 
+    window.otkaziRezervaciju = async function(bookingId) {
+      const potvrda = confirm("Da li ste sigurni da želite da otkažete ovu rezervaciju? Mesto će odmah biti oslobođeno za druge članove.");
+      if (!potvrda) return;
+
+      const rezervacija = state.bookings.find(b => b.id === bookingId);
+      if (!rezervacija) return;
+
+      rezervacija.status = 'otkazano';
+      rezervacija.cancelledAt = new Date().toISOString();
+
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId);
+          await updateDoc(docRef, { 
+            status: 'otkazano', 
+            cancelledAt: rezervacija.cancelledAt 
+          });
+        } catch (err) {
+          console.error("Greška pri otkazivanju na serveru:", err);
+        }
+      }
+
+      showNotification("Rezervacija je uspešno otkazana!", "info");
+      renderUI();
+
+      const cancelContainer = document.getElementById('ticket-cancel-container');
+      if (cancelContainer) {
+        cancelContainer.innerHTML = `
+          <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold text-center">
+            Rezervacija je uspešno otkazana. Mesto je oslobođeno.
+          </div>
+        `;
+      }
+
+      setTimeout(() => {
+        const modal = document.getElementById('modal-ticket');
+        if (modal) modal.classList.add('hidden');
+      }, 1200);
+    };
+
     safeAddEventListener('btn-share-ticket', 'click', async () => {
       if (!state.activeViewingTicket) return;
       const textToShare = `Evo moje karte za program ${state.activeViewingTicket.eventTitle}. Kod karte je: ${state.activeViewingTicket.id}`;
@@ -2010,6 +2089,35 @@ window.azurirajPrikazCeneRezervacije();
          });
       }
     });
+
+    window.obrisiKartuTrajno = async function(bookingId) {
+      const id = bookingId || state.activeViewingTicket?.id;
+      if (!id) return;
+
+      const potvrda = confirm(`Želite li trajno izbrisati kartu ${id}? Rezervacija će biti potpuno uklonjena iz evidencije, a mjesto vraćeno kao slobodno.`);
+      if (!potvrda) return;
+
+      state.bookings = state.bookings.filter(b => b.id !== id);
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+      myTickets = myTickets.filter(tId => tId !== id);
+      safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id);
+          await deleteDoc(docRef);
+        } catch (err) {
+          console.error("Greška pri brisanju karte s poslužitelja:", err);
+        }
+      }
+
+      showNotification("Karta je trajno izbrisana!", "info");
+      document.getElementById('modal-ticket').classList.add('hidden');
+      renderUI();
+    };
 
     function getCategorySvgIcon(catId, catName = '') {
       const id = (catId || '').toLowerCase();
@@ -2256,53 +2364,66 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
               groupedBookings[b.eventTitle].push(b);
             });
 
-            if (Object.keys(groupedBookings).length === 0) {
-               myTicketsGrid.innerHTML = `<div class="col-span-full p-8 text-center bg-slate-50 rounded-3xl border border-slate-200"><p class="text-base text-slate-500 font-bold">Trenutno nemate sačuvanih karata</p></div>`;
+           if (Object.keys(groupedBookings).length === 0) {
+              myTicketsGrid.innerHTML = `<div class="col-span-full p-8 text-center bg-slate-50 rounded-3xl border border-slate-200"><p class="text-base text-slate-500 font-bold">Trenutno nemate sačuvanih karata</p></div>`;
             } else {
-               myTicketsGrid.innerHTML = Object.keys(groupedBookings).map(eventName => {
-                 const tickets = groupedBookings[eventName];
-                 return `
-                   <div class="col-span-1 bg-white rounded-3xl border border-indigo-100 p-5 shadow-sm space-y-4 hover:shadow-md transition">
-                     <div class="border-b border-slate-100 pb-3">
-                       <h3 class="text-base font-black text-slate-900 flex items-start gap-2">
-                         <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-sm shrink-0">${tickets.length}</span>
-                         <span class="leading-snug pt-0.5">${eventName}</span>
-                       </h3>
-                     </div>
-                     <div class="grid grid-cols-1 gap-4">
-                       ${tickets.map(b => {
-                         const maxUlaza = b.ticketsCount || 1;
-                         const iskorisceno = b.scannedCount || 0;
-                         const isPotpunoIskoriscena = iskorisceno >= maxUlaza || b.status === 'iskorišćena';
-                         
-                         const cardStyle = isPotpunoIskoriscena ? 'bg-slate-100 opacity-80' : 'bg-slate-50 hover:bg-white';
-                         const btnStyle = isPotpunoIskoriscena ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 shadow-none' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md';
-                         const btnText = isPotpunoIskoriscena ? '✅ Karta iskorišćena' : '🎫 Otvori QR kartu';
-                         const ticketsLabel = maxUlaza > 1 ? `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs ml-2 uppercase font-black align-middle">Važi za ${maxUlaza} osobe</span>` : '';
-                         
-                         const tagHtml = isPotpunoIskoriscena 
-                            ? `<div class="absolute -top-3 -right-3 bg-emerald-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">ISKORIŠĆENO</div>`
-                            : (maxUlaza > 1 && iskorisceno > 0 ? `<div class="absolute -top-3 -right-3 bg-indigo-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">OSTALA ${maxUlaza - iskorisceno} KARTA</div>` : '');
-                         
-                         return `
-                         <div class="${cardStyle} rounded-2xl p-4 border-2 border-slate-200 flex flex-col justify-between transition relative overflow-hidden">
-                           ${tagHtml}
-                           <div class="mb-4 relative z-0">
-                             <p class="text-lg font-black text-slate-900 flex items-center gap-2">📅 ${b.eventDate} <span class="text-slate-400 text-sm font-semibold">|</span> ${b.eventTime}h</p>
-                             <p class="text-sm font-bold text-slate-700 mt-1 flex items-start gap-2">📍 ${b.eventLocation}</p>
-                             <div class="mt-4 pt-3 border-t-2 border-slate-200">
-                               <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Polaznik</p>
-                               <p class="text-xl font-black text-slate-900 mt-0.5">${b.firstName} ${b.lastName} ${ticketsLabel}</p>
-                             </div>
-                           </div>
-                           <button onclick="viewTicket('${b.id}')" class="w-full py-4 ${btnStyle} text-base font-black rounded-xl transition relative z-0">${btnText}</button>
-                         </div>
-                       `;
-                       }).join('')}
-                     </div>
-                   </div>
-                 `;
-               }).join('');
+              myTicketsGrid.innerHTML = Object.keys(groupedBookings).map(eventName => {
+                const tickets = groupedBookings[eventName];
+                return `
+                  <div class="col-span-1 bg-white rounded-3xl border border-indigo-100 p-5 shadow-sm space-y-4 hover:shadow-md transition">
+                    <div class="border-b border-slate-100 pb-3">
+                      <h3 class="text-base font-black text-slate-900 flex items-start gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-sm shrink-0">${tickets.length}</span>
+                        <span class="leading-snug pt-0.5">${eventName}</span>
+                      </h3>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4">
+                      ${tickets.map(b => {
+                        const maxUlaza = b.ticketsCount || 1;
+                        const iskorisceno = b.scannedCount || 0;
+                        const isOtkazana = b.status === 'otkazano';
+                        const isPotpunoIskoriscena = !isOtkazana && (iskorisceno >= maxUlaza || b.status === 'iskorišćena');
+
+                        let cardStyle = 'bg-slate-50 hover:bg-white border-slate-200';
+                        let btnStyle = 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md';
+                        let btnText = '🎫 Otvori QR kartu';
+                        let tagHtml = '';
+
+                        if (isOtkazana) {
+                          cardStyle = 'bg-rose-50/40 border-rose-200 opacity-75';
+                          btnStyle = 'bg-rose-100 text-rose-700 hover:bg-rose-200 shadow-none border border-rose-200';
+                          btnText = '✕ Rezervacija otkazana';
+                          tagHtml = `<div class="absolute -top-3 -right-3 bg-rose-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">OTKAZANO</div>`;
+                        } else if (isPotpunoIskoriscena) {
+                          cardStyle = 'bg-slate-100 opacity-80 border-slate-200';
+                          btnStyle = 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 shadow-none';
+                          btnText = '✅ Karta iskorišćena';
+                          tagHtml = `<div class="absolute -top-3 -right-3 bg-emerald-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">ISKORIŠĆENO</div>`;
+                        } else if (maxUlaza > 1 && iskorisceno > 0) {
+                          tagHtml = `<div class="absolute -top-3 -right-3 bg-indigo-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-lg uppercase shadow-sm transform rotate-12 origin-bottom-left z-10">OSTALA ${maxUlaza - iskorisceno} KARTA</div>`;
+                        }
+
+                        const ticketsLabel = maxUlaza > 1 ? `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs ml-2 uppercase font-black align-middle">Važi za ${maxUlaza} osobe</span>` : '';
+
+                        return `
+                          <div class="${cardStyle} rounded-2xl p-4 border-2 flex flex-col justify-between transition relative overflow-hidden">
+                            ${tagHtml}
+                            <div class="mb-4 relative z-0">
+                              <p class="text-lg font-black ${isOtkazana ? 'text-slate-400 line-through' : 'text-slate-900'} flex items-center gap-2">📅 ${b.eventDate} <span class="text-slate-400 text-sm font-semibold">|</span> ${b.eventTime}h</p>
+                              <p class="text-sm font-bold text-slate-700 mt-1 flex items-start gap-2">📍 ${b.eventLocation}</p>
+                              <div class="mt-4 pt-3 border-t-2 border-slate-200">
+                                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Polaznik</p>
+                                <p class="text-xl font-black text-slate-900 mt-0.5">${b.firstName} ${b.lastName} ${ticketsLabel}</p>
+                              </div>
+                            </div>
+                            <button onclick="viewTicket('${b.id}')" class="w-full py-4 ${btnStyle} text-base font-black rounded-xl transition relative z-0">${btnText}</button>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('');
             }
          }
       }
