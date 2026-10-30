@@ -2221,7 +2221,7 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
 
           if (!evt.image) {
             return `
-              <div onclick="openInfoModal('${evt.id}')" class="bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-sm p-6 hover:shadow-lg transition cursor-pointer select-none">
+              <div onclick="openInfoModal('${evt.id}')" class="bg-white rounded-3xl border border-slate-200/90 overflow-hidden flex flex-col justify-between shadow-lg shadow-slate-300/70 p-6 hover:shadow-xl transition cursor-pointer select-none">
                 <div class="space-y-3">
                   <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg uppercase">${cat.name}</span>
                   <h3 class="text-2xl font-black text-slate-900 leading-tight">${evt.title}</h3>
@@ -2243,7 +2243,7 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
               <div class="flip-card-inner">
                 
                 <!-- PREDNJA STRANA KARTICE -->
-                <div class="flip-card-front bg-white border border-slate-200 shadow-sm flex flex-col justify-between rounded-3xl overflow-hidden">
+                <div class="flip-card-front bg-white border border-slate-200/90 shadow-lg shadow-slate-300/70 flex flex-col justify-between rounded-3xl overflow-hidden">
                   <div class="relative h-52 w-full overflow-hidden shrink-0">
                     <img src="${evt.image}" class="w-full h-full object-cover block" />
                   </div>
