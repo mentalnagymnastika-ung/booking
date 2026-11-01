@@ -1127,8 +1127,18 @@
       onSnapshot(bookingsRef, (snapshot) => {
         const list = [];
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-        state.bookings = list;
-        safeStorage.setItem('edubooker_bookings', JSON.stringify(list));
+        
+        if (list.length > 0) {
+          const serverIds = new Set(list.map(b => b.id));
+          const lokalneNesačuvane = state.bookings.filter(b => !serverIds.has(b.id));
+          state.bookings = [...list, ...lokalneNesačuvane];
+        } else if (state.bookings.length > 0) {
+          // Zadržavamo lokalne rezervacije ukoliko je server privremeno nedostupan
+        } else {
+          state.bookings = [];
+        }
+
+        safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
         renderUI();
         ocistiIstekleRezervacije();
       });
@@ -2018,14 +2028,34 @@ window.azurirajPrikazCeneRezervacije();
     };
 
     safeAddEventListener('btn-download-ticket-img', 'click', () => {
+      const btn = document.getElementById('btn-download-ticket-img');
       const card = document.getElementById('physical-ticket-card');
-      if(typeof html2canvas !== 'undefined') {
-        html2canvas(card).then(canvas => {
+      if (!btn || !card) return;
+
+      const originalanTekst = btn.innerHTML;
+      btn.innerHTML = "⏳ Priprema slike...";
+      btn.className = "w-full py-3.5 bg-emerald-800 text-white rounded-xl text-sm font-black shadow-md transition pointer-events-none opacity-90";
+
+      if (typeof html2canvas !== 'undefined') {
+        html2canvas(card, { scale: 2 }).then(canvas => {
           const link = document.createElement('a');
           link.download = `EduBooker_Karta_${state.activeViewingTicket?.id || 'rezervacija'}.png`;
-          link.href = canvas.toDataURL();
+          link.href = canvas.toDataURL('image/png');
           link.click();
-          showNotification("Karta je sačuvana na uređaj", "success");
+
+          btn.innerHTML = "✅ Karta je preuzeta!";
+          btn.className = "w-full py-3.5 bg-slate-900 text-emerald-400 rounded-xl text-sm font-black shadow-md transition";
+          showNotification("Karta je sačuvana na Vaš uređaj!", "success");
+
+          setTimeout(() => {
+            btn.innerHTML = originalanTekst;
+            btn.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-xl text-sm font-black shadow-md";
+          }, 2500);
+        }).catch(err => {
+          console.error(err);
+          btn.innerHTML = originalanTekst;
+          btn.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-xl text-sm font-black shadow-md";
+          showNotification("Došlo je do greške pri preuzimanju", "warning");
         });
       }
     });
@@ -2129,23 +2159,24 @@ window.azurirajPrikazCeneRezervacije();
       const CETERDESET_OSAM_SATI = 48 * 60 * 60 * 1000;
 
       const zaUklanjanje = state.bookings.filter(b => {
+        const vremeNastanka = b.timestamp ? new Date(b.timestamp).getTime() : sada;
+        if (sada - vremeNastanka < CETERDESET_OSAM_SATI) {
+          return false;
+        }
+
         if (b.status === 'otkazano') {
-          const vremeOtkaza = b.cancelledAt ? new Date(b.cancelledAt).getTime() : (b.timestamp ? new Date(b.timestamp).getTime() : 0);
-          if (vremeOtkaza && (sada - vremeOtkaza >= CETERDESET_OSAM_SATI)) {
-            return true;
+          const vremeOtkaza = b.cancelledAt ? new Date(b.cancelledAt).getTime() : vremeNastanka;
+          return (sada - vremeOtkaza >= CETERDESET_OSAM_SATI);
+        }
+
+        if (b.status === 'iskorišćena') {
+          const vremeTekst = (b.eventTime || '00:00').length === 5 ? b.eventTime : '00:00';
+          let datumDogadjaja = new Date(`${b.eventDate}T${vremeTekst}`).getTime();
+          if (isNaN(datumDogadjaja)) {
+            datumDogadjaja = new Date(`${b.eventDate} ${b.eventTime || ''}`).getTime();
           }
-        }
-
-        const vremeTekst = (b.eventTime || '00:00').length === 5 ? b.eventTime : '00:00';
-        let datumDogadjaja = new Date(`${b.eventDate}T${vremeTekst}`).getTime();
-        if (isNaN(datumDogadjaja)) {
-          datumDogadjaja = new Date(`${b.eventDate} ${b.eventTime || ''}`).getTime();
-        }
-
-        if (!isNaN(datumDogadjaja)) {
-          const prosloOdTermina = sada - datumDogadjaja;
-          if (prosloOdTermina >= CETERDESET_OSAM_SATI) {
-            return true;
+          if (!isNaN(datumDogadjaja)) {
+            return (sada - datumDogadjaja >= CETERDESET_OSAM_SATI);
           }
         }
 
