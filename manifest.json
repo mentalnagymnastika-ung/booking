@@ -1,6 +1,6 @@
 {
-  "name": "EduBooker PRO",
-  "short_name": "EduBooker",
+  "name": "@Booker PRO",
+  "short_name": "@Booker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
