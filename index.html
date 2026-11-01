@@ -282,6 +282,19 @@
               <button onclick="window.proveriKodRucno()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3.5 rounded-xl text-sm font-black shadow-md transition">Proveri</button>
             </div>
         </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm max-w-lg mx-auto space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h5 class="font-black text-slate-900 text-base">Nedavna očitavanja na prijemu</h5>
+              <p class="text-xs text-slate-500 font-semibold mt-0.5">Automatski pregled poslednjih evidentiranih ulazaka</p>
+            </div>
+            <span id="scan-history-counter" class="text-xs font-black bg-indigo-50 text-indigo-700 px-3 py-1 rounded-xl border border-indigo-100">0 očitano</span>
+          </div>
+          <div id="admin-recent-scans-list" class="divide-y divide-slate-100 text-sm">
+            <p class="py-4 text-center text-slate-400 font-bold text-xs">Još uvek nema očitavanja u ovoj sesiji</p>
+          </div>
+        </div>
       </div>
 
       <!-- 2. PANEL: UPRAVLJANJE OBUKAMA -->
@@ -289,8 +302,20 @@
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 class="text-xl font-black text-slate-900">Kontrolna tabla za događaje</h3>
+            <p class="text-xs text-slate-500 font-bold mt-0.5" id="admin-analytics-visits-badge">👀 Ukupno poseta aplikaciji: 0</p>
           </div>
-          <button id="btn-create-event" class="w-full sm:w-auto px-6 py-3.5 bg-indigo-600 text-white text-base font-black rounded-xl shadow-md">➕ Nova obuka</button>
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <select id="admin-partner-filter" onchange="window.promeniPartnerFilter(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-black text-slate-800 focus:outline-none focus:border-indigo-500">
+              <option value="all">Svi partneri i oblasti</option>
+            </select>
+            <button onclick="window.preuzmiIzvestaj('nedeljni')" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl transition border border-slate-200">
+              📊 Nedeljni izveštaj
+            </button>
+            <button onclick="window.preuzmiIzvestaj('mesecni')" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl transition border border-slate-200">
+              📅 Mesečni izveštaj
+            </button>
+            <button id="btn-create-event" class="px-5 py-3 bg-indigo-600 text-white text-xs sm:text-sm font-black rounded-xl shadow-md">➕ Nova obuka</button>
+          </div>
         </div>
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div id="admin-events-list" class="divide-y divide-slate-100"></div>
@@ -679,7 +704,8 @@
         <div class="border-t border-dashed border-slate-200 pt-3 text-sm space-y-1.5 text-slate-600">
           <p><strong>Polaznik:</strong> <span id="ticket-user-name" class="text-slate-900 font-bold">...</span></p>
           <p><strong>Email:</strong> <span id="ticket-user-email">...</span></p>
-          <p class="pt-0.5"><strong>Vreme:</strong> <span id="ticket-datetime" class="font-black text-slate-900 text-sm block mt-0.5">...</span></p>
+          <p class="pt-0.5"><strong>Termin održavanja:</strong> <span id="ticket-datetime" class="font-black text-slate-900 text-sm block mt-0.5">...</span></p>
+          <p class="text-xs text-slate-500 pt-1"><strong>Vreme rezervacije:</strong> <span id="ticket-created-at" class="font-bold text-slate-700">...</span></p>
         </div>
 
         <div id="ticket-price-badge-container" class="hidden pt-1">
@@ -962,6 +988,7 @@
       isOnline: true,
       currentTab: 'events',
       adminSubTab: 'scanner',
+      adminPartnerFilter: 'all',
       isAdminAuthenticated: false,
       activeCategory: 'all',
       searchTerm: '',
@@ -1335,6 +1362,22 @@
             });
         }
         
+        const pronadjenaRezervacija = state.bookings.find(x => x.id === bookingId);
+        if (pronadjenaRezervacija) {
+          let dnevnikOcitavanja = JSON.parse(safeStorage.getItem('edubooker_scan_logs') || '[]');
+          const novoOcitavanje = {
+            id: pronadjenaRezervacija.id,
+            eventId: pronadjenaRezervacija.eventId,
+            eventTitle: pronadjenaRezervacija.eventTitle,
+            polaznik: `${pronadjenaRezervacija.firstName} ${pronadjenaRezervacija.lastName}`,
+            vreme: new Date().toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            datum: new Date().toLocaleDateString('sr-RS'),
+            timestamp: Date.now()
+          };
+          dnevnikOcitavanja = [novoOcitavanje, ...dnevnikOcitavanja].slice(0, 30);
+          safeStorage.setItem('edubooker_scan_logs', JSON.stringify(dnevnikOcitavanja));
+        }
+
         zatvoriRezultatSkeniranja();
         showNotification("Ulaz je evidentiran!", "success");
         renderUI();
@@ -1478,9 +1521,18 @@
       renderUI();
     });
 
+    window.zabeleziInterakciju = function(eventId) {
+      if (!eventId) return;
+      let brojacPregleda = JSON.parse(safeStorage.getItem('edubooker_event_views') || '{}');
+      brojacPregleda[eventId] = (brojacPregleda[eventId] || 0) + 1;
+      safeStorage.setItem('edubooker_event_views', JSON.stringify(brojacPregleda));
+    };
+
     window.openInfoModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
+
+      window.zabeleziInterakciju(eventId);
       
       document.getElementById('modal-info-title').innerText = event.title;
       document.getElementById('modal-info-desc').innerText = event.description;
@@ -1525,6 +1577,7 @@
 
     window.podeliObuku = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
+      if (eventId) window.zabeleziInterakciju(eventId);
       const naslov = ev ? ev.title : "Obuka";
       const linkAplikacije = "https://mentalnagymnastika-ung.github.io/booking/";
       const tekstPoruke = `Meni se ovo dopada, pogledaj info događaja "${naslov}" na EduBooks platformi: ${linkAplikacije}`;
@@ -1550,6 +1603,8 @@ window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
       state.selectedEventForBooking = event;
+
+      window.zabeleziInterakciju(eventId);
 
       const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
       const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
@@ -1771,22 +1826,47 @@ window.azurirajPrikazCeneRezervacije();
       const qty = qtyInput ? parseInt(qtyInput.value) : 1;
 
       let emailValue = '';
+      let phoneValue = '';
+      let addressValue = '';
+
       if (isMemberCovered) {
-        emailValue = (state.activeMembership.email || '').toLowerCase();
+        emailValue = (state.activeMembership.email || '').toLowerCase().trim();
+        phoneValue = (state.activeMembership.phone || '').replace(/[^0-9]/g, '');
+        addressValue = 'redovan clan';
       } else {
         const emailEl = document.getElementById('booking-email');
+        const phoneEl = document.getElementById('booking-phone');
+        const addressEl = document.getElementById('booking-address');
+
         emailValue = emailEl && emailEl.value ? emailEl.value.trim().toLowerCase() : '';
+        phoneValue = phoneEl && phoneEl.value ? phoneEl.value.replace(/[^0-9]/g, '') : '';
+        addressValue = addressEl && addressEl.value ? addressEl.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
       }
 
-      if (emailValue && emailValue !== 'članska evidencija') {
-        const existingTickets = state.bookings
-          .filter(b => b.email.toLowerCase() === emailValue && b.eventId === event.id && b.status !== 'otkazano')
-          .reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+      const clanskiBroj = isMemberCovered ? (state.activeMembership.card || '').toUpperCase().trim() : '';
 
-        if (existingTickets + qty > 2) {
-          showNotification(`Dostigli ste limit, sa ovog emaila preostalo je pravo na još ${2 - existingTickets} kartu.`, "warning");
-          return;
-        }
+      const postojeciBrojKarata = state.bookings
+        .filter(b => {
+          if (b.eventId !== event.id || b.status === 'otkazano') return false;
+
+          const istiEmail = emailValue && emailValue !== 'članska evidencija' && b.email && b.email.toLowerCase().trim() === emailValue;
+          const istiTelefon = phoneValue && phoneValue.length > 5 && b.phone && b.phone.replace(/[^0-9]/g, '').includes(phoneValue);
+          const istaAdresa = addressValue && addressValue.length > 4 && addressValue !== 'redovanclan' && b.address && b.address.toLowerCase().replace(/[^a-z0-9]/g, '').includes(addressValue);
+          const istiClan = clanskiBroj && b.memberCode && b.memberCode.toUpperCase().trim() === clanskiBroj;
+
+          return istiEmail || istiTelefon || istaAdresa || istiClan;
+        })
+        .reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+
+      if (postojeciBrojKarata >= 2) {
+        showNotification("Već imate rezervisane 2 karte za ovaj događaj. Nova rezervacija nije moguća dok se aktivnost ne završi.", "warning");
+        return;
+      }
+
+      if (postojeciBrojKarata + qty > 2) {
+        const preostaloPravo = 2 - postojeciBrojKarata;
+        showNotification(`Za ovaj događaj možete rezervisati još najviše ${preostaloPravo} kartu.`, "warning");
+        return;
       }
 
       const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -1918,6 +1998,19 @@ window.azurirajPrikazCeneRezervacije();
       
       document.getElementById('ticket-user-email').innerText = booking.email;
       document.getElementById('ticket-datetime').innerText = `${booking.eventDate} u ${booking.eventTime}h`;
+
+      const createdAtEl = document.getElementById('ticket-created-at');
+      if (createdAtEl) {
+        if (booking.timestamp) {
+          const d = new Date(booking.timestamp);
+          const formatiranoVreme = isNaN(d.getTime()) 
+            ? booking.timestamp 
+            : d.toLocaleString('sr-RS', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          createdAtEl.innerText = `${formatiranoVreme}h`;
+        } else {
+          createdAtEl.innerText = 'Evidentirano';
+        }
+      }
 
       const priceContainer = document.getElementById('ticket-price-badge-container');
       const priceLabelEl = document.getElementById('ticket-price-label');
@@ -2198,6 +2291,15 @@ window.azurirajPrikazCeneRezervacije();
         }
       }
 
+      let postojecaArhiva = JSON.parse(safeStorage.getItem('edubooker_archive') || '[]');
+      const arhivskiIdjevi = new Set(postojecaArhiva.map(a => a.id));
+      zaUklanjanje.forEach(stavka => {
+        if (!arhivskiIdjevi.has(stavka.id)) {
+          postojecaArhiva.push(stavka);
+        }
+      });
+      safeStorage.setItem('edubooker_archive', JSON.stringify(postojecaArhiva));
+
       const idUklonjenih = new Set(zaUklanjanje.map(b => b.id));
       state.bookings = state.bookings.filter(b => !idUklonjenih.has(b.id));
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
@@ -2252,7 +2354,7 @@ window.azurirajPrikazCeneRezervacije();
       prevlacenjeStartY = e.touches ? e.touches[0].clientY : e.clientY;
     };
 
-    window.krajPrevlacenja = function(e, element) {
+window.krajPrevlacenja = function(e, element, eventId) {
       if (!prevlacenjeAktivno) return;
       prevlacenjeAktivno = false;
 
@@ -2262,12 +2364,19 @@ window.azurirajPrikazCeneRezervacije();
       const razlikaX = krajX - prevlacenjeStartX;
       const razlikaY = krajY - prevlacenjeStartY;
 
-if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
+      if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
         element.classList.toggle('is-flipped');
+        if (eventId) window.zabeleziInterakciju(eventId);
       }
     };
 
-    function renderUI() {
+function renderUI() {
+      const visitsBadge = document.getElementById('admin-analytics-visits-badge');
+      if (visitsBadge) {
+        const posete = safeStorage.getItem('edubooker_app_visits') || '1';
+        visitsBadge.innerText = `👀 Ukupno poseta aplikaciji: ${posete}`;
+      }
+
       const filterContainer = document.getElementById('categories-filter-container');
       if (filterContainer) {
         const isAllActive = state.activeCategory === 'all';
@@ -2312,7 +2421,7 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
 
           if (!evt.image) {
             return `
-              <div onclick="openInfoModal('${evt.id}')" class="bg-white rounded-3xl border border-slate-200/90 overflow-hidden flex flex-col justify-between shadow-lg shadow-slate-300/70 p-6 hover:shadow-xl transition cursor-pointer select-none">
+              <div onclick="openInfoModal('${evt.id}')" class="bg-white rounded-3xl border border-slate-300 overflow-hidden flex flex-col justify-between shadow-xl shadow-slate-400/30 p-6 hover:shadow-2xl transition cursor-pointer select-none">
                 <div class="space-y-3">
                   <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg uppercase">${cat.name}</span>
                   <h3 class="text-2xl font-black text-slate-900 leading-tight">${evt.title}</h3>
@@ -2320,8 +2429,8 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-6">
                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-2">
-                      <span>Zauzeto: ${bookedCount} / ${evt.totalSeats}</span>
-                      <span class="${remaining > 0 ? 'text-emerald-600' : 'text-rose-600'}">${remaining > 0 ? `Slobodno: ${remaining}` : 'Popunjeno'}</span>
+                     <span>Zauzeto: ${bookedCount} / ${evt.totalSeats}</span>
+                     <span class="${remaining > 0 ? 'text-emerald-600' : 'text-rose-600'}">${remaining > 0 ? `Slobodno: ${remaining}` : 'Popunjeno'}</span>
                    </div>
                    <button onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-3.5 bg-indigo-600 text-white rounded-xl text-base font-bold tracking-wide shadow-md">Brza rezervacija</button>
                 </div>
@@ -2330,11 +2439,11 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
           }
 
           return `
-            <div onmousedown="pocetakPrevlacenja(event)" onmouseup="krajPrevlacenja(event, this)" ontouchstart="pocetakPrevlacenja(event)" ontouchend="krajPrevlacenja(event, this)" class="flip-card h-[520px] w-full cursor-grab active:cursor-grabbing select-none">
+            <div onmousedown="pocetakPrevlacenja(event)" onmouseup="krajPrevlacenja(event, this, '${evt.id}')" ontouchstart="pocetakPrevlacenja(event)" ontouchend="krajPrevlacenja(event, this, '${evt.id}')" class="flip-card h-[520px] w-full cursor-grab active:cursor-grabbing select-none">
               <div class="flip-card-inner">
                 
                 <!-- PREDNJA STRANA KARTICE -->
-                <div class="flip-card-front bg-white border border-slate-200/90 shadow-lg shadow-slate-300/70 flex flex-col justify-between rounded-3xl overflow-hidden">
+                <div class="flip-card-front bg-white border border-slate-300 shadow-xl shadow-slate-400/30 flex flex-col justify-between rounded-3xl overflow-hidden">
                   <div class="relative h-52 w-full overflow-hidden shrink-0">
                     <img src="${evt.image}" class="w-full h-full object-cover block" />
                   </div>
@@ -2455,7 +2564,7 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
               groupedBookings[b.eventTitle].push(b);
             });
 
-           if (Object.keys(groupedBookings).length === 0) {
+            if (Object.keys(groupedBookings).length === 0) {
               myTicketsGrid.innerHTML = `<div class="col-span-full p-8 text-center bg-slate-50 rounded-3xl border border-slate-200"><p class="text-base text-slate-500 font-bold">Trenutno nemate sačuvanih karata</p></div>`;
             } else {
               myTicketsGrid.innerHTML = Object.keys(groupedBookings).map(eventName => {
@@ -2519,17 +2628,34 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
          }
       }
 
+      const partnerFilterSelect = document.getElementById('admin-partner-filter');
+      if (partnerFilterSelect) {
+        const trenutnoIzabrano = state.adminPartnerFilter || 'all';
+        partnerFilterSelect.innerHTML = `
+          <option value="all" ${trenutnoIzabrano === 'all' ? 'selected' : ''}>Svi partneri i oblasti</option>
+          ${state.categories.map(c => `
+            <option value="${c.id}" ${trenutnoIzabrano === c.id ? 'selected' : ''}>${c.name}</option>
+          `).join('')}
+        `;
+      }
+
+      let adminPrikazDogadjaja = state.events;
+      if (state.adminPartnerFilter && state.adminPartnerFilter !== 'all') {
+        adminPrikazDogadjaja = adminPrikazDogadjaja.filter(e => e.category === state.adminPartnerFilter);
+      }
+
       const adminEventsList = document.getElementById('admin-events-list');
       if (adminEventsList) {
-        if (state.events.length === 0) {
-          adminEventsList.innerHTML = `<div class="p-8 text-center text-base font-bold text-slate-400">Sistem je prazan, kreirajte prvu obuku</div>`;
+        if (adminPrikazDogadjaja.length === 0) {
+          adminEventsList.innerHTML = `<div class="p-8 text-center text-base font-bold text-slate-400">Nema evidentiranih programa za izabranog partnera.</div>`;
         } else {
-          adminEventsList.innerHTML = state.events.map(evt => {
+          adminEventsList.innerHTML = adminPrikazDogadjaja.map(evt => {
             const cat = state.categories.find(c => c.id === evt.category) || { name: 'Edukacija', icon: 'none' };
             const ikonaSvg = getSafeSvgIcon(cat.icon);
             const eventBookings = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano');
             const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
             const remaining = Math.max(0, evt.totalSeats - bookedCount);
+            const viewsCount = JSON.parse(safeStorage.getItem('edubooker_event_views') || '{}')[evt.id] || 0;
             
             return `
               <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50 transition border-b-2 border-slate-100 last:border-0">
@@ -2548,6 +2674,9 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
                   <div class="flex items-center gap-2 pt-2 border-t border-slate-200 mt-2">
                     <span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold">Mesta: ${evt.totalSeats}</span>
                     <span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-black">Slobodno: ${remaining}</span>
+                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1.5 rounded-lg text-xs font-black">
+                      👁️ ${viewsCount} pregleda
+                    </span>
                   </div>
                 </div>
                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 pt-4 lg:pt-0 w-full lg:w-auto">
@@ -2570,7 +2699,7 @@ if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
         }
       }
 
-const adminCategoriesGrid = document.getElementById('admin-categories-grid');
+      const adminCategoriesGrid = document.getElementById('admin-categories-grid');
       if (adminCategoriesGrid) {
         adminCategoriesGrid.innerHTML = state.categories.map(cat => {
           const ikonaSvg = getSafeSvgIcon(cat.icon);
@@ -2587,6 +2716,43 @@ const adminCategoriesGrid = document.getElementById('admin-categories-grid');
             </div>
           `;
         }).join('');
+      }
+
+      const recentScansContainer = document.getElementById('admin-recent-scans-list');
+      const scanCounterBadge = document.getElementById('scan-history-counter');
+      if (recentScansContainer) {
+        let sviDnevnici = JSON.parse(safeStorage.getItem('edubooker_scan_logs') || '[]');
+
+        if (state.adminPartnerFilter && state.adminPartnerFilter !== 'all') {
+          const dozvoljeniDogadjaji = new Set(state.events.filter(e => e.category === state.adminPartnerFilter).map(e => e.id));
+          sviDnevnici = sviDnevnici.filter(log => dozvoljeniDogadjaji.has(log.eventId));
+        }
+
+        if (scanCounterBadge) {
+          scanCounterBadge.innerText = `${sviDnevnici.length} očitano`;
+        }
+
+        if (sviDnevnici.length === 0) {
+          recentScansContainer.innerHTML = `<p class="py-4 text-center text-slate-400 font-bold text-xs">Nema zabeleženih očitavanja za izabranog partnera.</p>`;
+        } else {
+          recentScansContainer.innerHTML = sviDnevnici.slice(0, 6).map(log => `
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div class="space-y-0.5">
+                <p class="font-black text-slate-900 text-sm flex items-center gap-2">
+                  <span>${log.polaznik}</span>
+                  <span class="text-[11px] font-mono text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">${log.id}</span>
+                </p>
+                <p class="text-xs text-slate-500 font-medium">${log.eventTitle}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg block">
+                  ✓ ${log.vreme}
+                </span>
+                <span class="text-[10px] text-slate-400 font-semibold block mt-0.5">${log.datum}</span>
+              </div>
+            </div>
+          `).join('');
+        }
       }
 
       const membersTableBody = document.getElementById('admin-members-table-body');
@@ -2635,6 +2801,82 @@ const adminCategoriesGrid = document.getElementById('admin-categories-grid');
         }
       }
     }
+
+    window.preuzmiIzvestaj = function(period) {
+      const sveRezervacije = [
+        ...state.bookings,
+        ...JSON.parse(safeStorage.getItem('edubooker_archive') || '[]')
+      ];
+
+      const jedinstvene = [];
+      const vidjeniIdjevi = new Set();
+      sveRezervacije.forEach(b => {
+        if (!vidjeniIdjevi.has(b.id)) {
+          vidjeniIdjevi.add(b.id);
+          jedinstvene.push(b);
+        }
+      });
+
+      const sada = new Date();
+      const granica = new Date();
+      if (period === 'nedeljni') {
+        granica.setDate(sada.getDate() - 7);
+      } else {
+        granica.setDate(sada.getDate() - 30);
+      }
+
+      let filtrirane = jedinstvene.filter(b => {
+        const t = b.timestamp ? new Date(b.timestamp) : new Date(b.eventDate);
+        return t >= granica;
+      });
+
+      let sufiksNaziva = 'Svi_Partneri';
+      if (state.adminPartnerFilter && state.adminPartnerFilter !== 'all') {
+        const obukePartnera = new Set(state.events.filter(e => e.category === state.adminPartnerFilter).map(e => e.id));
+        filtrirane = filtrirane.filter(b => obukePartnera.has(b.eventId));
+
+        const partnerKategorija = state.categories.find(c => c.id === state.adminPartnerFilter);
+        if (partnerKategorija) {
+          sufiksNaziva = partnerKategorija.name.replace(/[^a-zA-Z0-9]/g, '_');
+        }
+      }
+
+      if (filtrirane.length === 0) {
+        showNotification(`Nema zabeleženih rezervacija za izabranog partnera u periodu: ${period}.`, "info");
+        return;
+      }
+
+      let csvSadrzaj = "\uFEFF";
+      csvSadrzaj += "Kod rezervacije;Program;Datum i vreme;Članska kartica;Dolazak u mesecu;Polaznik;Telefon;Email;Adresa;Broj karata;Iznos (RSD);Tip placanja;Status;Vreme prijave\n";
+
+      filtrirane.forEach(b => {
+        const red = [
+          b.id,
+          `"${(b.eventTitle || '').replace(/"/g, '""')}"`,
+          `"${b.eventDate} ${b.eventTime || ''}"`,
+          `"${b.memberCode || 'Nije član'}"`,
+          b.membershipVisitNumber ? `${b.membershipVisitNumber}. termin` : 'Van članarine',
+          `"${b.firstName} ${b.lastName}"`,
+          `"${b.phone || ''}"`,
+          `"${b.email || ''}"`,
+          `"${(b.address || '').replace(/"/g, '""')}"`,
+          b.ticketsCount || 1,
+          b.totalPrice || 0,
+          b.paymentType || 'kotizacija',
+          b.status || 'aktivna',
+          b.timestamp || ''
+        ];
+        csvSadrzaj += red.join(";") + "\n";
+      });
+
+      const blob = new Blob([csvSadrzaj], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `EduBooker_${sufiksNaziva}_${period}_${sada.toISOString().slice(0, 10)}.csv`;
+      link.click();
+      showNotification(`Izveštaj za ${period} period je uspešno preuzet!`, "success");
+    };
+
     window.switchTab = function(tabId) {
       state.currentTab = tabId;
       document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
@@ -2671,6 +2913,11 @@ const adminCategoriesGrid = document.getElementById('admin-categories-grid');
          else document.getElementById('modal-admin-login').classList.remove('hidden');
       });
     });
+
+    window.promeniPartnerFilter = function(vrednost) {
+      state.adminPartnerFilter = vrednost;
+      renderUI();
+    };
 
     window.switchAdminSubTab = function(subTabId) {
       state.adminSubTab = subTabId;
@@ -3011,6 +3258,9 @@ const adminCategoriesGrid = document.getElementById('admin-categories-grid');
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
+      let ukupnoPoseta = parseInt(safeStorage.getItem('edubooker_app_visits') || '0', 10) + 1;
+      safeStorage.setItem('edubooker_app_visits', ukupnoPoseta.toString());
+
       loadLocalCache();
       if (firebaseActive) {
         startRealtimeSync();
