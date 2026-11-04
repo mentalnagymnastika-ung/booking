@@ -751,6 +751,9 @@
       <div id="ticket-cancel-container" class="w-full pt-1"></div>
 
       <div class="flex flex-col gap-2.5 pt-1">
+        <a id="btn-launch-trail" href="#" target="_blank" class="hidden w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition">
+          <span>🚀</span> POKRENI AVANTURU NA STAZI
+        </a>
         <button id="btn-download-ticket-img" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-xl text-sm font-black shadow-md">💾 Preuzmi sliku</button>
         <button id="btn-share-ticket" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-xl text-sm font-black shadow-md">📱 Kopiraj podatke</button>
         <button onclick="window.obrisiKartuTrajno()" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 mt-1">
@@ -856,6 +859,32 @@
               </div>
             </div>
 
+            <!-- Podešavanje staze i paketa za bazu ambasadori -->
+            <div class="border border-indigo-100 bg-indigo-50/50 rounded-2xl p-4 space-y-3">
+              <p class="text-xs font-black text-indigo-950 uppercase tracking-wide">Povezivanje sa stazom i VIP paket:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Matična šifra staze (PASS)</label>
+                  <input id="event-trail-code" type="text" placeholder="npr. DP01" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-indigo-700 uppercase focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Paket uređaja</label>
+                  <select id="event-package-type" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <option value="1">Solo paket (1 telefon)</option>
+                    <option value="2">Duo paket (2 telefona)</option>
+                    <option value="5" selected>Grupni paket (do 5 telefona)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Model vaučera</label>
+                  <select id="event-voucher-type" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <option value="sati" selected>Turistički vaučer (24h po ulazu)</option>
+                    <option value="promo">Ambasadorski promo (proba / test)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <!-- Podešavanje načina plaćanja i računa -->
             <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50 space-y-3">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -940,6 +969,25 @@
       messagingSenderId: "406523647165",
       appId: "1:406523647165:web:d4ec882a22f152aeec53d4"
     };
+
+    const zdravaConfig = {
+      apiKey: "AIzaSyB6cYBydkMN-PMMVu9zMxGUd-B8VdSPCEM",
+      authDomain: "zdrava-aktivnost.firebaseapp.com",
+      projectId: "zdrava-aktivnost",
+      storageBucket: "zdrava-aktivnost.firebasestorage.app",
+      messagingSenderId: "998592303349",
+      appId: "1:998592303349:web:af7f63de96b024ddf6b5bc"
+    };
+
+    let zdravaApp, zdravaDb;
+    try {
+      zdravaApp = initializeApp(zdravaConfig, "zdravaStazeApp");
+      zdravaDb = getFirestore(zdravaApp);
+      const zdravaAuth = getAuth(zdravaApp);
+      signInAnonymously(zdravaAuth).catch(() => {});
+    } catch (e) {
+      console.warn("Veza sa stazama nije inicijalizovana:", e);
+    }
 
     const safeStorage = {
       getItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
@@ -1445,7 +1493,9 @@
       if (document.getElementById('event-price')) document.getElementById('event-price').value = ev.price || 0;
       if (document.getElementById('event-payment-type')) document.getElementById('event-payment-type').value = ev.paymentType || 'kotizacija';
       if (document.getElementById('event-bank-account')) document.getElementById('event-bank-account').value = ev.bankAccount || '';
-      if (document.getElementById('event-recipient-name')) document.getElementById('event-recipient-name').value = ev.recipientName || '';
+if (document.getElementById('event-recipient-name')) document.getElementById('event-recipient-name').value = ev.recipientName || '';
+if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';
+if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
       if (document.getElementById('event-location')) document.getElementById('event-location').value = ev.location;
       if (document.getElementById('event-date')) document.getElementById('event-date').value = ev.date;
       if (document.getElementById('event-time')) document.getElementById('event-time').value = ev.time;
@@ -1942,6 +1992,8 @@ window.azurirajPrikazCeneRezervacije();
         membershipVisitNumber: isMemberCovered ? (state.activeMembership.usageCount + 1) : null,
         bankAccount: event.bankAccount || '',
         recipientName: event.recipientName || '',
+        trailCode: event.trailCode || '',
+        isPaid: isMemberCovered || totalPrice === 0,
         scannedCount: 0,
         firstName: finalFirstName,
         lastName: finalLastName,
@@ -1963,6 +2015,33 @@ window.azurirajPrikazCeneRezervacije();
       if (state.isOnline && firebaseActive) {
         try {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id), newBooking);
+          
+          if (zdravaDb && (event.trailCode || event.category === 'umg')) {
+            const brojUredjaja = event.packageType || (newBooking.ticketsCount > 1 ? 2 : 1);
+            const tipModela = event.voucherType || 'sati';
+            const automatskiPin = String(Math.floor(1000 + Math.random() * 9000));
+
+            const vaucerPodaci = {
+              aktivan: true,
+              naziv: `@Booker: ${newBooking.firstName} ${newBooking.lastName}`,
+              stazaPoveznica: event.trailCode || "DP01",
+              bonus: 50,
+              maxUredjaja: brojUredjaja,
+              registrovanUredjaji: [],
+              upotrebljenoPuta: 0,
+              tipOgranicenja: tipModela,
+              trajanjeSati: 24,
+              vremeAktivacije: null,
+              statPin: automatskiPin
+            };
+
+            if (tipModela === 'promo') {
+              vaucerPodaci.tipVaucera = 'PROMO';
+            }
+
+            await setDoc(doc(zdravaDb, "ambasadori", newBooking.id), vaucerPodaci);
+          }
+
           showNotification("Rezervacija je uspešna!", "success");
         } catch (err) {
           state.syncQueue.push(newBooking);
@@ -2324,39 +2403,56 @@ window.azurirajPrikazCeneRezervacije();
       }
 
       const cancelContainer = document.getElementById('ticket-cancel-container');
-      if (cancelContainer) {
-        if (booking.status === 'otkazano') {
-          cancelContainer.innerHTML = `
-            <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold text-center">
-              Ova rezervacija je otkazana.
-            </div>
-          `;
-        } else {
-          const vremeTekst = (booking.eventTime || '00:00').length === 5 ? booking.eventTime : '00:00';
-          let datumTermina = new Date(`${booking.eventDate}T${vremeTekst}`);
-          if (isNaN(datumTermina.getTime())) {
-            datumTermina = new Date(`${booking.eventDate} ${booking.eventTime || ''}`);
-          }
-          const satiDoPocetka = (datumTermina - new Date()) / (1000 * 60 * 60);
+if (cancelContainer) {
+            if (booking.status === 'otkazano') {
+              cancelContainer.innerHTML = `
+                <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold text-center">
+                  Ova rezervacija je otkazana.
+                </div>
+              `;
+            } else {
+              const vremeTekst = (booking.eventTime || '00:00').length === 5 ? booking.eventTime : '00:00';
+              let datumTermina = new Date(`${booking.eventDate}T${vremeTekst}`);
+              if (isNaN(datumTermina.getTime())) {
+                datumTermina = new Date(`${booking.eventDate} ${booking.eventTime || ''}`);
+              }
+              const satiDoPocetka = (datumTermina - new Date()) / (1000 * 60 * 60);
 
-          if (satiDoPocetka >= 24) {
-            cancelContainer.innerHTML = `
-              <button onclick="window.otkaziRezervaciju('${booking.id}')" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
-                <span>✕</span> Otkaži rezervaciju (dozvoljeno do 24h ranije)
-              </button>
-            `;
-          } else {
-            cancelContainer.innerHTML = `
-              <div class="p-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-2xl text-xs font-semibold text-center leading-relaxed">
-                Rok za otkazivanje je istekao (manje od 24h do termina). Mesto se tretira kao iskorišćeno.
-              </div>
-            `;
+              if (satiDoPocetka >= 24) {
+                cancelContainer.innerHTML = `
+                  <button onclick="window.otkaziRezervaciju('${booking.id}')" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                    <span>✕</span> Otkaži rezervaciju (dozvoljeno do 24h ranije)
+                  </button>
+                `;
+              } else {
+                cancelContainer.innerHTML = `
+                  <div class="p-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-2xl text-xs font-semibold text-center leading-relaxed">
+                    Rok za otkazivanje je istekao (manje od 24h do termina). Mesto se tretira kao iskorišćeno.
+                  </div>
+                `;
+              }
+            }
           }
+
+          const launchBtn = document.getElementById('btn-launch-trail');
+          if (launchBtn) {
+            const jeStaza = !!booking.trailCode || 
+                            booking.paymentType === 'clanarina_pokriveno' || 
+                            (booking.eventTitle && booking.eventTitle.toLowerCase().includes('aktivnost')) ||
+                            (booking.eventTitle && booking.eventTitle.toLowerCase().includes('staz'));
+
+            const uplataOverena = booking.isPaid || booking.paymentType === 'clanarina_pokriveno' || booking.totalPrice === 0;
+
+            if (jeStaza && uplataOverena) {
+              launchBtn.href = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
+              launchBtn.classList.remove('hidden');
+            } else {
+              launchBtn.classList.add('hidden');
+            }
+          }
+
+          document.getElementById('modal-ticket').classList.remove('hidden');
         }
-      }
-
-      document.getElementById('modal-ticket').classList.remove('hidden');
-    }
 
     window.viewTicket = function(bookingId) {
       const b = state.bookings.find(bk => bk.id === bookingId);
@@ -3305,6 +3401,10 @@ function renderUI() {
       const bankAccount = document.getElementById('event-bank-account')?.value.trim() || '';
       const recipientName = document.getElementById('event-recipient-name')?.value.trim() || '';
 
+      const trailCode = document.getElementById('event-trail-code')?.value.trim().toUpperCase() || '';
+      const packageType = parseInt(document.getElementById('event-package-type')?.value, 10) || 5;
+      const voucherType = document.getElementById('event-voucher-type')?.value || 'sati';
+
       const eventId = state.editingEventId || `EV-${Date.now()}`;
       const eventData = {
         id: eventId,
@@ -3316,6 +3416,9 @@ function renderUI() {
         paymentType: paymentType,
         bankAccount: bankAccount,
         recipientName: recipientName,
+        trailCode: trailCode,
+        packageType: packageType,
+        voucherType: voucherType,
         location,
         date,
         time,
@@ -3469,15 +3572,40 @@ function renderUI() {
                 ${b.address && b.address !== 'Nije traženo' ? `<p class="text-xs text-slate-400">📍 ${b.address}</p>` : ''}
                 ${b.note ? `<p class="text-xs text-amber-700 bg-amber-50 p-1.5 rounded-lg mt-1.5 border border-amber-100">📝 ${b.note}</p>` : ''}
               </div>
-              <div class="text-right">
+              <div class="text-right flex flex-col items-end gap-1">
                 <span class="text-xs font-mono font-bold text-slate-400 block">${b.id}</span>
-                <span class="text-xs font-black px-2.5 py-1 rounded-lg ${b.status === 'iskorišćena' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} mt-1 inline-block uppercase">${b.status}</span>
+                <span class="text-xs font-black px-2.5 py-1 rounded-lg ${b.status === 'iskorišćena' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} inline-block uppercase">${b.status}</span>
+                ${b.totalPrice > 0 ? `
+                  <button onclick="window.promeniStatusUplate('${b.id}')" class="text-[11px] font-black px-2.5 py-1 rounded-lg border transition ${b.isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100'}">
+                    ${b.isPaid ? '✓ Plaćeno' : '💳 Označi plaćeno'}
+                  </button>
+                ` : ''}
               </div>
             </div>
           `).join('');
         }
       }
       document.getElementById('modal-attendees').classList.remove('hidden');
+    };
+
+    window.promeniStatusUplate = async function(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId);
+      if (!b) return;
+      b.isPaid = !b.isPaid;
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
+            isPaid: b.isPaid
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      showNotification(`Uplata za ${b.firstName} ${b.lastName} je ${b.isPaid ? 'POTVRĐENA' : 'PONIŠTENA'}`, "success");
+      openAttendeesModal(b.eventId);
+      renderUI();
     };
 
     safeAddEventListener('btn-close-booking-modal', 'click', () => document.getElementById('modal-booking').classList.add('hidden'));
