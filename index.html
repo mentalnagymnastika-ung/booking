@@ -362,7 +362,7 @@
         </div>
       </div>
 
-      <!-- 4. PANEL: EVIDENCIJA CLANOVA -->
+       <!-- 4. PANEL: EVIDENCIJA CLANOVA -->
       <div id="admin-view-members" class="admin-view hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
@@ -398,7 +398,39 @@
             </form>
           </div>
 
-          <!-- 5. PANEL: OBJEDINJENE PRIJAVE I UPLATE -->
+          <!-- Tabela i pregled postojecih clanova -->
+          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="font-black text-slate-900 text-lg">Aktivni članovi</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Automatsko praćenje broja dolazaka u tekućem mesecu</p>
+              </div>
+              <div class="w-full sm:w-56">
+                <input id="search-member-input" type="text" placeholder="Pretraži člana..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
+              </div>
+            </div>
+
+            <div class="overflow-x-auto no-scrollbar">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="text-[11px] font-black text-slate-400 uppercase border-b border-slate-100">
+                    <th class="py-2.5 px-3">Kartica</th>
+                    <th class="py-2.5 px-3">Ime i Prezime</th>
+                    <th class="py-2.5 px-3">Kontakt</th>
+                    <th class="py-2.5 px-3 text-center">Dolazaka ovog meseca</th>
+                    <th class="py-2.5 px-3 text-right">Akcija</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-members-table-body" class="divide-y divide-slate-100">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 5. PANEL: OBJEDINJENE PRIJAVE I UPLATE -->
       <div id="admin-view-prijave" class="admin-view hidden space-y-5">
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -434,18 +466,6 @@
           </div>
         </div>
       </div>
-
-          <!-- Tabela i pregled postojecih clanova -->
-          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div>
-                <h3 class="font-black text-slate-900 text-lg">Aktivni članovi</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Automatsko praćenje broja dolazaka u tekućem mesecu</p>
-              </div>
-              <div class="w-full sm:w-56">
-                <input id="search-member-input" type="text" placeholder="Pretraži člana..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
-              </div>
-            </div>
 
             <div class="overflow-x-auto no-scrollbar">
               <table class="w-full text-left text-sm">
