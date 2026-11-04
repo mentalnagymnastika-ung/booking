@@ -868,8 +868,18 @@
       
       <div class="p-5 overflow-y-auto no-scrollbar space-y-5">
           <form id="form-submit-event" class="space-y-5">
+            <div class="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-1.5">
+               <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">1. Izaberite model i vrstu aktivnosti *</label>
+               <select id="event-activity-type" onchange="window.prilagodiFormuObuke(this.value)" class="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                 <option value="radionica">🏫 1. Prisustvo na lokaciji (Radionica, predavanje, pregled)</option>
+                 <option value="teren">🌲 2. Terenska staza (Samostalna avantura na otvorenom uz vaučer)</option>
+                 <option value="digitalni_resurs">📥 3. Digitalni resurs (PDF radna sveska, flipbook, video link)</option>
+                 <option value="individualno">👤 4. Individualne konsultacije (1 na 1 zakazani termin)</option>
+               </select>
+            </div>
+
             <div>
-               <label class="block text-base font-bold text-slate-700 mb-1.5">Naziv obuke *</label>
+               <label class="block text-base font-bold text-slate-700 mb-1.5">Naziv obuke ili usluge *</label>
                <input id="event-title" type="text" required placeholder="Unesite naslov" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
             </div>
             
@@ -924,8 +934,8 @@
               </div>
             </div>
 
-            <!-- Podešavanje staze i paketa za bazu ambasadori -->
-            <div class="border border-indigo-100 bg-indigo-50/50 rounded-2xl p-4 space-y-3">
+            <!-- Podešavanje staze i paketa za bazu ambasadori (prikazuje se samo za Terensku stazu) -->
+            <div id="box-trail-settings" class="hidden border border-indigo-100 bg-indigo-50/50 rounded-2xl p-4 space-y-3">
               <p class="text-xs font-black text-indigo-950 uppercase tracking-wide">Povezivanje sa stazom i VIP paket:</p>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
@@ -948,6 +958,13 @@
                   </select>
                 </div>
               </div>
+            </div>
+
+            <!-- Podešavanje digitalnog resursa (prikazuje se samo za Digitalni resurs) -->
+            <div id="box-digital-resource-settings" class="hidden border border-amber-200 bg-amber-50/60 rounded-2xl p-4 space-y-2">
+              <p class="text-xs font-black text-amber-950 uppercase tracking-wide">Link do digitalnog materijala ili radne sveske:</p>
+              <input id="event-digital-url" type="url" placeholder="https://heyzine.com/... ili link do PDF dokumenta" class="w-full bg-white border border-amber-300 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-amber-500" />
+              <p class="text-[11px] text-amber-800 font-medium">Polaznik dobija dugme za preuzimanje ili otvaranje flipbook sveske čim se uplata potvrdi.</p>
             </div>
 
             <!-- Podešavanje načina plaćanja i računa -->
@@ -975,7 +992,7 @@
               <p class="text-[11px] text-slate-500">Ako je iznos 0 RSD, obuka je besplatna i polaznicima se uplatnica ne prikazuje.</p>
             </div>
             
-            <div>
+            <div id="box-location-wrapper">
                <label class="block text-base font-bold text-slate-700 mb-1.5">Tačna lokacija *</label>
                <input id="event-location" type="text" required placeholder="Gde se održava?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
             </div>
@@ -1543,6 +1560,41 @@
       renderUI();
     };
 
+    window.prilagodiFormuObuke = function(tip) {
+      const boxTrail = document.getElementById('box-trail-settings');
+      const boxDigital = document.getElementById('box-digital-resource-settings');
+      const boxLocation = document.getElementById('box-location-wrapper');
+      const seatsInput = document.getElementById('event-total-seats');
+      const locationInput = document.getElementById('event-location');
+
+      if (boxTrail) boxTrail.classList.add('hidden');
+      if (boxDigital) boxDigital.classList.add('hidden');
+      if (boxLocation) boxLocation.classList.remove('hidden');
+      if (seatsInput) {
+        seatsInput.disabled = false;
+        seatsInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+      }
+
+      if (tip === 'radionica') {
+        // Standardna radionica, pregled ili predavanje
+      } else if (tip === 'teren') {
+        // Terenska staza, otključavaju se šifra staze i vaučer
+        if (boxTrail) boxTrail.classList.remove('hidden');
+      } else if (tip === 'digitalni_resurs') {
+        // Digitalna radna sveska ili flipbook, otvara se polje za link, lokacija prelazi u digitalni format
+        if (boxDigital) boxDigital.classList.remove('hidden');
+        if (boxLocation) boxLocation.classList.add('hidden');
+        if (locationInput && !locationInput.value.trim()) locationInput.value = 'Digitalno izdanje (Online)';
+      } else if (tip === 'individualno') {
+        // 1 na 1 konsultacija, fiksira se tačno jedno mesto
+        if (seatsInput) {
+          seatsInput.value = 1;
+          seatsInput.disabled = true;
+          seatsInput.classList.add('bg-slate-200', 'cursor-not-allowed');
+        }
+      }
+    };
+
     window.openEditEventModal = function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
       if (!ev) return;
@@ -1558,9 +1610,14 @@
       if (document.getElementById('event-price')) document.getElementById('event-price').value = ev.price || 0;
       if (document.getElementById('event-payment-type')) document.getElementById('event-payment-type').value = ev.paymentType || 'kotizacija';
       if (document.getElementById('event-bank-account')) document.getElementById('event-bank-account').value = ev.bankAccount || '';
-if (document.getElementById('event-recipient-name')) document.getElementById('event-recipient-name').value = ev.recipientName || '';
-if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';
-if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
+      if (document.getElementById('event-recipient-name')) document.getElementById('event-recipient-name').value = ev.recipientName || '';
+      const prepoznatTip = ev.activityType || (ev.trailCode ? 'teren' : (ev.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+      if (document.getElementById('event-activity-type')) {
+        document.getElementById('event-activity-type').value = prepoznatTip;
+        window.prilagodiFormuObuke(prepoznatTip);
+      }
+      if (document.getElementById('event-digital-url')) document.getElementById('event-digital-url').value = ev.digitalUrl || '';
+      if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
       if (document.getElementById('event-location')) document.getElementById('event-location').value = ev.location;
       if (document.getElementById('event-date')) document.getElementById('event-date').value = ev.date;
       if (document.getElementById('event-time')) document.getElementById('event-time').value = ev.time;
@@ -2161,9 +2218,18 @@ window.azurirajPrikazCeneRezervacije();
       thumb.style.transform = 'translateX(0px)';
       fill.style.width = '0px';
       thumb.className = "absolute left-1.5 top-1.5 bottom-1.5 w-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-md cursor-grab active:cursor-grabbing z-10 touch-none";
-      label.innerText = maxUlaza > 1 
-        ? `👉 PREVUCITE ZA ${sledecaKarta}. KARTU (${sledecaKarta}/${maxUlaza})` 
-        : "👉 PREVUCITE ZA PONIŠTAVANJE";
+      
+      const tipAktivnosti = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+      
+      if (tipAktivnosti === 'teren') {
+        label.innerText = "👉 PREVUCITE ZA START AVANTURE (OTVARA STAZU)";
+      } else if (tipAktivnosti === 'digitalni_resurs') {
+        label.innerText = "👉 PREVUCITE ZA PREUZIMANJE MATERIJALA";
+      } else {
+        label.innerText = maxUlaza > 1 
+          ? `👉 PREVUCITE ZA ${sledecaKarta}. KARTU (${sledecaKarta}/${maxUlaza})` 
+          : "👉 PREVUCITE ZA PONIŠTAVANJE NA ULAZU";
+      }
 
       let dragging = false;
       let startX = 0;
@@ -2258,14 +2324,40 @@ window.azurirajPrikazCeneRezervacije();
       const novoSkenirano = (pronadjena.scannedCount || 0) + 1;
       const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
 
-      state.bookings = state.bookings.map(b => {
-        if (b.id === bookingId) {
-          return { ...b, scannedCount: novoSkenirano, status: noviStatus };
-        }
-        return b;
-      });
+      pronadjena.scannedCount = novoSkenirano;
+      pronadjena.status = noviStatus;
 
+      state.bookings = state.bookings.map(b => b.id === bookingId ? { ...b, scannedCount: novoSkenirano, status: noviStatus } : b);
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      // Ako je terenska staza, tek sada aktiviramo vaučer u bazi staza
+      const tip = pronadjena.activityType || (pronadjena.trailCode ? 'teren' : 'radionica');
+      if (tip === 'teren' && zdravaDb) {
+        try {
+          const automatskiPin = String(Math.floor(1000 + Math.random() * 9000));
+          const vaucerPodaci = {
+            aktivan: true,
+            naziv: `@Booker: ${pronadjena.firstName} ${pronadjena.lastName}`,
+            stazaPoveznica: pronadjena.trailCode || "DP01",
+            bonus: 50,
+            maxUredjaja: pronadjena.packageType || 2,
+            registrovanUredjaji: [],
+            upotrebljenoPuta: 0,
+            tipOgranicenja: pronadjena.voucherType || 'sati',
+            trajanjeSati: 24,
+            vremeAktivacije: new Date().toISOString(),
+            statPin: automatskiPin
+          };
+
+          if (pronadjena.voucherType === 'promo') {
+            vaucerPodaci.tipVaucera = 'PROMO';
+          }
+
+          await setDoc(doc(zdravaDb, "ambasadori", pronadjena.id), vaucerPodaci);
+        } catch (errStaza) {
+          console.warn("Greška pri aktivaciji vaučera na stazi:", errStaza);
+        }
+      }
 
       let dnevnikOcitavanja = JSON.parse(safeStorage.getItem('edubooker_scan_logs') || '[]');
       const opisKarti = maxUlaza > 1 
@@ -2504,15 +2596,19 @@ if (cancelContainer) {
 
           const launchBtn = document.getElementById('btn-launch-trail');
           if (launchBtn) {
-            const jeStaza = !!booking.trailCode || 
-                            booking.paymentType === 'clanarina_pokriveno' || 
-                            (booking.eventTitle && booking.eventTitle.toLowerCase().includes('aktivnost')) ||
-                            (booking.eventTitle && booking.eventTitle.toLowerCase().includes('staz'));
+            const tip = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+            const jeIskoriscena = booking.status === 'iskorišćena';
+            const uplataOverena = booking.isPaid || booking.paymentType === 'clanarina_pokriveno' || (booking.totalPrice || 0) === 0;
 
-            const uplataOverena = booking.isPaid || booking.paymentType === 'clanarina_pokriveno' || booking.totalPrice === 0;
-
-            if (jeStaza && uplataOverena) {
+            if (tip === 'teren' && uplataOverena && jeIskoriscena) {
               launchBtn.href = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
+              launchBtn.innerHTML = `<span>🚀</span> POKRENI AVANTURU NA STAZI`;
+              launchBtn.className = "w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition";
+              launchBtn.classList.remove('hidden');
+            } else if (tip === 'digitalni_resurs' && uplataOverena && jeIskoriscena && booking.digitalUrl) {
+              launchBtn.href = booking.digitalUrl;
+              launchBtn.innerHTML = `<span>📖</span> OTVORI DIGITALNI MATERIJAL`;
+              launchBtn.className = "w-full py-4 bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-95 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition";
               launchBtn.classList.remove('hidden');
             } else {
               launchBtn.classList.add('hidden');
@@ -3556,6 +3652,10 @@ window.krajPrevlacenja = function(e, element, eventId) {
       if (form) form.reset();
       const preview = document.getElementById('event-image-preview');
       if (preview) preview.innerHTML = "🖼️";
+      if (document.getElementById('event-activity-type')) {
+        document.getElementById('event-activity-type').value = 'radionica';
+        window.prilagodiFormuObuke('radionica');
+      }
       const select = document.getElementById('event-category');
       if (select) {
         select.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -3586,9 +3686,13 @@ window.krajPrevlacenja = function(e, element, eventId) {
       const bankAccount = document.getElementById('event-bank-account')?.value.trim() || '';
       const recipientName = document.getElementById('event-recipient-name')?.value.trim() || '';
 
-      const trailCode = document.getElementById('event-trail-code')?.value.trim().toUpperCase() || '';
+      const activityType = document.getElementById('event-activity-type')?.value || 'radionica';
+      const digitalUrl = document.getElementById('event-digital-url')?.value.trim() || '';
+      const trailCode = activityType === 'teren' ? (document.getElementById('event-trail-code')?.value.trim().toUpperCase() || '') : '';
       const packageType = parseInt(document.getElementById('event-package-type')?.value, 10) || 5;
       const voucherType = document.getElementById('event-voucher-type')?.value || 'sati';
+      const konacnaMesta = activityType === 'individualno' ? 1 : seats;
+      const konacnaLokacija = activityType === 'digitalni_resurs' ? 'Digitalno izdanje (Online)' : location;
 
       const eventId = state.editingEventId || `EV-${Date.now()}`;
       const eventData = {
@@ -3596,7 +3700,9 @@ window.krajPrevlacenja = function(e, element, eventId) {
         title,
         description: desc,
         category,
-        totalSeats: seats,
+        activityType: activityType,
+        digitalUrl: digitalUrl,
+        totalSeats: konacnaMesta,
         price: price,
         paymentType: paymentType,
         bankAccount: bankAccount,
@@ -3604,7 +3710,7 @@ window.krajPrevlacenja = function(e, element, eventId) {
         trailCode: trailCode,
         packageType: packageType,
         voucherType: voucherType,
-        location,
+        location: konacnaLokacija,
         date,
         time,
         isActive,
