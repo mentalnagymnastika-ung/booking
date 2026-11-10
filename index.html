@@ -1583,12 +1583,49 @@ const INITIAL_CATEGORIES = [
       renderUI();
     }
 
-    function startRealtimeSync() {
+function startRealtimeSync() {
       if (!firebaseActive || !state.isOnline) return;
       
       const eventsRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
       const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
       const categoriesRef = collection(db, 'artifacts', appId, 'public', 'data', 'categories');
+      const membersRef = collection(db, 'artifacts', appId, 'public', 'data', 'members');
+      const scansRef = collection(db, 'artifacts', appId, 'public', 'data', 'scans');
+
+      onSnapshot(membersRef, (snapshot) => {
+        const list = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ card: docSnap.id, ...docSnap.data() });
+        });
+
+        if (list.length > 0) {
+          state.membersList = list;
+          safeStorage.setItem('edubooker_members', JSON.stringify(list));
+          renderUI();
+        } else if (state.membersList && state.membersList.length > 0) {
+          state.membersList.forEach(m => {
+            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.card)), m).catch(() => {});
+          });
+        }
+      }, (err) => {
+        console.warn("Greška pri sinhronizaciji članova sa servera:", err);
+      });
+
+      // Sinhronizacija očitavanja i skenera u realnom vremenu na svim uređajima
+      onSnapshot(scansRef, (snapshot) => {
+        const list = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ scanId: docSnap.id, ...docSnap.data() });
+        });
+        if (list.length > 0) {
+          // Sortiramo najnovije prvo po timestamp-u
+          list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          safeStorage.setItem('edubooker_scan_logs', JSON.stringify(list));
+          renderUI();
+        }
+      }, (err) => {
+        console.warn("Greška pri sinhronizaciji očitavanja sa servera:", err);
+      });
 
       onSnapshot(eventsRef, (snapshot) => {
         let list = [];
@@ -1836,6 +1873,7 @@ const INITIAL_CATEGORIES = [
         const pronadjenaRezervacija = state.bookings.find(x => x.id === bookingId);
         if (pronadjenaRezervacija) {
           let dnevnikOcitavanja = JSON.parse(safeStorage.getItem('edubooker_scan_logs') || '[]');
+          const scanUniqueId = `SC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
           const novoOcitavanje = {
             id: pronadjenaRezervacija.id,
             eventId: pronadjenaRezervacija.eventId,
@@ -1847,8 +1885,13 @@ const INITIAL_CATEGORIES = [
           };
           dnevnikOcitavanja = [novoOcitavanje, ...dnevnikOcitavanja].slice(0, 30);
           safeStorage.setItem('edubooker_scan_logs', JSON.stringify(dnevnikOcitavanja));
-        }
 
+          if (state.isOnline && firebaseActive) {
+            try {
+              await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'scans', scanUniqueId), novoOcitavanje);
+            } catch (e) {}
+          }
+        }
         zatvoriRezultatSkeniranja();
         showNotification("Ulaz je evidentiran!", "success");
         renderUI();
@@ -2974,10 +3017,11 @@ window.azurirajPrikazCeneRezervacije();
       }
 
       let dnevnikOcitavanja = JSON.parse(safeStorage.getItem('edubooker_scan_logs') || '[]');
-      const opisKarti = maxUlaza > 1 
-        ? `Poništena ${novoSkenirano}. od ${maxUlaza} karte (klizač)` 
+      const opisKarti = maxUlaza > 1  
+        ? `Poništena ${novoSkenirano}. od ${maxUlaza} karte (klizač)`  
         : 'Poništena karta (klizač)';
 
+      const scanUniqueId = `SC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const novoOcitavanje = {
         id: pronadjena.id,
         eventId: pronadjena.eventId,
@@ -2998,6 +3042,7 @@ window.azurirajPrikazCeneRezervacije();
             scannedCount: novoSkenirano,
             status: noviStatus
           });
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'scans', scanUniqueId), novoOcitavanje);
         } catch (err) {
           console.error("Greška pri ažuriranju statusa:", err);
         }
@@ -3836,7 +3881,7 @@ window.krajPrevlacenja = function(e, element, eventId) {
 
           if (state.isOnline && firebaseActive) {
             try {
-              await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', noviBroj), noviClan);
+              await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(noviBroj)), noviClan);
             } catch (err) {
               console.warn("Greška pri upisu uvezenog člana na Firebase:", err);
             }
