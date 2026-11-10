@@ -96,6 +96,14 @@
     .flip-card-back {
       transform: rotateY(180deg);
     }
+    .flip-card:not(.is-flipped) .flip-card-back {
+      pointer-events: none;
+      visibility: hidden;
+    }
+    .flip-card.is-flipped .flip-card-front {
+      pointer-events: none;
+      visibility: hidden;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-24 lg:pb-0 relative">
@@ -755,6 +763,18 @@
                </div>
             </div>
 
+            <!-- Oznaka za 1+1 promociju unutar same rezervacije -->
+            <div id="modal-booking-promo-banner" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-950 p-3.5 rounded-2xl items-center justify-between text-xs shadow-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">🎁</span>
+                <div>
+                  <span class="block text-[10px] uppercase font-black tracking-wider text-amber-700">Gratis promocija</span>
+                  <span class="text-xs font-black text-amber-950">Pristup za dvoje po ceni jedne karte!</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-black bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-800 shrink-0">1+1 Poklon</span>
+            </div>
+
             <!-- Izbor datuma termina (za višednevne aktivnosti) -->
             <div id="wrapper-booking-date-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2">
               <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite dan dolaska *</label>
@@ -880,6 +900,26 @@
             <span id="ticket-badge-type-label" class="text-[11px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl inline-block">Vaučer</span>
             <p id="ticket-badge-main-code" class="text-3xl sm:text-4xl font-mono font-black text-slate-900 tracking-wider">BK-000000</p>
             <p id="ticket-badge-subtext" class="text-xs font-bold text-slate-500 pt-1">Aktivacioni pristupni podaci</p>
+          </div>
+
+          <!-- 1+1 Gratis akcija: Poklon karta za drugu osobu -->
+          <div id="ticket-gift-container" class="hidden w-full bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-3.5 text-left space-y-2.5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🎁</span>
+                <div>
+                  <p class="text-xs font-black text-amber-950 uppercase tracking-wide">1+1 Gratis akcija</p>
+                  <p class="text-[11px] font-bold text-amber-800">Poklon pristup za još jednu osobu</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-black bg-white text-amber-800 border border-amber-300 px-2 py-0.5 rounded-md uppercase">Besplatno</span>
+            </div>
+            <p class="text-[11px] text-amber-900 leading-snug">
+              Vaša rezervacija uključuje besplatan pristup za još jednu osobu. Prosledite joj link i istražujte zajedno!
+            </p>
+            <button type="button" id="btn-share-gift-ticket" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-xs font-black rounded-xl transition shadow-md flex items-center justify-center gap-2">
+              <span>🎁</span> Prosledi poklon kartu prijatelju
+            </button>
           </div>
 
           <div id="ips-qr-wrapper" class="hidden flex-col items-center justify-center text-center space-y-3 w-full mx-auto">
@@ -1240,6 +1280,19 @@
                 <label class="block text-base font-bold text-slate-700 mb-1.5">Cena za članove (RSD)</label>
                 <input id="event-member-price" type="number" min="0" step="50" placeholder="Prazno = isto kao redovna" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
               </div>
+            </div>
+
+            <!-- Prekidač za 1+1 Gratis promociju -->
+            <div class="bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm cursor-pointer" onclick="document.getElementById('event-promo-1plus1').click()">
+              <div class="space-y-0.5">
+                <span class="text-sm font-black text-amber-950 flex items-center gap-1.5">
+                  <span>🎁</span> Uključi 1+1 Gratis promociju
+                </span>
+                <p class="text-xs text-amber-800 font-semibold leading-relaxed">
+                  Kada je aktivno, prijava za 2 mesta naplaćuje se po ceni jedne karte, a druga karta se dodeljuje kao poklon.
+                </p>
+              </div>
+              <input type="checkbox" id="event-promo-1plus1" class="w-6 h-6 rounded border-amber-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer pointer-events-none shrink-0 ml-3" />
             </div>
 
             <!-- Podešavanje staze i paketa za bazu ambasadori (prikazuje se samo za Terensku stazu) -->
@@ -2066,6 +2119,9 @@ function startRealtimeSync() {
       if (document.getElementById('event-member-price')) {
         document.getElementById('event-member-price').value = ev.memberPrice !== undefined && ev.memberPrice !== null ? ev.memberPrice : '';
       }
+      if (document.getElementById('event-promo-1plus1')) {
+        document.getElementById('event-promo-1plus1').checked = ev.hasPromo1plus1 === true;
+      }
       if (document.getElementById('event-access-target')) {
         document.getElementById('event-access-target').value = ev.accessTarget || (ev.paymentType === 'clanarina' ? 'clanovi' : 'svi');
       }
@@ -2259,24 +2315,31 @@ function startRealtimeSync() {
     window.podeliObuku = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId);
       if (eventId) window.zabeleziInterakciju(eventId);
-      const naslov = ev ? ev.title : "Obuka";
-      const linkAplikacije = "https://mentalnagymnastika-ung.github.io/booking/";
-      const tekstPoruke = `Meni se ovo dopada, pogledaj info događaja "${naslov}" na EduBooks platformi: ${linkAplikacije}`;
+      const naslov = ev ? ev.title : "Program";
+      const linkAplikacije = window.location.origin + window.location.pathname;
+      const tekstPoruke = `Meni se ovo dopada! Pogledaj program "${naslov}" na @Bookeru, mogli bismo da dođemo zajedno: ${linkAplikacije}`;
 
-      if (navigator.share) {
+      if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
         try {
           await navigator.share({
-            title: `EduBooks, ${naslov}`,
-            text: `Meni se ovo dopada, pogledaj info događaja "${naslov}" na EduBooks platformi:`,
+            title: `@Booker: ${naslov}`,
+            text: tekstPoruke,
             url: linkAplikacije
           });
-        } catch (err) {}
-      } else if (navigator.clipboard) {
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+        }
+      }
+
+      if (navigator.clipboard) {
         navigator.clipboard.writeText(tekstPoruke).then(() => {
-          showNotification("Link i podaci o obuci su kopirani u memoriju!", "success");
+          showNotification("Poruka i link su kopirani, možete ih zalepiti na Viber ili WhatsApp!", "success");
+        }).catch(() => {
+          prompt("Kopirajte ovu poruku i pošaljite prijatelju:", tekstPoruke);
         });
       } else {
-        showNotification("Deljenje nije podržano u ovom pregledaču", "warning");
+        prompt("Kopirajte ovu poruku i pošaljite prijatelju:", tekstPoruke);
       }
     };
 
@@ -2316,6 +2379,18 @@ window.openBookingModal = function(eventId) {
         }
       }
 
+      // Provera i prikaz 1+1 promo trake unutar formulara
+      const promoBanner = document.getElementById('modal-booking-promo-banner');
+      if (promoBanner) {
+        if (event.hasPromo1plus1) {
+          promoBanner.classList.remove('hidden');
+          promoBanner.classList.add('flex');
+        } else {
+          promoBanner.classList.add('hidden');
+          promoBanner.classList.remove('flex');
+        }
+      }
+
       // Resetujemo stanje provere clana pri svakom novom otvaranju
       state.activeMembership = null;
       const memberInput = document.getElementById('booking-member-code');
@@ -2333,7 +2408,7 @@ window.openBookingModal = function(eventId) {
       const redovnaCenaPoKarti = event.price || 0;
       const clanskaCenaPoKarti = (event.memberPrice !== null && event.memberPrice !== undefined) ? event.memberPrice : redovnaCenaPoKarti;
 
-      // Funkcija za obracun i prikaz precrtane cene
+      // Funkcija za obracun i prikaz cene uz podrsku za 1+1 promociju
       window.azurirajPrikazCeneRezervacije = function() {
         const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
         const qty = qtyInput ? parseInt(qtyInput.value) : 1;
@@ -2347,30 +2422,52 @@ window.openBookingModal = function(eventId) {
         else if (event.paymentType === 'clanarina') tipNaziv = 'Članarina podmlatka';
         if (priceType) priceType.innerText = tipNaziv;
 
+        // Ako je ukljucena akcija 1+1, naplacuje se tacno jedna karta cak i kada se izaberu 2 mesta
+        const jePromo1plus1 = event.hasPromo1plus1 === true;
+        const obracunskiBrojKarata = (jePromo1plus1 && qty === 2) ? 1 : qty;
+
         if (state.activeMembership) {
-          const clanskiTotal = clanskaCenaPoKarti * qty;
-          const redovniTotal = redovnaCenaPoKarti * qty;
+          const clanskiTotal = clanskaCenaPoKarti * obracunskiBrojKarata;
+          const redovniTotal = redovnaCenaPoKarti * obracunskiBrojKarata;
 
           if (clanskaCenaPoKarti < redovnaCenaPoKarti) {
             if (priceDisplay) {
               priceDisplay.innerHTML = `<span class="line-through text-slate-400 font-bold mr-2 text-base">${redovniTotal} RSD</span><span class="text-emerald-600 font-black">${clanskiTotal} RSD</span>`;
             }
             if (priceCalc) {
-              priceCalc.innerText = clanskiTotal === 0 ? 'Potpuno pokriveno članarinom' : `Povlašćena cena za članove (${qty} x ${clanskaCenaPoKarti} RSD)`;
+              if (jePromo1plus1 && qty === 2) {
+                priceCalc.innerText = clanskiTotal === 0 
+                  ? '🎁 Gratis promocija: Pristup za dvoje pokriven članarinom!' 
+                  : '🎁 Gratis promocija: Pristup za dvoje po ceni jedne članske karte!';
+              } else {
+                priceCalc.innerText = clanskiTotal === 0 ? 'Potpuno pokriveno članarinom' : `Povlašćena cena za članove (${qty} x ${clanskaCenaPoKarti} RSD)`;
+              }
             }
           } else {
             if (priceDisplay) {
               priceDisplay.innerHTML = clanskiTotal === 0 ? '<span class="text-emerald-600 font-black">0 RSD</span>' : `<span class="text-indigo-600 font-black">${clanskiTotal} RSD</span>`;
             }
-            if (priceCalc) priceCalc.innerText = `Član udruženja (${state.activeMembership.usageCount + 1}. dolazak ovog meseca)`;
+            if (priceCalc) {
+              if (jePromo1plus1 && qty === 2) {
+                priceCalc.innerText = '🎁 Gratis promocija: Pristup za dvoje!';
+              } else {
+                priceCalc.innerText = `Član udruženja (${state.activeMembership.usageCount + 1}. dolazak ovog meseca)`;
+              }
+            }
           }
         } else if (redovnaCenaPoKarti === 0) {
           if (priceDisplay) priceDisplay.innerHTML = '<span class="text-emerald-600 font-black">Besplatno (0 RSD)</span>';
           if (priceCalc) priceCalc.innerText = 'Slobodan ulaz bez plaćanja';
         } else {
-          const redovniTotal = redovnaCenaPoKarti * qty;
+          const redovniTotal = redovnaCenaPoKarti * obracunskiBrojKarata;
           if (priceDisplay) priceDisplay.innerHTML = `<span class="text-indigo-600 font-black">${redovniTotal} RSD</span>`;
-          if (priceCalc) priceCalc.innerText = qty > 1 ? `Ukupno za 2 osobe (${qty} x ${redovnaCenaPoKarti} RSD)` : `Iznos za 1 osobu`;
+          if (priceCalc) {
+            if (jePromo1plus1 && qty === 2) {
+              priceCalc.innerHTML = '<span class="text-amber-800 font-black">🎁 Gratis promocija: Pristup za dvoje!</span>';
+            } else {
+              priceCalc.innerText = qty > 1 ? `Ukupno za 2 osobe (${qty} x ${redovnaCenaPoKarti} RSD)` : 'Iznos za 1 osobu';
+            }
+          }
         }
       };
 
@@ -2707,9 +2804,12 @@ window.azurirajPrikazCeneRezervacije();
         tacanDatumTermina = dateChoiceInput.value;
       }
 
+      const jePromo1plus1 = event.hasPromo1plus1 === true;
+      const obracunskiBroj = (jePromo1plus1 && qty === 2) ? 1 : qty;
+
       const clanskaCena = (event.memberPrice !== null && event.memberPrice !== undefined) ? event.memberPrice : 0;
       const pricePerTicket = isMemberCovered ? clanskaCena : (event.price || 0);
-      const totalPrice = pricePerTicket * qty;
+      const totalPrice = pricePerTicket * obracunskiBroj;
 
       let finalFirstName = 'Polaznik';
       let finalLastName = '';
@@ -2778,7 +2878,8 @@ window.azurirajPrikazCeneRezervacije();
         bankAccount: event.bankAccount || '',
         recipientName: event.recipientName || '',
         trailCode: event.trailCode || '',
-        packageType: event.packageType || 2,
+        packageType: jePromo1plus1 ? 2 : (event.packageType || 2),
+        hasPromo1plus1: jePromo1plus1,
         voucherType: event.voucherType || 'sati',
         isPaid: isMemberCovered || totalPrice === 0,
         scannedCount: 0,
@@ -3217,7 +3318,15 @@ window.azurirajPrikazCeneRezervacije();
         if (tipAktivnosti === 'teren') {
           if (badgeTypeLabel) badgeTypeLabel.innerText = "VIP Vaučer za stazu";
           if (badgeMainCode) badgeMainCode.innerText = booking.id;
-          if (badgeSubtext) badgeSubtext.innerText = `Šifra staze: ${booking.trailCode || 'DP01'} (Paket: do ${booking.packageType || 2} uređaja)`;
+          
+          const pkg = booking.packageType || 2;
+          if (pkg === 2) {
+            if (badgeSubtext) badgeSubtext.innerText = "Paket za 2 osobe (Gratis promocija: Pristup za dvoje)";
+          } else if (pkg === 1) {
+            if (badgeSubtext) badgeSubtext.innerText = "Solo paket (1 osoba)";
+          } else {
+            if (badgeSubtext) badgeSubtext.innerText = `Grupni paket (do ${pkg} osoba)`;
+          }
         } else if (tipAktivnosti === 'digitalni_resurs') {
           if (badgeTypeLabel) badgeTypeLabel.innerText = "Broj licence za materijal";
           if (badgeMainCode) badgeMainCode.innerText = booking.id;
@@ -3459,6 +3568,42 @@ window.azurirajPrikazCeneRezervacije();
               launchBtn.classList.add('hidden');
             }
           }
+
+          // Prikaz i priprema poklon karte za akciju 1+1
+      const giftBox = document.getElementById('ticket-gift-container');
+      const btnGiftShare = document.getElementById('btn-share-gift-ticket');
+      const imaGratisDrugiUredjaj = (booking.packageType === 2 || booking.ticketsCount === 2);
+
+      if (giftBox) {
+        if (imaGratisDrugiUredjaj && booking.status !== 'otkazano') {
+          giftBox.classList.remove('hidden');
+        } else {
+          giftBox.classList.add('hidden');
+        }
+      }
+
+      if (btnGiftShare) {
+        btnGiftShare.onclick = async () => {
+          const linkStaze = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
+          const porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa tebe učešće ne košta ništa! Možeš pokrenuti avanturu na svom telefonu klikom na link: ${linkStaze}`;
+
+          if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+            try {
+              await navigator.share({
+                title: `Poklon karta za ${booking.eventTitle}`,
+                text: porukaPoklon,
+                url: linkStaze
+              });
+            } catch (err) {}
+          } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(porukaPoklon).then(() => {
+              showNotification("Poruka i link za poklon kartu su kopirani, možete ih zalepiti na Viber!", "success");
+            });
+          } else {
+            prompt("Kopirajte ovu poruku i pošaljite je prijatelju:", porukaPoklon);
+          }
+        };
+      }
 
           document.getElementById('modal-ticket').classList.remove('hidden');
         }
@@ -4567,6 +4712,13 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                     ` : ''}
                   </div>
 
+                  ${evt.hasPromo1plus1 ? `
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-950 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-xs">
+                      <span class="text-base shrink-0">🎁</span>
+                      <span class="leading-tight">1+1 POKLON: Pristup za 2 telefona istovremeno!</span>
+                    </div>
+                  ` : ''}
+
                   <h3 class="text-2xl font-black text-slate-900 leading-tight">${evt.title}</h3>
                   <p class="text-base text-slate-600 leading-relaxed line-clamp-3">${evt.description}</p>
                 </div>
@@ -4594,6 +4746,12 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                     <div class="absolute top-3 left-3 z-10">
                       ${oznakaCeneHtml}
                     </div>
+                    ${evt.hasPromo1plus1 ? `
+                      <div class="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-md text-amber-950 border border-amber-300 px-2.5 py-1.5 rounded-2xl shadow-md flex flex-col items-center justify-center leading-none select-none">
+                        <span class="text-sm">🎁</span>
+                        <span class="text-[10px] font-black tracking-wider text-amber-900 mt-1">1+1</span>
+                      </div>
+                    ` : ''}
                   </div>
 
                   <div class="p-5 flex-1 flex flex-col">
@@ -4639,7 +4797,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
 
                   <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none">
                     <span class="bg-slate-900/90 backdrop-blur-md text-white text-sm font-black px-3.5 py-2 rounded-xl border border-white/10 shadow-sm truncate max-w-[65%]">${evt.title}</span>
-                    <button onclick="event.stopPropagation(); podeliObuku('${evt.id}')" class="pointer-events-auto bg-slate-900/90 hover:bg-black active:scale-95 backdrop-blur-md text-white text-sm font-black px-3.5 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-2 transition cursor-pointer" title="Podeli sa prijateljem">
+                    <button type="button" onclick="event.stopPropagation(); window.podeliObuku('${evt.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="pointer-events-auto bg-slate-900/90 hover:bg-black active:scale-95 backdrop-blur-md text-white text-sm font-black px-3.5 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-2 transition cursor-pointer z-30" title="Podeli sa prijateljem">
                       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="18" cy="5" r="3"></circle>
                         <circle cx="6" cy="12" r="3"></circle>
@@ -5487,6 +5645,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       if (document.getElementById('event-member-price')) {
         document.getElementById('event-member-price').value = '';
       }
+      if (document.getElementById('event-promo-1plus1')) {
+        document.getElementById('event-promo-1plus1').checked = false;
+      }
       window.proveriPrikazPlacanja(0);
       const select = document.getElementById('event-category');
       if (select) {
@@ -5521,6 +5682,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const price = parseFloat(document.getElementById('event-price')?.value) || 0;
       const memberPriceVal = document.getElementById('event-member-price')?.value;
       const memberPrice = memberPriceVal !== '' && memberPriceVal !== null && !isNaN(memberPriceVal) ? parseFloat(memberPriceVal) : null;
+      const hasPromo1plus1 = document.getElementById('event-promo-1plus1')?.checked === true;
       const accessTarget = document.getElementById('event-access-target')?.value || 'svi';
       const paymentType = document.getElementById('event-payment-type')?.value || 'kotizacija';
       const bankAccount = document.getElementById('event-bank-account')?.value.trim() || '';
@@ -5549,6 +5711,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         accessTarget: accessTarget,
         price: price,
         memberPrice: memberPrice,
+        hasPromo1plus1: hasPromo1plus1,
         paymentType: paymentType,
         bankAccount: bankAccount,
         recipientName: recipientName,
