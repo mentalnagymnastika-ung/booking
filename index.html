@@ -109,6 +109,14 @@
     </div>
   </div>
 
+  <!-- Indikator za povlačenje ekrana na dole (Pull-to-refresh) -->
+  <div id="pull-to-refresh-indicator" class="fixed top-0 left-1/2 -translate-x-1/2 z-[120] -translate-y-full transition-transform duration-200 pointer-events-none">
+    <div id="ptr-box" class="bg-indigo-600 text-white px-5 py-2.5 rounded-b-2xl shadow-xl flex items-center gap-2.5 text-xs font-black border-b-2 border-x-2 border-indigo-400/40">
+      <span id="ptr-icon" class="text-base transition-transform duration-200">⬇️</span>
+      <span id="ptr-text">Povucite za osvežavanje</span>
+    </div>
+  </div>
+
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-2 py-2 shadow-sm">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       
@@ -704,6 +712,7 @@
            </span>
            <div class="flex items-center gap-3 text-xs font-bold text-slate-500">
              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-emerald-500 inline-block"></span> Slobodno</span>
+             <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-slate-400 inline-block"></span> Na čekanju (1h)</span>
              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-rose-500 inline-block"></span> Zauzeto</span>
            </div>
          </div>
@@ -1335,7 +1344,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
@@ -1593,20 +1602,35 @@ function startRealtimeSync() {
       const scansRef = collection(db, 'artifacts', appId, 'public', 'data', 'scans');
 
       onSnapshot(membersRef, (snapshot) => {
-        const list = [];
+        const serverList = [];
         snapshot.forEach((docSnap) => {
-          list.push({ card: docSnap.id, ...docSnap.data() });
+          serverList.push({ card: docSnap.id, ...docSnap.data() });
         });
 
-        if (list.length > 0) {
-          state.membersList = list;
-          safeStorage.setItem('edubooker_members', JSON.stringify(list));
-          renderUI();
-        } else if (state.membersList && state.membersList.length > 0) {
-          state.membersList.forEach(m => {
+        const mapaClanova = new Map();
+        
+        // Prvo ubacujemo lokalne clanove da se nijedan unos ne izgubi
+        (state.membersList || []).forEach(m => {
+          if (m && m.card) mapaClanova.set(String(m.card).toUpperCase(), m);
+        });
+
+        // Zatim dodajemo ili azuriramo podatke koji su stigli sa servera
+        serverList.forEach(m => {
+          if (m && m.card) mapaClanova.set(String(m.card).toUpperCase(), m);
+        });
+
+        state.membersList = Array.from(mapaClanova.values());
+        safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+
+        // Osiguravamo da clanovi koji postoje lokalno a fale na serveru odmah odu na Firebase
+        const serverKartice = new Set(serverList.map(s => String(s.card).toUpperCase()));
+        state.membersList.forEach(m => {
+          if (m && m.card && !serverKartice.has(String(m.card).toUpperCase())) {
             setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.card)), m).catch(() => {});
-          });
-        }
+          }
+        });
+
+        renderUI();
       }, (err) => {
         console.warn("Greška pri sinhronizaciji članova sa servera:", err);
       });
@@ -2484,11 +2508,38 @@ window.azurirajPrikazCeneRezervacije();
       const seatsGrid = document.getElementById('modal-booking-seats-grid');
       if (seatsGrid) {
         let seatsHTML = '';
-        for (let i = 0; i < bookedCount; i++) {
-          seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-rose-500 shadow-sm shrink-0" title="Zauzeto mesto #${i + 1}"></span>`;
+        const sada = Date.now();
+
+        // Razdvajamo potvrdjena mesta od onih koja su na cekanju uplate do 60 min
+        let placenaMesta = 0;
+        let naCekanjuMesta = 0;
+
+        eventBookings.forEach(b => {
+          const brojMesta = b.ticketsCount || 1;
+          const jePlaceno = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+
+          if (jePlaceno) {
+            placenaMesta += brojMesta;
+          } else {
+            const vremeNastanka = b.timestamp ? new Date(b.timestamp).getTime() : sada;
+            const prosloMinuta = Math.floor((sada - vremeNastanka) / (1000 * 60));
+            if (prosloMinuta < 60) {
+              naCekanjuMesta += brojMesta;
+            }
+          }
+        });
+
+        // 1. Crvena mesta (potvrdjena i placena)
+        for (let i = 0; i < placenaMesta; i++) {
+          seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-rose-500 shadow-sm shrink-0" title="Zauzeto i plaćeno mesto #${i + 1}"></span>`;
         }
+        // 2. Siva mesta (rezervisano, ceka se uplata do 1h)
+        for (let i = 0; i < naCekanjuMesta; i++) {
+          seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-slate-400 shadow-sm shrink-0 animate-pulse" title="Rezervisano, čeka se uplata (rok 60 min)"></span>`;
+        }
+        // 3. Zelena mesta (potpuno slobodna)
         for (let i = 0; i < remaining; i++) {
-          seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-emerald-500 shadow-sm shrink-0" title="Slobodno mesto #${bookedCount + i + 1}"></span>`;
+          seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-emerald-500 shadow-sm shrink-0" title="Slobodno mesto"></span>`;
         }
         seatsGrid.innerHTML = seatsHTML;
       }
@@ -4428,13 +4479,30 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         );
       }
 
-      // Računamo status svakog događaja pre sortiranja da bi aktivni išli prvi
+// Računamo status svakog događaja pre sortiranja da bi aktivni išli prvi
       filteredEvents.forEach(evt => {
-        const eventBookings = state.bookings.filter(b => b.eventId === evt.id && b.status !== 'otkazano');
+        const eventBookings = state.bookings.filter(b => {
+          if (b.eventId !== evt.id || b.status === 'otkazano') return false;
+
+          const nijePlaceno = !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0;
+          if (nijePlaceno) {
+            const vremeNastanka = b.timestamp ? new Date(b.timestamp).getTime() : Date.now();
+            const prosloMinuta = Math.floor((Date.now() - vremeNastanka) / (1000 * 60));
+            if (prosloMinuta >= 60) {
+              return false; 
+            }
+          }
+          return true;
+        });
+
         const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
         const remaining = Math.max(0, evt.totalSeats - bookedCount);
-        const infoVreme = formatirajTerminOdbrojavanje(evt.startDate || evt.date, evt.endDate);
-        evt._isBookable = evt.isActive && infoVreme.jeAktivno && remaining > 0;
+        
+        const infoVremeRez = typeof formatirajTerminOdbrojavanje === 'function' 
+          ? formatirajTerminOdbrojavanje(evt.startDate || evt.date, evt.endDate) 
+          : { jeAktivno: true };
+
+        evt._isBookable = evt.isActive && infoVremeRez.jeAktivno && remaining > 0;
       });
 
       // Sortiranje: Prvo idu programi otvoreni za prijavu, a zatim unutar te grupe po datumu (najskoriji prvi)
@@ -5993,6 +6061,135 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         }
       }
     });
+
+    // Funkcija za direktno osvežavanje svih podataka sa servera
+    window.prisilnoOsveziPodatkeSaServera = async function(prikaziObavestenje = true) {
+      if (!firebaseActive || !state.isOnline) {
+        if (prikaziObavestenje) showNotification("Uređaj je trenutno van mreže", "warning");
+        return;
+      }
+
+      try {
+        const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'bookings');
+        const snapshot = await getDocs(bookingsRef);
+        const novaLista = [];
+        snapshot.forEach(docSnap => {
+          novaLista.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        if (novaLista.length > 0) {
+          const naCekanju = state.syncQueue || [];
+          const serverIds = new Set(novaLista.map(b => b.id));
+          const stvarneNesacuvane = naCekanju.filter(q => !serverIds.has(q.id));
+
+          state.bookings = [...novaLista, ...stvarneNesacuvane];
+          safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        }
+
+        // Osvežavanje spiska članova sa servera
+        const membersRef = collection(db, 'artifacts', appId, 'public', 'data', 'members');
+        const membersSnap = await getDocs(membersRef);
+        const serverMembers = [];
+        membersSnap.forEach(docSnap => {
+          serverMembers.push({ card: docSnap.id, ...docSnap.data() });
+        });
+
+        if (serverMembers.length > 0) {
+          const mapa = new Map();
+          (state.membersList || []).forEach(m => { if (m && m.card) mapa.set(String(m.card).toUpperCase(), m); });
+          serverMembers.forEach(m => { if (m && m.card) mapa.set(String(m.card).toUpperCase(), m); });
+          state.membersList = Array.from(mapa.values());
+          safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+        }
+
+        renderUI();
+        ocistiIstekleRezervacije();
+
+        if (prikaziObavestenje) {
+          showNotification("Podaci su upravo ažurirani sa servera!", "success");
+        }
+      } catch (err) {
+        console.warn("Greška pri ručnom osvežavanju:", err);
+      }
+    };
+
+    // Automatsko osvežavanje čim se telefon otključa ili vratiš u aplikaciju
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        window.prisilnoOsveziPodatkeSaServera(false);
+      }
+    });
+
+    // Mehanizam za povlačenje ekrana odozgo na dole (Pull-to-refresh)
+    let ptrStartY = 0;
+    let ptrCurrentY = 0;
+    let ptrAktivnoPovlacenje = false;
+    const ptrPrag = 75;
+
+    window.addEventListener('touchstart', (e) => {
+      if (window.scrollY === 0) {
+        ptrStartY = e.touches[0].clientY;
+        ptrAktivnoPovlacenje = true;
+      } else {
+        ptrAktivnoPovlacenje = false;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!ptrAktivnoPovlacenje) return;
+      ptrCurrentY = e.touches[0].clientY;
+      const razlikaY = ptrCurrentY - ptrStartY;
+
+      if (razlikaY > 15 && window.scrollY === 0) {
+        const ind = document.getElementById('pull-to-refresh-indicator');
+        const icon = document.getElementById('ptr-icon');
+        const text = document.getElementById('ptr-text');
+        if (!ind) return;
+
+        const pomeraj = Math.min(razlikaY * 0.45, 65);
+        ind.style.transform = `translate(-50%, ${pomeraj}px)`;
+
+        if (razlikaY >= ptrPrag) {
+          if (icon) icon.style.transform = 'rotate(180deg)';
+          if (text) text.innerText = 'Pustite za osvežavanje';
+        } else {
+          if (icon) icon.style.transform = 'rotate(0deg)';
+          if (text) text.innerText = 'Povucite za osvežavanje';
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', async () => {
+      if (!ptrAktivnoPovlacenje) return;
+      ptrAktivnoPovlacenje = false;
+
+      const razlikaY = ptrCurrentY - ptrStartY;
+      const ind = document.getElementById('pull-to-refresh-indicator');
+      const icon = document.getElementById('ptr-icon');
+      const text = document.getElementById('ptr-text');
+
+      if (razlikaY >= ptrPrag && window.scrollY === 0) {
+        if (text) text.innerText = 'Učitavanje podataka...';
+        if (icon) icon.innerText = '⏳';
+
+        await window.prisilnoOsveziPodatkeSaServera(true);
+
+        setTimeout(() => {
+          if (ind) ind.style.transform = 'translate(-50%, -100%)';
+          if (icon) {
+            icon.innerText = '⬇️';
+            icon.style.transform = 'rotate(0deg)';
+          }
+        }, 500);
+      } else if (ind) {
+        ind.style.transform = 'translate(-50%, -100%)';
+      }
+
+      ptrStartY = 0;
+      ptrCurrentY = 0;
+    });
+
+
   </script>
 </body>
 </html>
