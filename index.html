@@ -1648,7 +1648,15 @@ const INITIAL_CATEGORIES = [
       } else {
         state.categories = ucitaneKategorije;
       }
-      state.syncQueue = cachedQueue ? JSON.parse(cachedQueue) : [];
+      
+      // Učitavamo red čekanja i automatski uklanjamo zaostale probne rezervacije starije od 15 minuta
+      const siroviQueue = cachedQueue ? JSON.parse(cachedQueue) : [];
+      const prePetnaestMinuta = Date.now() - (15 * 60 * 1000);
+      state.syncQueue = siroviQueue.filter(q => {
+        const vremeNastanka = q.timestamp ? new Date(q.timestamp).getTime() : 0;
+        return vremeNastanka > prePetnaestMinuta;
+      });
+      safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
       if (cachedMembers) {
         state.membersList = JSON.parse(cachedMembers);
       }
@@ -1729,10 +1737,14 @@ function startRealtimeSync() {
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
 
         // Server na internetu je jedini zvanični izvor stanja
-        // Dodaju se isključivo one rezervacije koje trenutno čekaju slanje (syncQueue)
-        const naCekanju = state.syncQueue || [];
+        // Dodaju se isključivo sveže rezervacije koje stvarno čekaju slanje (nastale u zadnjih 15 min)
+        const granicaVremena = Date.now() - (15 * 60 * 1000);
         const serverIds = new Set(list.map(b => b.id));
-        const stvarneNesačuvane = naCekanju.filter(q => !serverIds.has(q.id));
+        const stvarneNesačuvane = (state.syncQueue || []).filter(q => {
+          if (serverIds.has(q.id)) return false;
+          const vremeNastanka = q.timestamp ? new Date(q.timestamp).getTime() : 0;
+          return vremeNastanka > granicaVremena;
+        });
 
         state.bookings = [...list, ...stvarneNesačuvane];
         safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
@@ -3750,6 +3762,10 @@ window.azurirajPrikazCeneRezervacije();
 
       state.bookings = state.bookings.filter(b => b.id !== id);
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      // Čistimo kartu i iz skrivenog reda čekanja da ne stvara fantomska mesta
+      state.syncQueue = (state.syncQueue || []).filter(q => q.id !== id);
+      safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
 
       let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       myTickets = myTickets.filter(tId => tId !== id);
