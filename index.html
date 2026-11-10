@@ -2878,8 +2878,8 @@ window.azurirajPrikazCeneRezervacije();
         bankAccount: event.bankAccount || '',
         recipientName: event.recipientName || '',
         trailCode: event.trailCode || '',
-        packageType: jePromo1plus1 ? 2 : (event.packageType || 2),
-        hasPromo1plus1: jePromo1plus1,
+        packageType: (jePromo1plus1 && qty === 2) ? 2 : (qty === 1 ? 1 : (event.packageType || 1)),
+        hasPromo1plus1: (jePromo1plus1 && qty === 2),
         voucherType: event.voucherType || 'sati',
         isPaid: isMemberCovered || totalPrice === 0,
         scannedCount: 0,
@@ -3319,13 +3319,15 @@ window.azurirajPrikazCeneRezervacije();
           if (badgeTypeLabel) badgeTypeLabel.innerText = "VIP Vaučer za stazu";
           if (badgeMainCode) badgeMainCode.innerText = booking.id;
           
-          const pkg = booking.packageType || 2;
-          if (pkg === 2) {
+          const brojMesta = booking.ticketsCount || 1;
+          const pkg = booking.packageType || brojMesta;
+
+          if (brojMesta === 2 && (booking.hasPromo1plus1 || pkg === 2)) {
             if (badgeSubtext) badgeSubtext.innerText = "Paket za 2 osobe (Gratis promocija: Pristup za dvoje)";
-          } else if (pkg === 1) {
+          } else if (brojMesta === 1 || pkg === 1) {
             if (badgeSubtext) badgeSubtext.innerText = "Solo paket (1 osoba)";
           } else {
-            if (badgeSubtext) badgeSubtext.innerText = `Grupni paket (do ${pkg} osoba)`;
+            if (badgeSubtext) badgeSubtext.innerText = `Paket za ${pkg} osoba`;
           }
         } else if (tipAktivnosti === 'digitalni_resurs') {
           if (badgeTypeLabel) badgeTypeLabel.innerText = "Broj licence za materijal";
@@ -3569,10 +3571,11 @@ window.azurirajPrikazCeneRezervacije();
             }
           }
 
-          // Prikaz i priprema poklon karte za akciju 1+1
+          // Prikaz i priprema poklon karte za akciju 1+1 (isključivo kada su izabrana 2 mesta)
       const giftBox = document.getElementById('ticket-gift-container');
       const btnGiftShare = document.getElementById('btn-share-gift-ticket');
-      const imaGratisDrugiUredjaj = (booking.packageType === 2 || booking.ticketsCount === 2);
+      const brojIzabranihMesta = booking.ticketsCount || 1;
+      const imaGratisDrugiUredjaj = (brojIzabranihMesta === 2 && booking.hasPromo1plus1);
 
       if (giftBox) {
         if (imaGratisDrugiUredjaj && booking.status !== 'otkazano') {
