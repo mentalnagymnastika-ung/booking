@@ -442,6 +442,16 @@
                 <label class="block text-xs font-bold text-slate-700 mb-1">Email adresa</label>
                 <input id="member-email-input" type="email" placeholder="clan@primer.rs" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
               </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Odeljenje, grupa ili ustanova</label>
+                <select id="member-group-select" onchange="window.promeniIzborGrupeNovogClana(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                  <option value="">— Bez grupe / odeljenja —</option>
+                  <option value="__NEW__">➕ Upiši novu grupu...</option>
+                </select>
+                <div id="member-group-custom-wrapper" class="hidden mt-2">
+                  <input id="member-group-custom-input" type="text" placeholder="Upišite naziv nove grupe ili ustanove..." class="w-full bg-white border-2 border-indigo-300 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+                </div>
+              </div>
               <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition">
                 Sačuvaj člana u bazu
               </button>
@@ -1930,7 +1940,8 @@ function startRealtimeSync() {
         state.bookings = state.bookings.map(b => {
             if (b.id === bookingId) {
                 const maxUlaza = b.ticketsCount || 1;
-                const novoSkenirano = (b.scannedCount || 0) + 1;
+                const jePaketZaDvoje = b.hasPromo1plus1 || b.packageType === 2 || maxUlaza === 2;
+                const novoSkenirano = jePaketZaDvoje ? maxUlaza : ((b.scannedCount || 0) + 1);
                 const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
                 return { ...b, scannedCount: novoSkenirano, status: noviStatus };
             }
@@ -3130,7 +3141,9 @@ window.azurirajPrikazCeneRezervacije();
         return; // Prekini dalji kod
       }
       const maxUlaza = pronadjena.ticketsCount || 1;
-      const novoSkenirano = (pronadjena.scannedCount || 0) + 1;
+      // Ako su rezervisane 2 karte (1+1 paket), aktivacija odmah poništava obe
+      const jePaketZaDvoje = pronadjena.hasPromo1plus1 || pronadjena.packageType === 2 || maxUlaza === 2;
+      const novoSkenirano = jePaketZaDvoje ? maxUlaza : ((pronadjena.scannedCount || 0) + 1);
       const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
 
       pronadjena.scannedCount = novoSkenirano;
@@ -3201,13 +3214,13 @@ window.azurirajPrikazCeneRezervacije();
       }
 
       if (maxUlaza > 1) {
-        if (novoSkenirano === 1) {
-          showNotification("Poništena je 1. od 2 karte. Druga karta ostaje važeća!", "success");
+        if (noviStatus === 'iskorišćena') {
+          showNotification("Paket za dvoje je aktiviran, obe karte su uspešno iskorišćene!", "success");
         } else {
-          showNotification("Poništena je i 2. karta. Sve karte su iskorišćene!", "success");
+          showNotification("Poništena je 1. od 2 karte.", "success");
         }
       } else {
-        showNotification("Karta je uspešno poništena pred lekarom!", "success");
+        showNotification("Karta je uspešno poništena!", "success");
       }
       const osvezena = state.bookings.find(b => b.id === bookingId);
       if (osvezena) openTicketModal(osvezena);
@@ -3400,10 +3413,29 @@ window.azurirajPrikazCeneRezervacije();
           `;
         } else if (potpunoIskoriscena) {
           const porukaKraj = maxUlaza > 1 
-            ? "✓ Poništene su obe karte (2 od 2 osobe evidentirane)" 
+            ? "✓ Poništene su obe karte (paket za dvoje je iskorišćen)" 
             : "✓ Karta je uspešno iskorišćena na prijemu";
 
+          let bedzeviHtml = '';
+          if (maxUlaza > 1) {
+            bedzeviHtml = `
+              <div class="flex items-center justify-center gap-3 mb-2.5">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 line-through opacity-75 text-xs font-black">
+                  <span>🎫</span>
+                  <span>Karta 1</span>
+                  <span class="text-emerald-600 font-bold ml-0.5">✓</span>
+                </div>
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 line-through opacity-75 text-xs font-black">
+                  <span>🎫</span>
+                  <span>Karta 2</span>
+                  <span class="text-emerald-600 font-bold ml-0.5">✓</span>
+                </div>
+              </div>
+            `;
+          }
+
           sliderWrapper.innerHTML = `
+            ${bedzeviHtml}
             <div class="p-3.5 bg-slate-100 border border-slate-300 text-slate-800 rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 shadow-sm">
               <span>${porukaKraj}</span>
             </div>
@@ -5192,6 +5224,19 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
             ${sveUnikatneGrupe.map(g => `<option value="${g}" ${izabranaGrupa.toLowerCase() === g.toLowerCase() ? 'selected' : ''}>${g}</option>`).join('')}
           `;
           groupFilterSelect.value = izabranaGrupa;
+
+          const memberGroupSelect = document.getElementById('member-group-select');
+          if (memberGroupSelect) {
+            const trenutniIzbor = memberGroupSelect.value;
+            memberGroupSelect.innerHTML = `
+              <option value="">— Bez grupe / odeljenja —</option>
+              ${sveUnikatneGrupe.map(g => `<option value="${g}">${g}</option>`).join('')}
+              <option value="__NEW__">➕ Upiši novu grupu...</option>
+            `;
+            if (trenutniIzbor) {
+              memberGroupSelect.value = trenutniIzbor;
+            }
+          }
         }
 
         let filteredMembers = [...(state.membersList || [])];
@@ -5800,6 +5845,24 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       }
     };
 
+    window.promeniIzborGrupeNovogClana = function(vrednost) {
+      const wrapper = document.getElementById('member-group-custom-wrapper');
+      const customInput = document.getElementById('member-group-custom-input');
+      if (!wrapper) return;
+
+      if (vrednost === '__NEW__') {
+        wrapper.classList.remove('hidden');
+        if (customInput) {
+          customInput.focus();
+        }
+      } else {
+        wrapper.classList.add('hidden');
+        if (customInput) {
+          customInput.value = '';
+        }
+      }
+    };
+
     safeAddEventListener('form-create-member', 'submit', async (e) => {
       e.preventDefault();
       const cardInput = document.getElementById('member-card-input');
@@ -5807,6 +5870,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const lastNameInput = document.getElementById('member-lastname-input');
       const phoneInput = document.getElementById('member-phone-input');
       const emailInput = document.getElementById('member-email-input');
+      const groupSelect = document.getElementById('member-group-select');
+      const customGroupInput = document.getElementById('member-group-custom-input');
 
       const card = cardInput.value.trim().toUpperCase();
       const firstName = firstNameInput.value.trim();
@@ -5814,13 +5879,20 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const phone = phoneInput.value.trim();
       const email = emailInput.value.trim();
 
+      let group = '';
+      if (groupSelect && groupSelect.value === '__NEW__') {
+        group = customGroupInput ? customGroupInput.value.trim() : '';
+      } else if (groupSelect) {
+        group = groupSelect.value.trim();
+      }
+
       const postoji = (state.membersList || []).some(m => m.card.toUpperCase() === card);
       if (postoji) {
         showNotification("Članska kartica sa ovim brojem već postoji!", "warning");
         return;
       }
 
-      const noviClan = { card, firstName, lastName, phone, email };
+      const noviClan = { card, firstName, lastName, phone, email, group };
       state.membersList = [noviClan, ...(state.membersList || [])];
       safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
 
@@ -5835,6 +5907,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       showNotification(`Član ${firstName} ${lastName} je uspešno dodat!`, "success");
       document.getElementById('form-create-member').reset();
       
+      const customWrapper = document.getElementById('member-group-custom-wrapper');
+      if (customWrapper) customWrapper.classList.add('hidden');
+
       const formaElement = document.getElementById('form-create-member');
       const dugmeTekst = document.getElementById('btn-toggle-clan-text');
       if (formaElement) formaElement.classList.add('hidden');
