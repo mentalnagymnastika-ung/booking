@@ -205,7 +205,7 @@
           <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte.</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto" id="my-tickets-search-wrapper">
-          <input id="search-ticket-phone" type="tel" placeholder="Pretraži po telefonu..." class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-indigo-500 w-full md:w-56" />
+          <input id="search-ticket-phone" type="text" placeholder="Telefon ili broj kartice..." class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-indigo-500 w-full md:w-56" />
           <button id="btn-search-my-tickets" class="bg-indigo-600 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-sm">Pronađi</button>
         </div>
       </div>
@@ -2568,9 +2568,11 @@ window.azurirajPrikazCeneRezervacije();
 
       const punoImeZaProveru = `${unetoIme} ${unetoPrezime}`.toLowerCase().trim();
 
-      // Stroga provera: Onemogućavanje duple rezervacije za istog člana, isto ime, email ili telefon
+      // Provera duplikata: blokira se samo ako je postojeća rezervacija još uvek aktivna i neiskorišćena
       const postojecaRezervacija = state.bookings.find(b => {
-        if (b.eventId !== event.id || b.status === 'otkazano') return false;
+        if (b.eventId !== event.id) return false;
+        // Ako je otkazana ili potpuno iskorišćena na prijemu, više ne blokira novu rezervaciju
+        if (b.status === 'otkazano' || b.status === 'iskorišćena') return false;
 
         const istiClan = clanskiBroj && b.memberCode && b.memberCode.toUpperCase().trim() === clanskiBroj;
         const istoIme = punoImeZaProveru && b.firstName && `${b.firstName} ${b.lastName || ''}`.toLowerCase().trim() === punoImeZaProveru;
@@ -2581,7 +2583,14 @@ window.azurirajPrikazCeneRezervacije();
       });
 
       if (postojecaRezervacija) {
-        showNotification(`Već imate aktivnu rezervaciju za ovaj program (${postojecaRezervacija.firstName} ${postojecaRezervacija.lastName}, karta: ${postojecaRezervacija.id}). Dupla rezervacija nije dozvoljena!`, "warning");
+        showNotification(`Već imate aktivnu kartu ${postojecaRezervacija.id} za ovaj program!`, "warning");
+        // Automatski nudimo otvaranje te karte radi pregleda ili čišćenja
+        setTimeout(() => {
+          if (confirm(`Želite li da otvorite postojeću kartu ${postojecaRezervacija.id} kako biste je poništili ili obrisali iz baze?`)) {
+            document.getElementById('modal-booking').classList.add('hidden');
+            window.viewTicket(postojecaRezervacija.id);
+          }
+        }, 400);
         return;
       }
 
@@ -2699,6 +2708,9 @@ window.azurirajPrikazCeneRezervacije();
       let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       myTickets.push(newBooking.id);
       safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+
+      if (newBooking.memberCode) safeStorage.setItem('edubooker_last_card', newBooking.memberCode);
+      if (newBooking.phone && newBooking.phone !== 'Nije traženo') safeStorage.setItem('edubooker_last_phone', newBooking.phone);
 
       if (state.isOnline && firebaseActive) {
         try {
@@ -4584,14 +4596,32 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
 
         if (myTicketsGrid) {
           const savedTicketIds = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
-          let userBookings = state.bookings.filter(b => {
-            const matchesLocalCache = savedTicketIds.includes(b.id);
-            const matchesGoogleEmail = state.googleUser && b.email === state.googleUser.email;
-            return matchesLocalCache || matchesGoogleEmail;
-          });
+          const sacuvaniClanskiBroj = safeStorage.getItem('edubooker_last_card') || '';
+          const sacuvaniTelefon = safeStorage.getItem('edubooker_last_phone') || '';
+          const filterPojam = (state.ticketSearchPhone || '').trim().toLowerCase();
 
-          if (state.ticketSearchPhone) {
-            userBookings = userBookings.filter(b => b.phone && b.phone.includes(state.ticketSearchPhone));
+          let userBookings = [];
+
+          if (filterPojam) {
+            // Direktna pretraga cele baze po telefonu, imenu ili broju kartice
+            userBookings = state.bookings.filter(b => {
+              const telCist = (b.phone || '').replace(/[^0-9]/g, '');
+              const pojamCist = filterPojam.replace(/[^0-9]/g, '');
+              const imaTel = pojamCist.length >= 4 && telCist.includes(pojamCist);
+              const imaKartu = b.memberCode && b.memberCode.toLowerCase().includes(filterPojam);
+              const imaIme = b.firstName && `${b.firstName} ${b.lastName || ''}`.toLowerCase().includes(filterPojam);
+              const imaEmail = b.email && b.email.toLowerCase().includes(filterPojam);
+              return imaTel || imaKartu || imaIme || imaEmail;
+            });
+          } else {
+            // Automatski prikaz po lokalnom kešu, Google nalogu ili poslednjoj korišćenoj kartici
+            userBookings = state.bookings.filter(b => {
+              const matchesLocalCache = savedTicketIds.includes(b.id);
+              const matchesGoogleEmail = state.googleUser && b.email === state.googleUser.email;
+              const matchesCard = sacuvaniClanskiBroj && b.memberCode && b.memberCode.toUpperCase() === sacuvaniClanskiBroj.toUpperCase();
+              const matchesPhone = sacuvaniTelefon && b.phone && b.phone.replace(/[^0-9]/g, '') === sacuvaniTelefon.replace(/[^0-9]/g, '');
+              return matchesLocalCache || matchesGoogleEmail || matchesCard || matchesPhone;
+            });
           }
           
           if (userBookings.length === 0) {
@@ -5056,11 +5086,16 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                   </span>
                 </td>
                 <td class="py-3.5 px-4 text-right">
-                  ${!jeClan && (b.totalPrice || 0) > 0 ? `
-                    <button onclick="window.potvrdiUplatuSaSpiska('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-black transition shadow-sm border ${b.isPaid ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
-                      ${b.isPaid ? 'Poništi' : '✓ Potvrdi uplatu'}
+                  <div class="flex items-center justify-end gap-2">
+                    ${!jeClan && (b.totalPrice || 0) > 0 ? `
+                      <button onclick="window.potvrdiUplatuSaSpiska('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-black transition shadow-sm border ${b.isPaid ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+                        ${b.isPaid ? 'Poništi' : '✓ Potvrdi uplatu'}
+                      </button>
+                    ` : `<span class="text-[11px] text-slate-400 font-bold">Članarina</span>`}
+                    <button onclick="window.obrisiKartuTrajno('${b.id}')" class="text-rose-600 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 transition font-bold text-xs" title="Trajno obriši rezervaciju iz baze">
+                      🗑️
                     </button>
-                  ` : `<span class="text-xs text-slate-400 font-bold">Automatski overeno</span>`}
+                  </div>
                 </td>
               </tr>
             `;
