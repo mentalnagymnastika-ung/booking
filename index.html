@@ -1603,20 +1603,19 @@ const INITIAL_CATEGORIES = [
       onSnapshot(bookingsRef, (snapshot) => {
         const list = [];
         snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-        
-        if (list.length > 0) {
-          const serverIds = new Set(list.map(b => b.id));
-          const lokalneNesačuvane = state.bookings.filter(b => !serverIds.has(b.id));
-          state.bookings = [...list, ...lokalneNesačuvane];
-        } else if (state.bookings.length > 0) {
-          // Zadržavamo lokalne rezervacije ukoliko je server privremeno nedostupan
-        } else {
-          state.bookings = [];
-        }
 
+        // Server na internetu je jedini zvanični izvor stanja
+        // Dodaju se isključivo one rezervacije koje trenutno čekaju slanje (syncQueue)
+        const naCekanju = state.syncQueue || [];
+        const serverIds = new Set(list.map(b => b.id));
+        const stvarneNesačuvane = naCekanju.filter(q => !serverIds.has(q.id));
+
+        state.bookings = [...list, ...stvarneNesačuvane];
         safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
         renderUI();
         ocistiIstekleRezervacije();
+      }, (err) => {
+        console.warn("Greška u praćenju rezervacija sa servera:", err);
       });
 
       onSnapshot(categoriesRef, (snapshot) => {
@@ -5836,12 +5835,12 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       ocistiIstekleRezervacije();
       setInterval(ocistiIstekleRezervacije, 60000);
       if (firebaseActive) {
-        startRealtimeSync();
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             state.user = user;
             handleUserProfileUI(user);
             processSyncQueue();
+            startRealtimeSync();
           } else {
             try {
                await signInAnonymously(auth);
