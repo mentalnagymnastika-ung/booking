@@ -3132,26 +3132,53 @@ window.openBookingModal = function(eventId) {
         wrapperTime.classList.remove('hidden');
 
         const izabraniDan = (dateChoiceInput && dateChoiceInput.value) ? dateChoiceInput.value : (event.startDate || event.date);
+        const sada = Date.now();
 
-        // Pronalazimo zauzete termine za ovaj dan
-        const zauzetiTermini = new Set(
-          state.bookings
-            .filter(b => b.eventId === event.id && (b.selectedDate || b.eventDate) === izabraniDan && b.status !== 'otkazano')
-            .map(b => (b.eventTime || '').trim())
-        );
+        // Razdvajamo plaćene (potvrđene) termine od onih koji su sivi (na čekanju uplate do 60 min)
+        const placeniTermini = new Set();
+        const naCekanjuTermini = new Set();
+
+        state.bookings.forEach(b => {
+          if (b.eventId !== event.id || (b.selectedDate || b.eventDate) !== izabraniDan || b.status === 'otkazano') return;
+          const t = (b.eventTime || '').trim();
+          if (!t) return;
+
+          const jePlaceno = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+          if (jePlaceno) {
+            placeniTermini.add(t);
+          } else {
+            const vremeNastanka = b.timestamp ? new Date(b.timestamp).getTime() : sada;
+            const prosloMinuta = Math.floor((sada - vremeNastanka) / (1000 * 60));
+            if (prosloMinuta < 60) {
+              naCekanjuTermini.add(t);
+            }
+          }
+        });
 
         let prviSlobodan = null;
         hiddenTimeInput.value = '';
 
         containerTime.innerHTML = slotovi.map(slot => {
-          const jeZauzeto = zauzetiTermini.has(slot);
-          if (!jeZauzeto && !prviSlobodan) prviSlobodan = slot;
+          const jePlaceno = placeniTermini.has(slot);
+          const jeNaCekanju = !jePlaceno && naCekanjuTermini.has(slot);
+          const nijeDostupno = jePlaceno || jeNaCekanju;
 
-          if (jeZauzeto) {
+          if (!nijeDostupno && !prviSlobodan) prviSlobodan = slot;
+
+          if (jePlaceno) {
             return `
-              <div class="py-2.5 px-2 rounded-xl text-xs font-bold bg-slate-100 border border-slate-200 text-slate-400 select-none flex flex-col items-center justify-center opacity-70">
+              <div class="py-2.5 px-2 rounded-xl text-xs font-bold bg-rose-50/70 border border-rose-200 text-slate-400 select-none flex flex-col items-center justify-center opacity-75">
                 <span class="line-through">${slot}h</span>
-                <span class="text-[9px] font-black text-rose-500 uppercase tracking-wider mt-0.5">Zauzeto</span>
+                <span class="text-[9px] font-black text-rose-600 uppercase tracking-wider mt-0.5">Zauzeto</span>
+              </div>
+            `;
+          }
+
+          if (jeNaCekanju) {
+            return `
+              <div class="py-2.5 px-2 rounded-xl text-xs font-bold bg-slate-200/80 border border-slate-300 text-slate-600 select-none flex flex-col items-center justify-center animate-pulse" title="Rezervisano, čeka se uplata (rok 60 min)">
+                <span>${slot}h</span>
+                <span class="text-[9px] font-black text-slate-600 uppercase tracking-wider mt-0.5">Na čekanju (1h)</span>
               </div>
             `;
           }
@@ -4090,7 +4117,7 @@ window.azurirajPrikazCeneRezervacije();
 
       const totalPrice = booking.totalPrice || (booking.pricePerTicket ? booking.pricePerTicket * (booking.ticketsCount || 1) : 0);
 
-      if (totalPrice > 0 && booking.bankAccount) {
+      if (totalPrice > 0) {
         if (priceContainer) priceContainer.classList.remove('hidden');
         if (priceAmountEl) priceAmountEl.innerText = `${totalPrice} RSD`;
         if (paymentSwitch) paymentSwitch.classList.remove('hidden');
@@ -4188,8 +4215,9 @@ window.azurirajPrikazCeneRezervacije();
       const onlineBtnIcon = document.getElementById('online-btn-icon');
       const btnCopyOnline = document.getElementById('btn-copy-online-link');
 
-      const imaOnlineLink = !!(booking.digitalUrl || (event && event.digitalUrl));
-      const konacanLink = booking.digitalUrl || (event ? event.digitalUrl : '') || '#';
+      const pridruzeniEv = state.events.find(e => e.id === booking.eventId);
+      const konacanLink = booking.digitalUrl || (pridruzeniEv ? pridruzeniEv.digitalUrl : '') || '';
+      const imaOnlineLink = konacanLink.trim() !== '';
       const jeOnlineIliMaterijal = tipAktivnosti === 'online' || tipAktivnosti === 'digitalni_resurs' || imaOnlineLink;
 
       const prikaziKartuIliVaucer = () => {
@@ -4197,34 +4225,74 @@ window.azurirajPrikazCeneRezervacije();
         if (onlineWrapper) onlineWrapper.classList.add('hidden');
 
         if (jeOnlineIliMaterijal) {
-          // Sakrivamo QR kod i vaučer, a prikazujemo namensko dugme za ulazak ili preuzimanje
           if (ticketCanvas) ticketCanvas.classList.add('hidden');
           if (nonQrWrapper) nonQrWrapper.classList.add('hidden');
           if (onlineWrapper) onlineWrapper.classList.remove('hidden');
 
-          const jeMeet = konacanLink.includes('meet.google.com') || konacanLink.includes('zoom.us') || tipAktivnosti === 'online';
+          const jeMeet = konacanLink.includes('meet.google.com') || konacanLink.includes('zoom.us') || tipAktivnosti === 'online' || tipAktivnosti === 'individualno';
+          const danasnjiDan = new Date().toISOString().split('T')[0];
+          const datumTerminaProvera = booking.selectedDate || booking.eventDate;
+          const jeUBuducnosti = datumTerminaProvera && datumTerminaProvera > danasnjiDan;
 
-          if (onlineTag) onlineTag.innerText = jeMeet ? 'Google Meet susret' : 'Digitalni materijal (PDF)';
-          if (onlineBtnIcon) onlineBtnIcon.innerText = jeMeet ? '🎥' : '📥';
-          if (onlineBtnText) onlineBtnText.innerText = jeMeet ? 'ULAZAK NA GOOGLE MEET' : 'PREUZMI RADNI MATERIJAL';
-          if (onlineInst) {
-            onlineInst.innerText = jeMeet 
-              ? 'Vaš termin je rezervisan. Klikom na dugme ispod direktno ulazite u video sobu.' 
-              : 'Vaša prijava je potvrđena. Kliknite na dugme ispod da preuzmete PDF ili radnu svesku.';
+          let formatiranDatum = datumTerminaProvera || '';
+          if (formatiranDatum.includes('-')) {
+            const d = formatiranDatum.split('-');
+            if (d.length === 3) formatiranDatum = `${d[2]}.${d[1]}.${d[0]}.`;
           }
 
-          if (onlineBtn) onlineBtn.href = konacanLink;
+          if (onlineTag) onlineTag.innerText = jeMeet ? 'Online susret (Video poziv)' : 'Digitalni materijal (PDF)';
 
-          if (btnCopyOnline) {
-            btnCopyOnline.onclick = () => {
-              if (navigator.clipboard) {
-                navigator.clipboard.writeText(konacanLink).then(() => {
-                  showNotification("Link je uspešno kopiran u memoriju!", "success");
-                });
-              } else {
-                prompt("Kopirajte pristupni link:", konacanLink);
-              }
-            };
+          // 1. SLUČAJ: Uplata još uvek nije evidentirana (link je strogo zaključan)
+          if (!uplataOverena) {
+            if (onlineInst) {
+              onlineInst.innerText = '🔒 Pristupni link je zaključan dok se ne evidentira uplata. Rezervacija mesta se čuva 60 minuta.';
+            }
+            if (onlineBtn) {
+              onlineBtn.removeAttribute('href');
+              onlineBtn.className = "w-full py-4 bg-slate-200 text-slate-500 rounded-2xl text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed select-none";
+            }
+            if (onlineBtnIcon) onlineBtnIcon.innerText = '⏳';
+            if (onlineBtnText) onlineBtnText.innerText = 'ČEKA SE POTVRDA UPLATE';
+            if (btnCopyOnline) btnCopyOnline.classList.add('hidden');
+          } 
+          // 2. SLUČAJ: Uplata je potvrđena, ali je datum online susreta tek u budućnosti
+          else if (jeMeet && jeUBuducnosti) {
+            if (onlineInst) {
+              onlineInst.innerText = `✅ Vaša uplata je evidentirana i termin je osiguran! Link za ulazak u video sobu postaće aktivan na dan održavanja (${formatiranDatum}).`;
+            }
+            if (onlineBtn) {
+              onlineBtn.removeAttribute('href');
+              onlineBtn.className = "w-full py-4 bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed select-none";
+            }
+            if (onlineBtnIcon) onlineBtnIcon.innerText = '📅';
+            if (onlineBtnText) onlineBtnText.innerText = `AKTIVNO NA DAN: ${formatiranDatum}`;
+            if (btnCopyOnline) btnCopyOnline.classList.add('hidden');
+          } 
+          // 3. SLUČAJ: Uplata je potvrđena i danas je dan održavanja (ili je u pitanju PDF radna sveska)
+          else {
+            if (onlineInst) {
+              onlineInst.innerText = jeMeet 
+                ? 'Vaš termin je aktivan. Klikom na dugme ispod direktno ulazite u video sobu.' 
+                : 'Vaša prijava je potvrđena. Kliknite na dugme ispod da preuzmete PDF ili radnu svesku.';
+            }
+            if (onlineBtn) {
+              onlineBtn.href = konacanLink || '#';
+              onlineBtn.className = "w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition";
+            }
+            if (onlineBtnIcon) onlineBtnIcon.innerText = jeMeet ? '🎥' : '📥';
+            if (onlineBtnText) onlineBtnText.innerText = jeMeet ? 'ULAZAK NA ONLINE SUSRET' : 'PREUZMI RADNI MATERIJAL';
+            if (btnCopyOnline) {
+              btnCopyOnline.classList.remove('hidden');
+              btnCopyOnline.onclick = () => {
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(konacanLink).then(() => {
+                    showNotification("Link je uspešno kopiran u memoriju!", "success");
+                  });
+                } else {
+                  prompt("Kopirajte pristupni link:", konacanLink);
+                }
+              };
+            }
           }
         } else if (tipAktivnosti === 'radionica') {
           if (ticketCanvas) ticketCanvas.classList.remove('hidden');
@@ -4244,7 +4312,7 @@ window.azurirajPrikazCeneRezervacije();
       const timerWarnEl = document.getElementById('unpaid-timer-warning');
       const timerCountEl = document.getElementById('unpaid-countdown');
 
-      if (!uplataOverena && totalPrice > 0 && booking.bankAccount) {
+      if (!uplataOverena && totalPrice > 0) {
         const vremeNastanka = booking.timestamp ? new Date(booking.timestamp).getTime() : Date.now();
         const prosloMinuta = Math.floor((Date.now() - vremeNastanka) / (1000 * 60));
         const preostaloMinuta = 60 - prosloMinuta;
