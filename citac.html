@@ -103,13 +103,13 @@
       </button>
     </div>
 
-    <!-- Desno: Štampa pojedinačne strane, cijelog PDF-a i dijeljenje (vidljivo samo kada Admin dozvoli u @Bookeru) -->
-    <div id="admin-allowed-actions" class="hidden items-center gap-2">
-      <button onclick="window.stampajTrenutnuStranu()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm" title="Odštampaj samo ovu stranicu koja je trenutno na ekranu">
-        <span>🖨️</span> Štampaj ovu stranu
+    <!-- Desno: Posebno dugme za štampu i posebno dugme za preuzimanje PDF-a -->
+    <div class="flex items-center gap-2">
+      <button id="btn-print-single" onclick="window.stampajTrenutnuStranu()" class="hidden px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm" title="Odštampaj trenutno otvorenu stranicu">
+        <span>🖨️</span> Štampaj stranu
       </button>
-      <a id="btn-download-all" href="#" target="_blank" download class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm" title="Preuzmi ili odštampaj cijelu radnu svesku">
-        <span>📥</span> Ceo PDF
+      <a id="btn-download-all" href="#" target="_blank" download class="hidden px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm" title="Preuzmi kompletan PDF fajl">
+        <span>📥</span> Preuzmi PDF
       </a>
     </div>
 
@@ -127,18 +127,25 @@
     const pdfUrl = params.get('pdf') || '';
     const licenca = params.get('lic') || 'Aktivna licenca';
     const dozvoliStampu = params.get('print') === '1';
+    const dozvoliPreuzimanje = params.get('download') === '1';
 
     document.getElementById('watermark-overlay').innerText = `${licenca} • Mentalna Gimnastika`;
 
-    // Ako je u @Booker Admin panelu izabrano "Dozvoli štampanje i preuzimanje", palimo dugmad
     if (dozvoliStampu) {
-      const actionsBox = document.getElementById('admin-allowed-actions');
-      const btnDown = document.getElementById('btn-download-all');
-      if (actionsBox) {
-        actionsBox.classList.remove('hidden');
-        actionsBox.classList.add('flex');
+      const btnPrint = document.getElementById('btn-print-single');
+      if (btnPrint) {
+        btnPrint.classList.remove('hidden');
+        btnPrint.classList.add('flex');
       }
-      if (btnDown) btnDown.href = pdfUrl;
+    }
+
+    if (dozvoliPreuzimanje) {
+      const btnDown = document.getElementById('btn-download-all');
+      if (btnDown) {
+        btnDown.href = pdfUrl;
+        btnDown.classList.remove('hidden');
+        btnDown.classList.add('flex');
+      }
     }
 
     // Zabrana tastaturnih prečica ako štampa nije dozvoljena
