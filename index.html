@@ -6155,76 +6155,144 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
               const iskorisceno = b.scannedCount || 0;
               const isOtkazana = b.status === 'otkazano';
               const isPotpunoIskoriscena = !isOtkazana && (iskorisceno >= maxUlaza || b.status === 'iskorišćena');
+              const cekaUplatu = !isOtkazana && !isPotpunoIskoriscena && !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0;
 
               const datumTermina = b.selectedDate || b.eventDate;
               const infoVreme = formatirajTerminOdbrojavanje(datumTermina, datumTermina);
-              const tipAktivnosti = b.activityType || (b.trailCode ? 'teren' : (b.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+              const pridruzeniEv = state.events.find(e => e.id === b.eventId);
+              const tipAktivnosti = b.activityType || (pridruzeniEv ? pridruzeniEv.activityType : '') || (b.trailCode ? 'teren' : (b.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+              const imaSatnicu = b.eventTime && b.eventTime !== 'undefined' && b.eventTime.trim() !== '';
 
-              // Miran, sveden sivi izgled same kartice
-              let cardStyle = 'bg-white border border-slate-200 text-slate-800 shadow-sm hover:shadow-md';
-              let tagHtml = '';
-
-              // Samo dugme na dnu nosi diskretnu boju u zavisnosti od vrste aktivnosti
-              let btnStyle = 'bg-slate-900 hover:bg-slate-800 text-white';
-              let btnText = '🎫 Otvori kartu';
+              // Vizuelni identitet svake vrste karte (da se razlikuju na prvi pogled)
+              let temaZaglavlja = 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white';
+              let okvirKartice = 'border-2 border-indigo-200 bg-white shadow-md hover:shadow-xl';
+              let oznakaTipa = '🎫 Ulaznica za događaj';
+              let btnStyle = 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-100';
+              let btnText = '🎫 Otvori svoju ulaznicu';
 
               if (tipAktivnosti === 'teren') {
-                btnStyle = 'bg-emerald-800 hover:bg-emerald-900 text-white';
-                btnText = '🧭 Otvori vaučer za stazu';
+                temaZaglavlja = 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white';
+                okvirKartice = 'border-2 border-emerald-200 bg-white shadow-md hover:shadow-xl';
+                oznakaTipa = '🧭 Avantura na otvorenom';
+                btnStyle = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-100';
+                btnText = '🧭 Otvori VIP vaučer za stazu';
               } else if (tipAktivnosti === 'digitalni_resurs') {
-                btnStyle = 'bg-slate-800 hover:bg-slate-700 text-white';
-                btnText = '📖 Otvori licencu materijala';
+                temaZaglavlja = 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
+                okvirKartice = 'border-2 border-amber-200 bg-white shadow-md hover:shadow-xl';
+                oznakaTipa = '📖 Digitalna radna sveska';
+                btnStyle = 'bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-100';
+                btnText = '📖 Otvori radnu svesku / licencu';
               } else if (tipAktivnosti === 'individualno') {
-                btnStyle = 'bg-indigo-950 hover:bg-black text-white';
+                temaZaglavlja = 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white';
+                okvirKartice = 'border-2 border-blue-200 bg-white shadow-md hover:shadow-xl';
+                oznakaTipa = '👤 Zakazan termin (1 na 1)';
+                btnStyle = 'bg-blue-700 hover:bg-blue-800 text-white shadow-md shadow-blue-100';
                 btnText = '👤 Pregled zakazanog termina';
+              } else if (tipAktivnosti === 'online') {
+                temaZaglavlja = 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white';
+                okvirKartice = 'border-2 border-sky-200 bg-white shadow-md hover:shadow-xl';
+                oznakaTipa = '💻 Online susret uživo';
+                btnStyle = 'bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-100';
+                btnText = '🎥 Otvori pristup za online susret';
               }
 
+              // Posebno obeležavanje poništenih (iskorišćenih) i otkazanih karata
+              let pecatStatusaHtml = '';
               if (isOtkazana) {
-                cardStyle = 'bg-slate-50 border border-slate-200 opacity-60';
-                btnStyle = 'bg-slate-200 text-slate-500 hover:bg-slate-300 shadow-none';
-                btnText = '✕ Rezervacija otkazana';
-                tagHtml = `<span class="text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md">Otkazano</span>`;
+                temaZaglavlja = 'bg-slate-300 text-slate-700';
+                okvirKartice = 'border-2 border-slate-300 bg-slate-100/90 opacity-75';
+                btnStyle = 'bg-slate-200 text-slate-600 hover:bg-slate-300';
+                btnText = '✕ Rezervacija je otkazana';
+                pecatStatusaHtml = `
+                  <div class="bg-rose-100 border-2 border-rose-400 text-rose-800 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-widest shadow-xs flex items-center gap-1">
+                    <span>✕</span> OTKAZANO
+                  </div>
+                `;
               } else if (isPotpunoIskoriscena) {
-                cardStyle = 'bg-slate-50 border border-slate-200 opacity-75';
-                btnStyle = 'bg-slate-200 text-slate-600 hover:bg-slate-300 shadow-none';
-                btnText = '✓ Karta iskorišćena';
-                tagHtml = `<span class="text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md">Iskorišćeno</span>`;
+                temaZaglavlja = 'bg-slate-700 text-slate-200';
+                okvirKartice = 'border-2 border-slate-300 bg-slate-100/95 opacity-85';
+                btnStyle = 'bg-slate-300 text-slate-700 hover:bg-slate-400';
+                btnText = '✓ Karta je poništena (Pregled)';
+                pecatStatusaHtml = `
+                  <div class="bg-emerald-100 border-2 border-emerald-500 text-emerald-900 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-widest shadow-xs flex items-center gap-1">
+                    <span>✓</span> PONIŠTENO / ISKORIŠĆENO
+                  </div>
+                `;
+              } else if (cekaUplatu) {
+                pecatStatusaHtml = `
+                  <div class="bg-amber-100 border-2 border-amber-400 text-amber-900 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
+                    <span>⏳</span> ČEKA UPLATU (1h)
+                  </div>
+                `;
               } else if (maxUlaza > 1 && iskorisceno > 0) {
-                tagHtml = `<span class="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300 px-2 py-0.5 rounded-md">Preostala 1 karta</span>`;
+                pecatStatusaHtml = `
+                  <div class="bg-indigo-100 border-2 border-indigo-400 text-indigo-900 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider">
+                    Preostala još 1 karta
+                  </div>
+                `;
+              } else if (infoVreme.odbrojavanje) {
+                pecatStatusaHtml = `
+                  <span class="${infoVreme.bojaKlase} px-3 py-1 rounded-xl border-2 font-black text-xs flex items-center gap-1 shadow-xs">
+                    <span>⏱️</span> ${infoVreme.odbrojavanje}
+                  </span>
+                `;
               }
 
-              const ticketsLabel = maxUlaza > 1 ? `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded text-xs ml-2 uppercase font-black align-middle">Važi za 2 osobe</span>` : '';
+              const ticketsLabel = maxUlaza > 1 
+                ? `<span class="bg-indigo-100 text-indigo-800 border border-indigo-300 px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wide shrink-0">👥 Važi za ${maxUlaza} osobe</span>` 
+                : `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0">👤 1 osoba</span>`;
 
               return `
-                <div class="${cardStyle} rounded-3xl p-5 transition flex flex-col justify-between space-y-4">
-                  <div class="space-y-3">
-                    <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <h4 class="text-base font-black text-slate-900 leading-snug truncate" title="${b.eventTitle}">${b.eventTitle}</h4>
-                      ${tagHtml}
-                    </div>
-
-                    <div class="flex items-center justify-between gap-2 text-xs font-bold text-slate-600">
-                      <span class="flex items-center gap-1.5 text-slate-800">
-                        <span>📅</span> ${infoVreme.danDatum || datumTermina}
-                      </span>
-                      ${(!isOtkazana && !isPotpunoIskoriscena && infoVreme.odbrojavanje) ? `
-                        <span class="${infoVreme.bojaKlase} px-2 py-0.5 rounded-lg border font-black text-[11px] flex items-center gap-1 shrink-0">
-                          <span>⏱️</span> ${infoVreme.odbrojavanje}
-                        </span>
-                      ` : ''}
-                    </div>
-
-                    <p class="text-xs font-bold text-slate-500 flex items-center gap-1.5 truncate">
-                      <span>📍</span> ${b.eventLocation}
-                    </p>
-
-                    <div class="pt-2.5 border-t border-slate-100">
-                      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Polaznik</p>
-                      <p class="text-base font-black text-slate-900 mt-0.5">${b.firstName} ${b.lastName} ${ticketsLabel}</p>
-                    </div>
+                <div onclick="viewTicket('${b.id}')" class="${okvirKartice} rounded-3xl overflow-hidden transition-all duration-200 flex flex-col justify-between cursor-pointer select-none">
+                  
+                  <!-- Gornja traka u boji za prepoznavanje na prvi pogled -->
+                  <div class="${temaZaglavlja} px-5 py-3 flex items-center justify-between gap-2">
+                    <span class="text-xs sm:text-sm font-black uppercase tracking-wider truncate">${oznakaTipa}</span>
+                    <span class="font-mono text-xs sm:text-sm font-black bg-black/20 px-2.5 py-0.5 rounded-lg backdrop-blur-xs shrink-0">${b.id}</span>
                   </div>
 
-                  <button onclick="viewTicket('${b.id}')" class="w-full py-3.5 ${btnStyle} text-sm font-black rounded-xl transition shadow-sm">${btnText}</button>
+                  <!-- Srednji deo sa krupnim i preglednim podacima -->
+                  <div class="p-5 sm:p-6 space-y-4 flex-1 flex flex-col justify-between">
+                    <div class="space-y-3">
+                      <div class="flex flex-wrap items-start justify-between gap-2">
+                        <h4 class="text-xl sm:text-2xl font-black ${isPotpunoIskoriscena || isOtkazana ? 'text-slate-500 line-through' : 'text-slate-900'} leading-tight" title="${b.eventTitle}">
+                          ${b.eventTitle}
+                        </h4>
+                        ${pecatStatusaHtml}
+                      </div>
+
+                      <!-- Kutija za datum, vreme i lokaciju sa krupnim slovima -->
+                      <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                            <span class="text-lg">📅</span> ${infoVreme.danDatum || datumTermina}
+                          </span>
+                          ${imaSatnicu ? `
+                            <span class="bg-indigo-600 text-white text-xs sm:text-sm font-black px-3 py-1 rounded-xl shadow-xs">
+                              🕒 u ${b.eventTime}h
+                            </span>
+                          ` : ''}
+                        </div>
+                        <p class="text-xs sm:text-sm font-bold text-slate-600 flex items-center gap-2 truncate pt-1 border-t border-slate-200/60">
+                          <span class="text-base">📍</span> ${b.eventLocation}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Polaznik i broj osoba -->
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div>
+                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-wider">Nosilac rezervacije</p>
+                        <p class="text-base sm:text-lg font-black text-slate-900 leading-snug mt-0.5">${b.firstName} ${b.lastName}</p>
+                      </div>
+                      ${ticketsLabel}
+                    </div>
+
+                    <!-- Glavno dugme akcije -->
+                    <button type="button" class="w-full py-4 ${btnStyle} text-sm sm:text-base font-black rounded-2xl transition flex items-center justify-center gap-2 mt-1">
+                      ${btnText}
+                    </button>
+                  </div>
                 </div>
               `;
             }).join('');
