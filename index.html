@@ -1467,20 +1467,24 @@
                <input id="event-location" type="text" required placeholder="Gde se održava?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
             </div>
 
-            <!-- Podaci o predavaču / lekaru za 1 na 1 potvrdu i dnevne preseke -->
+            <!-- Opcioni meni: Podaci o predavaču / lekaru (sa prekidačem za uključivanje/isključivanje) -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-              <div>
-                <p class="text-xs font-black text-slate-800 uppercase tracking-wide">Kontakt predavača / lekara (za potvrdu 1 na 1 i dnevni presek)</p>
-                <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Ako upišete telefon, klijent na karti dobija dugme da pošalje direktnu potvrdu na Viber ili WhatsApp.</p>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="flex items-center justify-between cursor-pointer select-none">
+                <div>
+                  <span class="text-xs font-black text-slate-800 uppercase tracking-wide block">Uključi kontakt predavača / lekara (1 na 1 potvrda i presek)</span>
+                  <span class="text-[11px] text-slate-500 font-semibold">Uključite samo ako želite da klijent ima Viber/WhatsApp dugme ka predavaču ili da predavač prima presek.</span>
+                </div>
+                <input type="checkbox" id="toggle-instructor-section" onchange="window.promeniVidljivostSekcijePredavaca(this.checked)" class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0 ml-3" />
+              </label>
+
+              <div id="instructor-fields-body" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Viber / WhatsApp telefon predavača</label>
-                  <input id="event-instructor-phone" type="tel" placeholder="npr. 064 123 4567 (opciono)" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  <input id="event-instructor-phone" type="tel" placeholder="npr. 064 123 4567" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Email predavača (za dnevni presek)</label>
-                  <input id="event-instructor-email" type="email" placeholder="predavac@primer.rs (opciono)" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  <input id="event-instructor-email" type="email" placeholder="predavac@primer.rs" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
                 </div>
               </div>
             </div>
@@ -1496,12 +1500,17 @@
               </div>
             </div>
 
-            <!-- Pametni raspored satnice bez ručnog kucanja -->
+            <!-- Opcioni meni: Pametni raspored satnice (sa prekidačem za uključivanje/isključivanje) -->
             <div id="box-event-time-wrapper" class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-4">
-              <div class="border-b border-indigo-100 pb-2">
-                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Kalkulator satnice i termina rada *</label>
-                <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Izaberite ukupno planirano vreme, početak rada i trajanje termina.</p>
-              </div>
+              <label class="flex items-center justify-between cursor-pointer select-none">
+                <div>
+                  <span class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Uključi kalkulator satnice i zakazivanje po terminima</span>
+                  <span class="text-[11px] text-slate-500 font-semibold mt-0.5 block">Isključite za višednevne događaje gde polaznici ne biraju tačan sat dolaska (npr. Društvene igre).</span>
+                </div>
+                <input type="checkbox" id="toggle-time-calculator" onchange="window.promeniVidljivostKalkulatoraSatnice(this.checked)" class="w-5 h-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0 ml-3" />
+              </label>
+
+              <div id="time-calculator-body" class="hidden space-y-4 pt-3 border-t border-indigo-100">
 
               <!-- 1. Koliko je planirano da se radi i u koliko blokova -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1595,6 +1604,7 @@
                   <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> 🔒 Zaključan</span>
                   <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> ⭐ Rezervni termin</span>
                 </div>
+              </div>
               </div>
 
               <!-- Skrivena polja koja čuvaju podatke za bazu -->
@@ -2388,6 +2398,65 @@ function startRealtimeSync() {
       }
     }
 
+    window.promeniVidljivostSekcijePredavaca = function(ukljuceno) {
+      const cb = document.getElementById('toggle-instructor-section');
+      const body = document.getElementById('instructor-fields-body');
+      if (cb) cb.checked = ukljuceno;
+      if (body) {
+        if (ukljuceno) {
+          body.classList.remove('hidden');
+        } else {
+          body.classList.add('hidden');
+          if (document.getElementById('event-instructor-phone')) document.getElementById('event-instructor-phone').value = '';
+          if (document.getElementById('event-instructor-email')) document.getElementById('event-instructor-email').value = '';
+        }
+      }
+    };
+
+    window.promeniVidljivostKalkulatoraSatnice = function(ukljuceno) {
+      const cb = document.getElementById('toggle-time-calculator');
+      const body = document.getElementById('time-calculator-body');
+      if (cb) cb.checked = ukljuceno;
+      if (body) {
+        if (ukljuceno) {
+          body.classList.remove('hidden');
+          window.osveziKalkulatorSatnice();
+        } else {
+          body.classList.add('hidden');
+          window.trenutniGenerisaniSlotovi = [];
+          const wrapGen = document.getElementById('wrapper-generated-slots');
+          if (wrapGen) wrapGen.classList.add('hidden');
+          if (document.getElementById('event-time')) document.getElementById('event-time').value = '';
+          if (document.getElementById('event-time-slots-json')) document.getElementById('event-time-slots-json').value = '';
+        }
+      }
+    };
+
+    window.resetujKalkulatorNaPodrazumevano = function() {
+      napuniPocetnaVremena();
+      window.trenutniGenerisaniSlotovi = [];
+      if (document.getElementById('slot-total-shift-duration')) document.getElementById('slot-total-shift-duration').value = '120';
+      if (document.getElementById('slot-blocks-count-select')) document.getElementById('slot-blocks-count-select').value = '1';
+      if (document.getElementById('slot-b1-start')) document.getElementById('slot-b1-start').value = '18:00';
+      if (document.getElementById('slot-b2-start')) document.getElementById('slot-b2-start').value = '14:00';
+      if (document.getElementById('slot-duration-select')) document.getElementById('slot-duration-select').value = '30';
+      if (document.getElementById('slot-break-select')) document.getElementById('slot-break-select').value = '5';
+      
+      const wrapB2 = document.getElementById('wrapper-slot-block-2');
+      if (wrapB2) {
+        wrapB2.classList.add('hidden');
+        wrapB2.classList.remove('flex');
+      }
+      const wrapGen = document.getElementById('wrapper-generated-slots');
+      if (wrapGen) wrapGen.classList.add('hidden');
+      const badgesCont = document.getElementById('admin-slots-badges-container');
+      if (badgesCont) badgesCont.innerHTML = '';
+
+      if (document.getElementById('event-time')) document.getElementById('event-time').value = '';
+      if (document.getElementById('event-time-slots-json')) document.getElementById('event-time-slots-json').value = '';
+      window.osveziKalkulatorSatnice();
+    };
+
     window.promeniBrojBlokovaSatnice = function(val) {
       const wrapB2 = document.getElementById('wrapper-slot-block-2');
       if (wrapB2) {
@@ -2694,32 +2763,56 @@ function startRealtimeSync() {
       }
       if (document.getElementById('event-digital-url')) document.getElementById('event-digital-url').value = ev.digitalUrl || '';
       if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
+      // Prvo potpuno čistimo kalkulator od prethodno otvaranog programa
+      window.resetujKalkulatorNaPodrazumevano();
+
       if (document.getElementById('event-location')) document.getElementById('event-location').value = ev.location;
-      if (document.getElementById('event-instructor-phone')) document.getElementById('event-instructor-phone').value = ev.instructorPhone || '';
-      if (document.getElementById('event-instructor-email')) document.getElementById('event-instructor-email').value = ev.instructorEmail || '';
-      napuniPocetnaVremena();
       if (document.getElementById('event-start-date')) document.getElementById('event-start-date').value = ev.startDate || ev.date || '';
       if (document.getElementById('event-end-date')) document.getElementById('event-end-date').value = ev.endDate || '';
-      if (document.getElementById('event-time')) document.getElementById('event-time').value = ev.time || '';
-      if (document.getElementById('event-time-slots-json')) document.getElementById('event-time-slots-json').value = ev.timeSlotsJson || '';
 
-      window.osveziKalkulatorSatnice();
+      // 1. Učitavanje sekcije predavača iz baze (uključeno samo ako ovaj program ima unet kontakt)
+      const imaKontaktPredavaca = !!(ev.hasInstructorContact || ev.instructorPhone || ev.instructorEmail);
+      window.promeniVidljivostSekcijePredavaca(imaKontaktPredavaca);
+      if (imaKontaktPredavaca) {
+        if (document.getElementById('event-instructor-phone')) document.getElementById('event-instructor-phone').value = ev.instructorPhone || '';
+        if (document.getElementById('event-instructor-email')) document.getElementById('event-instructor-email').value = ev.instructorEmail || '';
+      }
 
-      if (ev.timeSlotsJson) {
-        try {
-          window.trenutniGenerisaniSlotovi = JSON.parse(ev.timeSlotsJson);
-          window.osveziPrikazGenerisanihSlotova();
-        } catch(e) {
-          window.trenutniGenerisaniSlotovi = [];
+      // 2. Učitavanje kalkulatora satnice i svih njegovih parametara iz baze za ovaj konkretan događaj
+      const koristiSatnicu = ev.useTimeSchedule !== undefined ? ev.useTimeSchedule : !!(ev.timeSlotsJson || (ev.time && ev.time.trim() !== ''));
+      window.promeniVidljivostKalkulatoraSatnice(koristiSatnicu);
+
+      if (koristiSatnicu) {
+        if (ev.calcConfig) {
+          if (document.getElementById('slot-total-shift-duration')) document.getElementById('slot-total-shift-duration').value = ev.calcConfig.shiftDuration || '120';
+          if (document.getElementById('slot-blocks-count-select')) {
+            document.getElementById('slot-blocks-count-select').value = ev.calcConfig.blocksCount || '1';
+            window.promeniBrojBlokovaSatnice(ev.calcConfig.blocksCount || '1');
+          }
+          if (document.getElementById('slot-b1-start')) document.getElementById('slot-b1-start').value = ev.calcConfig.b1Start || '18:00';
+          if (document.getElementById('slot-b2-start')) document.getElementById('slot-b2-start').value = ev.calcConfig.b2Start || '14:00';
+          if (document.getElementById('slot-duration-select')) document.getElementById('slot-duration-select').value = ev.calcConfig.slotDuration || '30';
+          if (document.getElementById('slot-break-select')) document.getElementById('slot-break-select').value = ev.calcConfig.breakTime || '5';
         }
-      } else if (ev.time && ev.time.includes(',')) {
-        window.trenutniGenerisaniSlotovi = ev.time.split(',').map(t => ({ time: t.trim(), duration: 30, status: 'otvoren' }));
-        window.osveziPrikazGenerisanihSlotova();
-      } else if (ev.time) {
-        if (document.getElementById('slot-b1-start')) {
-          document.getElementById('slot-b1-start').value = ev.time;
-        }
+
         window.osveziKalkulatorSatnice();
+
+        if (ev.timeSlotsJson) {
+          try {
+            window.trenutniGenerisaniSlotovi = JSON.parse(ev.timeSlotsJson);
+            window.osveziPrikazGenerisanihSlotova();
+          } catch(e) {
+            window.trenutniGenerisaniSlotovi = [];
+          }
+        } else if (ev.time && ev.time.includes(',')) {
+          window.trenutniGenerisaniSlotovi = ev.time.split(',').map(t => ({ time: t.trim(), duration: 30, status: 'otvoren' }));
+          window.osveziPrikazGenerisanihSlotova();
+        } else if (ev.time) {
+          if (document.getElementById('slot-b1-start')) {
+            document.getElementById('slot-b1-start').value = ev.time;
+          }
+          window.osveziKalkulatorSatnice();
+        }
       }
       
       window.osveziVidljivostModaPolja = function(poljeId) {
@@ -6584,9 +6677,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       if (document.getElementById('event-promo-1plus1')) {
         document.getElementById('event-promo-1plus1').checked = false;
       }
-      if (document.getElementById('event-time')) {
-        document.getElementById('event-time').value = '';
-      }
+      window.resetujKalkulatorNaPodrazumevano();
+      window.promeniVidljivostSekcijePredavaca(false);
+      window.promeniVidljivostKalkulatoraSatnice(false);
       window.proveriPrikazPlacanja(0);
       const select = document.getElementById('event-category');
       if (select) {
@@ -6604,12 +6697,25 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const category = document.getElementById('event-category').value;
       const seats = parseInt(document.getElementById('event-total-seats').value) || 10;
       const location = document.getElementById('event-location').value.trim();
-      const instructorPhone = document.getElementById('event-instructor-phone')?.value.trim() || '';
-      const instructorEmail = document.getElementById('event-instructor-email')?.value.trim() || '';
+      const hasInstructorContact = document.getElementById('toggle-instructor-section')?.checked === true;
+      const instructorPhone = hasInstructorContact ? (document.getElementById('event-instructor-phone')?.value.trim() || '') : '';
+      const instructorEmail = hasInstructorContact ? (document.getElementById('event-instructor-email')?.value.trim() || '') : '';
+      
       const startDate = document.getElementById('event-start-date').value;
       const endDate = document.getElementById('event-end-date').value;
-      const time = document.getElementById('event-time')?.value.trim() || '';
-      const timeSlotsJson = document.getElementById('event-time-slots-json')?.value || '';
+      
+      const useTimeSchedule = document.getElementById('toggle-time-calculator')?.checked === true;
+      const time = useTimeSchedule ? (document.getElementById('event-time')?.value.trim() || '') : '';
+      const timeSlotsJson = useTimeSchedule ? (document.getElementById('event-time-slots-json')?.value || '') : '';
+
+      const calcConfig = useTimeSchedule ? {
+        shiftDuration: document.getElementById('slot-total-shift-duration')?.value || '120',
+        blocksCount: document.getElementById('slot-blocks-count-select')?.value || '1',
+        b1Start: document.getElementById('slot-b1-start')?.value || '18:00',
+        b2Start: document.getElementById('slot-b2-start')?.value || '14:00',
+        slotDuration: document.getElementById('slot-duration-select')?.value || '30',
+        breakTime: document.getElementById('slot-break-select')?.value || '5'
+      } : null;
       const isActive = state.editingEventId ? (state.events.find(x => x.id === state.editingEventId)?.isActive ?? true) : true;
       const isFrozen = state.editingEventId ? (state.events.find(x => x.id === state.editingEventId)?.isFrozen || false) : false;
       
@@ -6669,13 +6775,16 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         packageType: packageType,
         voucherType: voucherType,
         location: konacnaLokacija,
+        hasInstructorContact: hasInstructorContact,
         instructorPhone: instructorPhone,
         instructorEmail: instructorEmail,
         startDate: startDate,
         endDate: endDate,
         date: startDate, 
+        useTimeSchedule: useTimeSchedule,
         time: time,
         timeSlotsJson: timeSlotsJson,
+        calcConfig: calcConfig,
         isActive,
         isFrozen,
         formFields,
