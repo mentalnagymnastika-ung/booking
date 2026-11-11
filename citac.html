@@ -3,129 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>@Booker 3D Čitač Sveske</title>
+  <title>@Booker Čitač Sveske</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <style>
     html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background: #0f172a;
       user-select: none;
       -webkit-user-select: none;
     }
-    .page-canvas-wrap {
-      background-color: #ffffff;
-      box-shadow: inset 0 0 25px rgba(0,0,0,0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+
+    /* Efekat glatkog 3D prelaza stranice bez skakanja ekrana */
+    .page-stage {
+      perspective: 1400px;
     }
+    .page-card {
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+      transform-origin: left center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+    .page-card.flipping-next {
+      transform: rotateY(-25deg) scale(0.96);
+      opacity: 0.4;
+    }
+    .page-card.flipping-prev {
+      transform: rotateY(25deg) scale(0.96);
+      opacity: 0.4;
+    }
+
+    /* Kada se štampa pojedinačna strana, štampa se samo čist list */
     @media print {
-      body.no-print { display: none !important; }
+      body * { visibility: hidden; }
+      #print-single-area, #print-single-area * { visibility: visible; }
+      #print-single-area {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+      }
     }
   </style>
 </head>
-<body class="no-print h-screen w-screen flex flex-col justify-between bg-slate-950 text-white" oncontextmenu="return false;">
+<body class="h-screen w-screen flex flex-col justify-between bg-slate-950 text-white" oncontextmenu="return false;">
 
-  <!-- Gornja traka sa kontrolama i licencom -->
-  <header class="bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-30 shrink-0">
-    <div class="flex items-center gap-3 truncate">
-      <span class="px-2.5 py-1 bg-indigo-600 rounded-lg text-xs font-black uppercase tracking-wider">📖 3D Sveska</span>
-      <div class="truncate">
-        <h1 id="book-title" class="text-sm sm:text-base font-black truncate">Mentalna Gimnastika - Radna sveska</h1>
-        <p id="book-license" class="text-[11px] text-slate-400 font-mono">Zaštićeno izdanje</p>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-2 shrink-0">
-      <span id="page-counter" class="text-xs font-black bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-indigo-300">
-        Strana 1 / 1
-      </span>
-      <button id="btn-print" onclick="window.stampaSveske()" class="hidden px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm">
-        <span>🖨️</span> Štampaj
-      </button>
-      <a id="btn-download" href="#" download class="hidden px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm">
-        <span>📥</span> Preuzmi PDF
-      </a>
-    </div>
-  </header>
-
-  <!-- Srednji prostor za 3D listanje knjige -->
-  <main class="flex-1 relative flex items-center justify-center p-2 sm:p-6 overflow-hidden">
+  <!-- Glavni prostor u sredini (fiksiran, bez duplog zaglavlja i bez skakanja na miš) -->
+  <main class="page-stage flex-1 relative flex items-center justify-center p-3 sm:p-5 overflow-hidden">
+    
+    <!-- Indikator učitavanja -->
     <div id="loader-box" class="flex flex-col items-center justify-center space-y-3 text-center z-20">
-      <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <p id="loader-text" class="text-sm font-bold text-slate-300">Priprema 3D stranica za listanje...</p>
+      <div class="w-11 h-11 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <p id="loader-text" class="text-sm font-bold text-slate-300">Učitavanje radne sveske...</p>
     </div>
 
-    <!-- Knjiga -->
-    <div id="flipbook-container" class="hidden relative shadow-2xl"></div>
+    <!-- Fiksni okvir stranice koji miruje pod mišem -->
+    <div id="page-wrapper" class="hidden page-card relative bg-white rounded-xl overflow-hidden flex items-center justify-center">
+      <canvas id="pdf-canvas" class="block max-w-full max-h-full"></canvas>
+    </div>
 
-    <!-- Vodeni žig licence -->
-    <div id="watermark-overlay" class="pointer-events-none fixed bottom-16 right-6 z-40 opacity-25 text-[11px] font-mono font-black text-white bg-black/40 px-2.5 py-1 rounded"></div>
+    <!-- Bočne strelice za brzo listanje na ekranu -->
+    <button onclick="window.promeniStranu(-1)" id="side-prev" class="hidden sm:flex fixed left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-indigo-600 text-white font-black text-2xl items-center justify-center shadow-lg border border-slate-700 transition z-30" title="Prethodna strana">
+      ‹
+    </button>
+    <button onclick="window.promeniStranu(1)" id="side-next" class="hidden sm:flex fixed right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-indigo-600 text-white font-black text-2xl items-center justify-center shadow-lg border border-slate-700 transition z-30" title="Sledeća strana">
+      ›
+    </button>
+
+    <!-- Diskretni vodeni žig licence u uglu -->
+    <div id="watermark-overlay" class="pointer-events-none fixed bottom-16 right-4 z-30 opacity-30 text-[11px] font-mono font-bold text-white bg-black/50 px-2.5 py-1 rounded"></div>
   </main>
 
-  <!-- Donja navigacija za listanje -->
-  <footer class="bg-slate-900/95 border-t border-slate-800 px-4 py-2.5 flex items-center justify-center gap-4 z-30 shrink-0">
-    <button onclick="window.prethodnaStrana()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded-xl text-xs sm:text-sm font-black border border-slate-700 transition">
-      ‹ Prethodna
-    </button>
-    <span class="text-[11px] text-slate-400 font-bold hidden sm:inline">Prevucite ugao stranice mišem ili prstom za 3D listanje</span>
-    <button onclick="window.sledecaStrana()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 rounded-xl text-xs sm:text-sm font-black shadow-md transition">
-      Sledeća ›
-    </button>
+  <!-- Donja kontrolna traka (Listanje + Opcione komande za štampu i dijeljenje kojima upravlja Admin) -->
+  <footer class="bg-slate-900 border-t border-slate-800 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 z-30 shrink-0">
+    
+    <!-- Lijevo: Skok na željenu stranu -->
+    <div class="flex items-center gap-2">
+      <span id="page-counter" class="text-xs sm:text-sm font-black bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-indigo-300">
+        Strana 1 / 1
+      </span>
+      <select id="page-jump-select" onchange="window.idiNaStranu(this.value)" class="bg-slate-800 border border-slate-700 text-white text-xs font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500">
+      </select>
+    </div>
+
+    <!-- Sredina: Dugmad za listanje -->
+    <div class="flex items-center gap-2">
+      <button onclick="window.promeniStranu(-1)" id="btn-prev" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded-xl text-xs sm:text-sm font-black border border-slate-700 transition">
+        ‹ Prethodna
+      </button>
+      <button onclick="window.promeniStranu(1)" id="btn-next" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 rounded-xl text-xs sm:text-sm font-black shadow-md transition">
+        Sledeća ›
+      </button>
+    </div>
+
+    <!-- Desno: Štampa pojedinačne strane, cijelog PDF-a i dijeljenje (vidljivo samo kada Admin dozvoli u @Bookeru) -->
+    <div id="admin-allowed-actions" class="hidden items-center gap-2">
+      <button onclick="window.stampajTrenutnuStranu()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm" title="Odštampaj samo ovu stranicu koja je trenutno na ekranu">
+        <span>🖨️</span> Štampaj ovu stranu
+      </button>
+      <a id="btn-download-all" href="#" target="_blank" download class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm" title="Preuzmi ili odštampaj cijelu radnu svesku">
+        <span>📥</span> Ceo PDF
+      </a>
+    </div>
+
   </footer>
+
+  <!-- Skriveni prostor za štampu pojedinačne stranice -->
+  <div id="print-single-area" class="hidden">
+    <img id="print-single-img" src="" class="max-w-full max-h-full object-contain" />
+  </div>
 
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const params = new URLSearchParams(window.location.search);
     const pdfUrl = params.get('pdf') || '';
-    const naslov = params.get('title') || 'Radna sveska';
     const licenca = params.get('lic') || 'Aktivna licenca';
     const dozvoliStampu = params.get('print') === '1';
 
-    document.getElementById('book-title').innerText = naslov;
-    document.getElementById('book-license').innerText = licenca;
     document.getElementById('watermark-overlay').innerText = `${licenca} • Mentalna Gimnastika`;
 
+    // Ako je u @Booker Admin panelu izabrano "Dozvoli štampanje i preuzimanje", palimo dugmad
     if (dozvoliStampu) {
-      document.body.classList.remove('no-print');
-      const btnP = document.getElementById('btn-print');
-      const btnD = document.getElementById('btn-download');
-      if (btnP) { btnP.classList.remove('hidden'); btnP.classList.add('flex'); }
-      if (btnD) { btnD.href = pdfUrl; btnD.classList.remove('hidden'); btnD.classList.add('flex'); }
+      const actionsBox = document.getElementById('admin-allowed-actions');
+      const btnDown = document.getElementById('btn-download-all');
+      if (actionsBox) {
+        actionsBox.classList.remove('hidden');
+        actionsBox.classList.add('flex');
+      }
+      if (btnDown) btnDown.href = pdfUrl;
     }
 
-    // Zabrana prečica za štampu i čuvanje ako nije dozvoljeno
+    // Zabrana tastaturnih prečica ako štampa nije dozvoljena
     window.addEventListener('keydown', (e) => {
       if (!dozvoliStampu && (e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's')) {
         e.preventDefault();
       }
+      if (e.key === 'ArrowRight') window.promeniStranu(1);
+      if (e.key === 'ArrowLeft') window.promeniStranu(-1);
     });
 
-    let pageFlip = null;
+    let pdfDoc = null;
+    let trenutnaStrana = 1;
+    let ukupnoStrana = 1;
+    let iscrtavanjeUToku = false;
 
-    // Blagi šušanj papira pri okretanju lista
     function zvukOkretanjaStrane() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const bufferSize = ctx.sampleRate * 0.09;
+        const bufferSize = ctx.sampleRate * 0.07;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.03));
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.025));
         }
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.value = 1200;
+        filter.frequency.value = 1100;
         const gain = ctx.createGain();
-        gain.gain.value = 0.08;
+        gain.gain.value = 0.06;
         noise.connect(filter);
         filter.connect(gain);
         gain.connect(ctx.destination);
@@ -133,92 +178,126 @@
       } catch(e) {}
     }
 
-    async function ucitajPdfUKnjigu() {
-      if (!pdfUrl) {
-        document.getElementById('loader-text').innerText = "Nije prosleđen link do PDF sveske.";
-        return;
+    async function prikaziStranu(brojStrane, smer = 0) {
+      if (!pdfDoc || iscrtavanjeUToku) return;
+      iscrtavanjeUToku = true;
+
+      const wrapper = document.getElementById('page-wrapper');
+      const canvas = document.getElementById('pdf-canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (smer !== 0 && wrapper) {
+        wrapper.classList.add(smer > 0 ? 'flipping-next' : 'flipping-prev');
+        zvukOkretanjaStrane();
       }
 
+      const page = await pdfDoc.getPage(brojStrane);
+      const vp1 = page.getViewport({ scale: 1 });
+      
+      // Precizno uklapanje u raspoloživi prostor ekrana tako da nikada ne skroluje i ne skače
+      const dostupnaVisina = window.innerHeight - 95;
+      const dostupnaSirina = window.innerWidth - 40;
+      const skalaVisine = dostupnaVisina / vp1.height;
+      const skalaSirine = dostupnaSirina / vp1.width;
+      const konacnaSkala = Math.min(skalaVisine, skalaSirine);
+
+      // Visoka oštrina prikaza (Retina / 2x)
+      const renderViewport = page.getViewport({ scale: konacnaSkala * 2 });
+      canvas.width = renderViewport.width;
+      canvas.height = renderViewport.height;
+      canvas.style.width = `${Math.floor(vp1.width * konacnaSkala)}px`;
+      canvas.style.height = `${Math.floor(vp1.height * konacnaSkala)}px`;
+
+      await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
+
+      if (wrapper) {
+        wrapper.classList.remove('flipping-next', 'flipping-prev');
+      }
+
+      document.getElementById('page-counter').innerText = `Strana ${brojStrane} / ${ukupnoStrana}`;
+      const jumpSel = document.getElementById('page-jump-select');
+      if (jumpSel) jumpSel.value = String(brojStrane);
+
+      iscrtavanjeUToku = false;
+    }
+
+    window.promeniStranu = function(korak) {
+      if (!pdfDoc || iscrtavanjeUToku) return;
+      const nova = trenutnaStrana + korak;
+      if (nova < 1 || nova > ukupnoStrana) return;
+      trenutnaStrana = nova;
+      prikaziStranu(trenutnaStrana, korak);
+    };
+
+    window.idiNaStranu = function(broj) {
+      const n = parseInt(broj, 10);
+      if (!n || n === trenutnaStrana) return;
+      const smer = n > trenutnaStrana ? 1 : -1;
+      trenutnaStrana = n;
+      prikaziStranu(trenutnaStrana, smer);
+    };
+
+    // Štampanje isključivo trenutno otvorene stranice (zadatka)
+    window.stampajTrenutnuStranu = function() {
+      if (!dozvoliStampu) return;
+      const canvas = document.getElementById('pdf-canvas');
+      const img = document.getElementById('print-single-img');
+      const area = document.getElementById('print-single-area');
+      if (!canvas || !img || !area) return;
+
+      img.src = canvas.toDataURL('image/png');
+      area.classList.remove('hidden');
+      setTimeout(() => {
+        window.print();
+        area.classList.add('hidden');
+      }, 150);
+    };
+
+    // Podrška za prevlačenje prstom lijevo-desno na telefonu
+    let touchStartX = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      const razlika = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(razlika) > 50) {
+        if (razlika < 0) window.promeniStranu(1);
+        else window.promeniStranu(-1);
+      }
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      if (pdfDoc) prikaziStranu(trenutnaStrana, 0);
+    });
+
+    async function pokreniCitac() {
+      if (!pdfUrl) {
+        document.getElementById('loader-text').innerText = "Link do sveske nije pronađen.";
+        return;
+      }
       try {
-        const loadingTask = pdfjsLib.getDocument(pdfUrl);
-        const pdf = await loadingTask.promise;
-        const ukupnoStrana = pdf.numPages;
-        const container = document.getElementById('flipbook-container');
+        pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+        ukupnoStrana = pdfDoc.numPages;
 
-        const prvaStrana = await pdf.getPage(1);
-        const vp1 = prvaStrana.getViewport({ scale: 1 });
-        const odnosStranice = vp1.width / vp1.height;
-
-        const maxVisina = window.innerHeight - 135;
-        const maxSirina = window.innerWidth - 30;
-        const jeMobilni = window.innerWidth < 768;
-
-        let visinaStrane = Math.min(maxVisina, 760);
-        let sirinaStrane = Math.round(visinaStrane * odnosStranice);
-
-        if (jeMobilni && sirinaStrane > maxSirina) {
-          sirinaStrane = maxSirina;
-          visinaStrane = Math.round(sirinaStrane / odnosStranice);
-        } else if (!jeMobilni && sirinaStrane * 2 > maxSirina) {
-          sirinaStrane = Math.floor(maxSirina / 2);
-          visinaStrane = Math.round(sirinaStrane / odnosStranice);
-        }
-
-        for (let broj = 1; broj <= ukupnoStrana; broj++) {
-          document.getElementById('loader-text').innerText = `Učitavanje stranice ${broj} od ${ukupnoStrana}...`;
-          const page = await pdf.getPage(broj);
-          const scale = (sirinaStrane * 2) / page.getViewport({ scale: 1 }).width;
-          const viewport = page.getViewport({ scale });
-
-          const pageDiv = document.createElement('div');
-          pageDiv.className = 'page-canvas-wrap';
-
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
-
-          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-          pageDiv.appendChild(canvas);
-          container.appendChild(pageDiv);
+        const jumpSel = document.getElementById('page-jump-select');
+        if (jumpSel) {
+          let opcije = '';
+          for (let i = 1; i <= ukupnoStrana; i++) {
+            opcije += `<option value="${i}">Idi na stranu ${i}</option>`;
+          }
+          jumpSel.innerHTML = opcije;
         }
 
         document.getElementById('loader-box').classList.add('hidden');
-        container.classList.remove('hidden');
-
-        pageFlip = new St.PageFlip(container, {
-          width: sirinaStrane,
-          height: visinaStrane,
-          size: 'fixed',
-          showCover: true,
-          maxShadowOpacity: 0.4,
-          mobileScrollSupport: false
-        });
-
-        pageFlip.loadFromHTML(document.querySelectorAll('.page-canvas-wrap'));
-        document.getElementById('page-counter').innerText = `Strana 1 / ${ukupnoStrana}`;
-
-        pageFlip.on('flip', (e) => {
-          zvukOkretanjaStrane();
-          document.getElementById('page-counter').innerText = `Strana ${e.data + 1} / ${ukupnoStrana}`;
-        });
-
-      } catch (err) {
-        // Ako je PDF na drugom serveru koji brani direktno čitanje, otvaramo ga kroz ugrađeni čitač
-        const container = document.getElementById('flipbook-container');
-        document.getElementById('loader-box').classList.add('hidden');
-        container.classList.remove('hidden');
-        container.className = "w-full h-full";
-        container.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true" class="w-full h-full border-0 bg-white rounded-xl"></iframe>`;
+        document.getElementById('page-wrapper').classList.remove('hidden');
+        await prikaziStranu(1, 0);
+      } catch (e) {
+        document.getElementById('loader-text').innerText = "Greška pri otvaranju PDF fajla.";
       }
     }
 
-    window.prethodnaStrana = () => { if (pageFlip) pageFlip.flipPrev(); };
-    window.sledecaStrana = () => { if (pageFlip) pageFlip.flipNext(); };
-    window.stampaSveske = () => { if (dozvoliStampu && pdfUrl) window.open(pdfUrl, '_blank'); };
-
-    ucitajPdfUKnjigu();
+    pokreniCitac();
   </script>
 </body>
 </html>
