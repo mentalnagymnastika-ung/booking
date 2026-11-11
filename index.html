@@ -1430,11 +1430,25 @@
               </div>
             </div>
 
-            <!-- Podešavanje online pristupa i materijala -->
-            <div id="box-digital-resource-settings" class="hidden border border-indigo-200 bg-indigo-50/70 rounded-2xl p-4 space-y-2">
-              <p id="label-digital-url-title" class="text-xs font-black text-indigo-950 uppercase tracking-wide">Link za pristup (Google Meet, Zoom ili PDF materijal):</p>
-              <input id="event-digital-url" type="url" placeholder="https://meet.google.com/... ili link do PDF radne sveske" class="w-full bg-white border border-indigo-300 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
-              <p id="label-digital-url-desc" class="text-[11px] text-indigo-900 font-medium">Korisnik na svojoj kartici dobija direktno dugme za ulazak na sastanak ili preuzimanje materijala.</p>
+            <!-- Podešavanje online pristupa i zaštite PDF materijala -->
+            <div id="box-digital-resource-settings" class="hidden border border-indigo-200 bg-indigo-50/70 rounded-2xl p-4 space-y-3">
+              <div class="space-y-1.5">
+                <p id="label-digital-url-title" class="text-xs font-black text-indigo-950 uppercase tracking-wide">Link za pristup (Google Meet, Zoom ili PDF materijal):</p>
+                <input id="event-digital-url" type="url" placeholder="https://meet.google.com/... ili link do PDF radne sveske" class="w-full bg-white border border-indigo-300 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                <p id="label-digital-url-desc" class="text-[11px] text-indigo-900 font-medium">Korisnik na svojoj kartici dobija direktno dugme za ulazak na sastanak ili otvaranje materijala.</p>
+              </div>
+
+              <!-- Zaštita PDF sveske od dijeljenja i štampe (prikazuje se za Digitalni resurs) -->
+              <div id="box-pdf-protection-options" class="hidden pt-2 border-t border-indigo-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span class="text-xs font-black text-indigo-950 block">Režim zaštite radne sveske / PDF-a:</span>
+                  <span class="text-[11px] text-indigo-800 font-medium">Odredite da li polaznik smije da štampa i preuzima fajl.</span>
+                </div>
+                <select id="event-pdf-allow-print" class="bg-white border border-indigo-300 rounded-xl px-3 py-2 text-xs font-black text-indigo-950 focus:outline-none shadow-xs">
+                  <option value="view_only" selected>🔒 Samo zaštićen pregled (bez štampe i dijeljenja)</option>
+                  <option value="allow_print">🖨️ Dozvoli štampanje i preuzimanje</option>
+                </select>
+              </div>
             </div>
 
             <!-- Podešavanje načina plaćanja i računa (automatski sakriveno ako je 0 RSD) -->
@@ -1618,6 +1632,31 @@
             </div>
           </form>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Zaštićeni @Booker PDF i Flipbook pregledač -->
+  <div id="modal-pdf-viewer" class="hidden fixed inset-0 z-[120] bg-slate-950/95 backdrop-blur-md flex flex-col select-none" oncontextmenu="return false;">
+    <div class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between text-white shrink-0">
+      <div class="flex items-center gap-2.5 truncate">
+        <span class="px-2.5 py-1 bg-indigo-600 rounded-lg text-xs font-black uppercase tracking-wider">📖 Čitač</span>
+        <div class="truncate">
+          <h4 id="pdf-viewer-title" class="text-sm sm:text-base font-black truncate">Radna sveska</h4>
+          <p id="pdf-viewer-license" class="text-[10px] text-slate-400 font-mono">Licenca: BK-000000</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <a id="btn-pdf-print-download" href="#" target="_blank" class="hidden px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm">
+          <span>🖨️</span> Štampaj / Preuzmi
+        </a>
+        <span id="badge-pdf-protected" class="px-3 py-1.5 bg-slate-800 text-amber-300 border border-slate-700 rounded-xl text-[11px] font-bold hidden sm:inline-block">
+          🔒 Zaštićeno od dijeljenja
+        </span>
+        <button type="button" onclick="window.zatvoriPdfPregledac()" class="w-9 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-base flex items-center justify-center transition">✕</button>
+      </div>
+    </div>
+    <div class="flex-1 w-full h-full relative bg-slate-900 overflow-hidden">
+      <iframe id="pdf-viewer-iframe" src="" class="w-full h-full border-0 bg-white" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
     </div>
   </div>
 
@@ -2643,6 +2682,7 @@ function startRealtimeSync() {
 
       if (boxTrail) boxTrail.classList.add('hidden');
       if (boxDigital) boxDigital.classList.add('hidden');
+      if (document.getElementById('box-pdf-protection-options')) document.getElementById('box-pdf-protection-options').classList.add('hidden');
       if (boxLocation) boxLocation.classList.remove('hidden');
       if (boxTime) boxTime.classList.remove('hidden');
       if (seatsInput) {
@@ -2671,11 +2711,14 @@ function startRealtimeSync() {
         if (urlInput) urlInput.placeholder = "https://meet.google.com/xxx-xxxx-xxx";
       } else if (tip === 'digitalni_resurs') {
         if (boxDigital) boxDigital.classList.remove('hidden');
+        if (document.getElementById('box-pdf-protection-options')) {
+          document.getElementById('box-pdf-protection-options').classList.remove('hidden');
+        }
         if (boxLocation) boxLocation.classList.add('hidden');
         if (boxTime) boxTime.classList.add('hidden');
         if (locationInput && !locationInput.value.trim()) locationInput.value = 'Digitalno izdanje (Online)';
         if (labelTitle) labelTitle.innerText = "Link do PDF radne sveske ili materijala:";
-        if (labelDesc) labelDesc.innerText = "Polaznik na kartici dobija dugme za preuzimanje i pregled flipbook sveske.";
+        if (labelDesc) labelDesc.innerText = "Materijal se otvara u ugrađenom @Booker čitaču prema izabranom režimu zaštite.";
         if (urlInput) urlInput.placeholder = "https://heyzine.com/... ili link do PDF-a";
       } else if (tip === 'individualno') {
         // Individualne konsultacije: otvaramo polje za online link ako se radi preko interneta
@@ -2762,6 +2805,7 @@ function startRealtimeSync() {
         window.prilagodiFormuObuke(prepoznatTip);
       }
       if (document.getElementById('event-digital-url')) document.getElementById('event-digital-url').value = ev.digitalUrl || '';
+      if (document.getElementById('event-pdf-allow-print')) document.getElementById('event-pdf-allow-print').value = ev.pdfProtection || 'view_only';
       if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
       // Prvo potpuno čistimo kalkulator od prethodno otvaranog programa
       window.resetujKalkulatorNaPodrazumevano();
@@ -3472,7 +3516,9 @@ window.azurirajPrikazCeneRezervacije();
 
       const radio2 = document.getElementById('radio-qty-2');
       const label2 = document.getElementById('label-qty-2');
-      if (remaining < 2) {
+      const jeDigitalniBezGratis = event.activityType === 'digitalni_resurs' && !event.hasPromo1plus1;
+
+      if (remaining < 2 || jeDigitalniBezGratis) {
         radio2.disabled = true;
         label2.classList.add('opacity-50', 'cursor-not-allowed');
         document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
@@ -3684,8 +3730,10 @@ window.azurirajPrikazCeneRezervacije();
       const jePromo1plus1 = event.hasPromo1plus1 === true;
       const obracunskiBroj = (jePromo1plus1 && qty === 2) ? 1 : qty;
 
-      const clanskaCena = (event.memberPrice !== null && event.memberPrice !== undefined) ? event.memberPrice : 0;
-      const pricePerTicket = isMemberCovered ? clanskaCena : (event.price || 0);
+      const jeSamoZaClanove = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
+      const redovnaCena = event.price || 0;
+      const clanskaCena = (event.memberPrice !== null && event.memberPrice !== undefined) ? event.memberPrice : (jeSamoZaClanove ? 0 : redovnaCena);
+      const pricePerTicket = isMemberCovered ? clanskaCena : redovnaCena;
       const totalPrice = pricePerTicket * obracunskiBroj;
 
       let finalFirstName = 'Polaznik';
@@ -3767,7 +3815,7 @@ window.azurirajPrikazCeneRezervacije();
         totalPrice: totalPrice,
         originalPrice: (event.price || 0) * qty,
         paymentReference: cistPozivNaBroj,
-        paymentType: isMemberCovered ? 'clanarina_pokriveno' : (event.paymentType || 'kotizacija'),
+        paymentType: (isMemberCovered && totalPrice === 0) ? 'clanarina_pokriveno' : (event.paymentType || 'kotizacija'),
         memberCode: isMemberCovered ? state.activeMembership.card : '',
         membershipVisitNumber: isMemberCovered ? (state.activeMembership.usageCount + 1) : null,
         bankAccount: event.bankAccount || '',
@@ -3776,11 +3824,12 @@ window.azurirajPrikazCeneRezervacije();
         instructorEmail: event.instructorEmail || '',
         trailCode: event.trailCode || '',
         digitalUrl: event.digitalUrl || '',
+        pdfProtection: event.pdfProtection || 'view_only',
         activityType: event.activityType || 'radionica',
         packageType: (jePromo1plus1 && qty === 2) ? 2 : (qty === 1 ? 1 : (event.packageType || 1)),
         hasPromo1plus1: (jePromo1plus1 && qty === 2),
         voucherType: event.voucherType || 'sati',
-        isPaid: isMemberCovered || totalPrice === 0,
+        isPaid: totalPrice === 0,
         scannedCount: 0,
         firstName: finalFirstName,
         lastName: finalLastName,
@@ -4018,14 +4067,92 @@ window.azurirajPrikazCeneRezervacije();
       window.ontouchend = onEnd;
     }
 
+    // Provjera da li je za zakazane termine sa satnicom ostalo više od 1 sata (60 min) do početka
+    function jePreranoZaPonistavanje(booking) {
+      const danasnjiDan = new Date().toISOString().split('T')[0];
+      const datumTermina = booking.selectedDate || booking.eventDate;
+      if (!datumTermina) return { prerano: false };
+
+      if (datumTermina > danasnjiDan) {
+        let dPrikaz = datumTermina;
+        if (datumTermina.includes('-')) {
+          const d = datumTermina.split('-');
+          if (d.length === 3) dPrikaz = `${d[2]}.${d[1]}.${d[0]}.`;
+        }
+        return { prerano: true, razlog: `🔒 Poništavanje karte biće dostupno na dan održavanja (${dPrikaz}).` };
+      }
+
+      const satnica = (booking.eventTime || '').trim();
+      if (datumTermina === danasnjiDan && satnica && satnica !== 'undefined' && satnica.includes(':')) {
+        const prviSat = satnica.split(',')[0].trim();
+        const [h, m] = prviSat.split(':').map(Number);
+        if (!isNaN(h)) {
+          const vremePocetka = new Date();
+          vremePocetka.setHours(h, m || 0, 0, 0);
+          const minutaDoPocetka = Math.ceil((vremePocetka.getTime() - Date.now()) / (1000 * 60));
+          if (minutaDoPocetka > 60) {
+            const satOtkljucavanja = `${String(h - 1).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}h`;
+            return { 
+              prerano: true, 
+              razlog: `⏳ Poništavanje zakazanog termina moguće je najranije 1 sat prije dolaska (od ${satOtkljucavanja}).` 
+            };
+          }
+        }
+      }
+      return { prerano: false };
+    }
+
+    window.otvoriPdfPregledac = function(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId) || state.activeViewingTicket;
+      if (!b) return;
+      const ev = state.events.find(e => e.id === b.eventId);
+      const url = b.digitalUrl || (ev ? ev.digitalUrl : '');
+      if (!url) {
+        showNotification("Link do materijala još nije unijet", "warning");
+        return;
+      }
+
+      const dozvola = b.pdfProtection || (ev ? ev.pdfProtection : 'view_only') || 'view_only';
+      document.getElementById('pdf-viewer-title').innerText = b.eventTitle || 'Radni materijal';
+      document.getElementById('pdf-viewer-license').innerText = `Licenca: ${b.id} (${b.firstName} ${b.lastName})`;
+
+      const btnPrint = document.getElementById('btn-pdf-print-download');
+      const badgeProt = document.getElementById('badge-pdf-protected');
+      const iframe = document.getElementById('pdf-viewer-iframe');
+
+      let prikazniUrl = url;
+      if (dozvola === 'view_only') {
+        if (btnPrint) btnPrint.classList.add('hidden');
+        if (badgeProt) badgeProt.classList.remove('hidden');
+        if (url.toLowerCase().endsWith('.pdf')) {
+          prikazniUrl = `${url}#toolbar=0&navpanes=0&scrollbar=1`;
+        }
+      } else {
+        if (btnPrint) {
+          btnPrint.href = url;
+          btnPrint.classList.remove('hidden');
+          btnPrint.classList.add('flex');
+        }
+        if (badgeProt) badgeProt.classList.add('hidden');
+      }
+
+      if (iframe) iframe.src = prikazniUrl;
+      document.getElementById('modal-pdf-viewer').classList.remove('hidden');
+    };
+
+    window.zatvoriPdfPregledac = function() {
+      const iframe = document.getElementById('pdf-viewer-iframe');
+      if (iframe) iframe.src = '';
+      document.getElementById('modal-pdf-viewer').classList.add('hidden');
+    };
+
     window.ponistiKartuKlizacem = async function(bookingId) {
       const pronadjena = state.bookings.find(b => b.id === bookingId);
       if (!pronadjena) return;
 
-      const danasnjiDan = new Date().toISOString().split('T')[0];
-      const datumTermina = pronadjena.selectedDate || pronadjena.eventDate;
-      if (datumTermina && datumTermina > danasnjiDan) {
-        showNotification("Poništavanje karte je moguće isključivo na dan termina!", "warning");
+      const proveraVremena = jePreranoZaPonistavanje(pronadjena);
+      if (proveraVremena.prerano) {
+        showNotification(proveraVremena.razlog, "warning");
         return;
       }
 
@@ -4164,7 +4291,7 @@ window.azurirajPrikazCeneRezervacije();
       const imaSatnicuKarta = booking.eventTime && booking.eventTime !== 'undefined' && booking.eventTime.trim() !== '';
       const tacanTerminIspis = imaSatnicuKarta 
         ? `${osnovniDatum} u ${booking.eventTime}h` 
-        : `${osnovniDatum} (u toku radnog vremena)`;
+        : osnovniDatum;
       document.getElementById('ticket-datetime').innerText = tacanTerminIspis;
 
       const createdAtEl = document.getElementById('ticket-created-at');
@@ -4351,22 +4478,37 @@ window.azurirajPrikazCeneRezervacije();
                 : 'Vaša prijava je potvrđena. Kliknite na dugme ispod da preuzmete PDF ili radnu svesku.';
             }
             if (onlineBtn) {
-              onlineBtn.href = konacanLink || '#';
-              onlineBtn.className = "w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition";
+              if (!jeMeet && tipAktivnosti === 'digitalni_resurs') {
+                onlineBtn.removeAttribute('href');
+                onlineBtn.onclick = (e) => {
+                  e.preventDefault();
+                  window.otvoriPdfPregledac(booking.id);
+                };
+              } else {
+                onlineBtn.onclick = null;
+                onlineBtn.href = konacanLink || '#';
+              }
+              onlineBtn.className = "w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition cursor-pointer";
             }
-            if (onlineBtnIcon) onlineBtnIcon.innerText = jeMeet ? '🎥' : '📥';
-            if (onlineBtnText) onlineBtnText.innerText = jeMeet ? 'ULAZAK NA ONLINE SUSRET' : 'PREUZMI RADNI MATERIJAL';
+            if (onlineBtnIcon) onlineBtnIcon.innerText = jeMeet ? '🎥' : '📖';
+            if (onlineBtnText) onlineBtnText.innerText = jeMeet ? 'ULAZAK NA ONLINE SUSRET' : 'OTVORI RADNU SVESKU';
+            
+            const dozvoliDeljenjePdf = booking.pdfProtection === 'allow_print' || (pridruzeniEv && pridruzeniEv.pdfProtection === 'allow_print');
             if (btnCopyOnline) {
-              btnCopyOnline.classList.remove('hidden');
-              btnCopyOnline.onclick = () => {
-                if (navigator.clipboard) {
-                  navigator.clipboard.writeText(konacanLink).then(() => {
-                    showNotification("Link je uspešno kopiran u memoriju!", "success");
-                  });
-                } else {
-                  prompt("Kopirajte pristupni link:", konacanLink);
-                }
-              };
+              if (!jeMeet && tipAktivnosti === 'digitalni_resurs' && !dozvoliDeljenjePdf) {
+                btnCopyOnline.classList.add('hidden');
+              } else {
+                btnCopyOnline.classList.remove('hidden');
+                btnCopyOnline.onclick = () => {
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(konacanLink).then(() => {
+                      showNotification("Link je uspešno kopiran u memoriju!", "success");
+                    });
+                  } else {
+                    prompt("Kopirajte pristupni link:", konacanLink);
+                  }
+                };
+              }
             }
           }
         } else if (tipAktivnosti === 'radionica') {
@@ -4455,17 +4597,11 @@ window.azurirajPrikazCeneRezervacije();
               <span>${porukaKraj}</span>
             </div>
           `;
-        } else if (jeUBuducnosti) {
-          let datumPrikaz = datumTerminaProvera;
-          if (datumTerminaProvera.includes('-')) {
-            const delovi = datumTerminaProvera.split('-');
-            if (delovi.length === 3 && delovi[0].length === 4) {
-              datumPrikaz = `${delovi[2]}.${delovi[1]}.${delovi[0]}.`;
-            }
-          }
+        } else if (jePreranoZaPonistavanje(booking).prerano) {
+          const infoPrerano = jePreranoZaPonistavanje(booking);
           sliderWrapper.innerHTML = `
             <div class="p-3.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold text-center leading-relaxed">
-              🔒 Poništavanje karte biće dostupno na dan održavanja (${datumPrikaz}).
+              ${infoPrerano.razlog}
             </div>
           `;
         } else {
@@ -6891,6 +7027,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const activityType = document.getElementById('event-activity-type')?.value || 'radionica';
       const subCategory = document.getElementById('event-sub-category')?.value || 'aktivan_odmor';
       const digitalUrl = document.getElementById('event-digital-url')?.value.trim() || '';
+      const pdfProtection = document.getElementById('event-pdf-allow-print')?.value || 'view_only';
       const trailCode = activityType === 'teren' ? (document.getElementById('event-trail-code')?.value.trim().toUpperCase() || '') : '';
       const packageType = parseInt(document.getElementById('event-package-type')?.value, 10) || 5;
       const voucherType = document.getElementById('event-voucher-type')?.value || 'sati';
@@ -6907,6 +7044,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         activityType: activityType,
         subCategory: subCategory,
         digitalUrl: digitalUrl,
+        pdfProtection: pdfProtection,
         totalSeats: konacnaMesta,
         accessTarget: accessTarget,
         price: price,
