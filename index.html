@@ -65,7 +65,7 @@
 
     /* 3D obrtanje kartice */
     .flip-card {
-      perspective: 1000px;
+      perspective: 1200px;
     }
     .flip-card-inner {
       position: relative !important;
@@ -87,26 +87,34 @@
       backface-visibility: hidden !important;
       border-radius: 1.5rem;
       overflow: hidden;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
     }
     .flip-card-front {
       transform: rotateY(0deg);
+      -webkit-transform: rotateY(0deg);
       z-index: 2;
+      opacity: 1;
+      pointer-events: auto;
     }
     .flip-card-back {
       transform: rotateY(-180deg);
+      -webkit-transform: rotateY(-180deg);
       z-index: 1;
+      opacity: 0;
       pointer-events: none;
     }
     .flip-card.is-flipped .flip-card-front {
       transform: rotateY(180deg);
+      -webkit-transform: rotateY(180deg);
       z-index: 1;
+      opacity: 0;
       pointer-events: none;
     }
     .flip-card.is-flipped .flip-card-back {
       transform: rotateY(0deg);
+      -webkit-transform: rotateY(0deg);
       z-index: 3;
+      opacity: 1;
       pointer-events: auto;
     }
   </style>
@@ -768,8 +776,8 @@
 
             <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm">
                <div>
-                 <p class="text-base font-bold text-slate-700">Koliko mesta rezervišete?</p>
-                 <p class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1"><span>ℹ️</span> Maksimalno 2 po emailu</p>
+                 <p id="booking-qty-question-text" class="text-base font-bold text-slate-700">Koliko mesta rezervišete?</p>
+                 <p id="booking-qty-subtext" class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1"><span>ℹ️</span> Maksimalno 2 po emailu</p>
                </div>
                <div class="flex gap-2">
                  <label class="flex items-center gap-1 cursor-pointer bg-white px-3 py-2 border border-slate-200 rounded-xl shadow-sm">
@@ -789,7 +797,7 @@
                 <span class="text-xl">🎁</span>
                 <div>
                   <span class="block text-[10px] uppercase font-black tracking-wider text-amber-700">Gratis promocija</span>
-                  <span class="text-xs font-black text-amber-950">Pristup za dvoje po ceni jedne karte!</span>
+                  <span id="modal-booking-promo-text" class="text-xs font-black text-amber-950">Gratis promocija 1+1</span>
                 </div>
               </div>
               <span class="text-[10px] font-black bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-800 shrink-0">1+1 Poklon</span>
@@ -962,12 +970,12 @@
                 <span class="text-xl">🎁</span>
                 <div>
                   <p class="text-xs font-black text-amber-950 uppercase tracking-wide">1+1 Gratis akcija</p>
-                  <p class="text-[11px] font-bold text-amber-800">Poklon pristup za još jednu osobu</p>
+                  <p id="ticket-gift-subtitle" class="text-[11px] font-bold text-amber-800">Poklon sveska za još jednu osobu</p>
                 </div>
               </div>
               <span class="text-[10px] font-black bg-white text-amber-800 border border-amber-300 px-2 py-0.5 rounded-md uppercase">Besplatno</span>
             </div>
-            <p class="text-[11px] text-amber-900 leading-snug">
+            <p id="ticket-gift-desc" class="text-[11px] text-amber-900 leading-snug">
               Vaša rezervacija uključuje besplatan pristup za još jednu osobu. Prosledite joj link i istražujte zajedno!
             </p>
             <button type="button" id="btn-share-gift-ticket" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-xs font-black rounded-xl transition shadow-md flex items-center justify-center gap-2">
@@ -1443,8 +1451,25 @@
                 <p id="label-digital-url-desc" class="text-[11px] text-indigo-900 font-medium">Korisnik na svojoj kartici dobija direktno dugme za ulazak na sastanak ili otvaranje materijala.</p>
               </div>
 
-              <!-- Tri odvojene dozvole: Štampanje, Preuzimanje PDF-a i Deljenje -->
-              <div id="box-pdf-protection-options" class="hidden pt-3 border-t border-indigo-200/70 space-y-2.5">
+              <!-- Tri odvojene dozvole: Štampanje, Preuzimanje PDF-a i Deljenje + Kombinacije za 1 ili 2 PDF časopisa -->
+              <div id="box-pdf-protection-options" class="hidden pt-3 border-t border-indigo-200/70 space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white p-3 rounded-xl border border-indigo-200 shadow-xs">
+                  <div>
+                    <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Koliko je moguće preuzeti?</label>
+                    <select id="event-pdf-max-qty" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                      <option value="1">Samo 1 časopis (opcija 2 zaključana)</option>
+                      <option value="2" selected>1 ili 2 časopisa (korisnik bira)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Doplata za 2. časopis (RSD)</label>
+                    <input id="event-pdf-second-price" type="number" min="0" step="50" placeholder="0 = Gratis (ili unesi cenu)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Link za PDF 2 (opciono)</label>
+                    <input id="event-digital-url-2" type="url" placeholder="Prazno = isti kao PDF 1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  </div>
+                </div>
                 <span class="text-xs font-black text-indigo-950 uppercase tracking-wide block">Dozvole u čitaču radne sveske (svaka opcija se uključuje posebno):</span>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <label class="flex items-center justify-between bg-white p-3 rounded-xl border border-indigo-200 cursor-pointer select-none shadow-xs">
@@ -1486,7 +1511,7 @@
                   <select id="event-payment-type" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-indigo-700 focus:outline-none focus:border-indigo-500">
                     <option value="kotizacija">Kotizacija (šifra 289)</option>
                     <option value="donacija">Donacija udruženju (šifra 287)</option>
-                    <option value="clanarina">Namenska članarina podmlatka (šifra 290)</option>
+                    <option value="clanarina">Članarina podmlatka (pridruženi član)</option>
                   </select>
                 </div>
               </div>
@@ -2255,6 +2280,44 @@ function startRealtimeSync() {
         const content = document.getElementById('scan-result-content');
         
         if (b) {
+            // 1. Provera da li je karta otkazana u bazi
+            if (b.status === 'otkazano') {
+              content.innerHTML = `
+                <div class="bg-rose-50 text-rose-800 border-2 border-rose-200 p-5 rounded-2xl mb-4 shadow-sm">
+                  <h4 class="text-xl font-black">🔴 KARTA JE OTKAZANA</h4>
+                </div>
+                <p class="text-xl font-black text-slate-900">${b.firstName} ${b.lastName}</p>
+                <p class="text-sm font-bold text-slate-600 mt-2">Ova rezervacija (${b.id}) je otkazana u bazi i ne može se verifikovati.</p>
+                <div class="mt-6">
+                  <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-base font-black shadow-md transition">ZATVORI</button>
+                </div>
+              `;
+              document.getElementById('modal-scan-result').classList.remove('hidden');
+              return;
+            }
+
+            // 2. Stroga provera uplate u bazi: ako nije prošla uplata, QR čitač odbija verifikaciju
+            const uplataOverena = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+            if (!uplataOverena) {
+              content.innerHTML = `
+                <div class="bg-rose-50 text-rose-800 border-2 border-rose-300 p-5 rounded-2xl mb-4 shadow-sm">
+                  <h4 class="text-xl font-black">🔒 UPLATA NIJE PROŠLA</h4>
+                </div>
+                <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Polaznik</p>
+                <p class="text-2xl font-black text-slate-900 leading-tight">${b.firstName} ${b.lastName}</p>
+                <p class="text-base font-bold text-indigo-700 mt-1">${b.eventTitle}</p>
+                <div class="mt-4 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-950 text-xs font-bold leading-relaxed">
+                  Za ovu kartu (${b.id}) u bazi nije evidentirana uplata od <strong>${b.totalPrice} RSD</strong>. Karta se ne može verifikovati dok se uplata ne potvrdi.
+                </div>
+                <div class="mt-6">
+                  <button onclick="zatvoriRezultatSkeniranja()" class="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl text-base font-black shadow-md transition">ODBIJ I ZATVORI</button>
+                </div>
+              `;
+              document.getElementById('modal-scan-result').classList.remove('hidden');
+              return;
+            }
+
+            // 3. Provera dana održavanja (na sam dan održavanja QR kod prolazi odmah bez čekanja poslednjeg sata)
             const danasnjiDan = new Date().toISOString().split('T')[0];
             const datumDogadjaja = b.selectedDate || b.eventDate;
             if (datumDogadjaja && datumDogadjaja > danasnjiDan) {
@@ -2331,11 +2394,23 @@ function startRealtimeSync() {
     };
 
     window.potvrdiKartuIzSkenera = async function(bookingId) {
+        const ciljnaKarta = state.bookings.find(x => x.id === bookingId);
+        if (!ciljnaKarta) return;
+
+        // Sigurnosna blokada: ako uplata nije overena u bazi, odbijamo verifikaciju
+        const uplataOverena = ciljnaKarta.isPaid || ciljnaKarta.paymentType === 'clanarina_pokriveno' || (ciljnaKarta.totalPrice || 0) === 0;
+        if (!uplataOverena || ciljnaKarta.status === 'otkazano') {
+            showNotification("Verifikacija odbijena: Uplata nije evidentirana u bazi!", "warning");
+            zatvoriRezultatSkeniranja();
+            return;
+        }
+
         state.bookings = state.bookings.map(b => {
             if (b.id === bookingId) {
                 const maxUlaza = b.ticketsCount || 1;
-                const jePaketZaDvoje = b.hasPromo1plus1 || b.packageType === 2 || maxUlaza === 2;
-                const novoSkenirano = jePaketZaDvoje ? maxUlaza : ((b.scannedCount || 0) + 1);
+                const tipAkt = b.activityType || (b.trailCode ? 'teren' : 'radionica');
+                // Za terensku stazu (1+1 vaučer) otključavaju se oba uređaja, a za događaje na lokaciji ide redom po osobi (1/2 pa 2/2)
+                const novoSkenirano = (tipAkt === 'teren') ? maxUlaza : Math.min(maxUlaza, (b.scannedCount || 0) + 1);
                 const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
                 return { ...b, scannedCount: novoSkenirano, status: noviStatus };
             }
@@ -2848,6 +2923,15 @@ function startRealtimeSync() {
       if (document.getElementById('event-pdf-allow-share-cb')) {
         document.getElementById('event-pdf-allow-share-cb').checked = ev.pdfAllowShare === true;
       }
+      if (document.getElementById('event-pdf-max-qty')) {
+        document.getElementById('event-pdf-max-qty').value = String(ev.pdfMaxQty || (ev.hasPromo1plus1 ? 2 : 1));
+      }
+      if (document.getElementById('event-pdf-second-price')) {
+        document.getElementById('event-pdf-second-price').value = (ev.pdfSecondPrice !== undefined && ev.pdfSecondPrice !== null) ? ev.pdfSecondPrice : '';
+      }
+      if (document.getElementById('event-digital-url-2')) {
+        document.getElementById('event-digital-url-2').value = ev.digitalUrl2 || '';
+      }
       if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
       // Prvo potpuno čistimo kalkulator od prethodno otvaranog programa
       window.resetujKalkulatorNaPodrazumevano();
@@ -3172,7 +3256,9 @@ window.openBookingModal = function(eventId) {
 
       const dateChoiceWrapper = document.getElementById('wrapper-booking-date-choice');
       const dateChoiceInput = document.getElementById('booking-selected-date');
-      const jeVisednevniProgram = event.startDate && event.endDate && event.startDate !== event.endDate;
+      const tipZaDatum = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+      // Kod PDF digitalnih resursa nikada ne tražimo "dan dolaska"
+      const jeVisednevniProgram = tipZaDatum !== 'digitalni_resurs' && event.startDate && event.endDate && event.startDate !== event.endDate;
 
       if (dateChoiceInput) {
         const danasnjiDan = new Date().toISOString().split('T')[0];
@@ -3310,8 +3396,14 @@ window.openBookingModal = function(eventId) {
 
       // Provera i prikaz 1+1 promo trake unutar formulara
       const promoBanner = document.getElementById('modal-booking-promo-banner');
+      const promoTextEl = document.getElementById('modal-booking-promo-text');
       if (promoBanner) {
         if (event.hasPromo1plus1) {
+          if (promoTextEl) {
+            promoTextEl.innerText = (tipZaDatum === 'digitalni_resurs')
+              ? 'Gratis promocija 1+1 (+1 poklon sveska)'
+              : 'Gratis promocija 1+1';
+          }
           promoBanner.classList.remove('hidden');
           promoBanner.classList.add('flex');
         } else {
@@ -3334,10 +3426,48 @@ window.openBookingModal = function(eventId) {
       if (regularFields) regularFields.classList.add('hidden');
       if (toggleNonMemberBtn) toggleNonMemberBtn.innerText = "Učlani me";
 
-      const redovnaCenaPoKarti = event.price || 0;
-      const clanskaCenaPoKarti = (event.memberPrice !== null && event.memberPrice !== undefined) ? event.memberPrice : (jeSamoZaClanove ? 0 : redovnaCenaPoKarti);
+      const sirovaRedovna = Number(event.price || 0);
+      const sirovaClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') 
+        ? Number(event.memberPrice) 
+        : (jeSamoZaClanove ? 0 : sirovaRedovna);
 
-      // Funkcija za obracun i prikaz cene uz podrsku za 1+1 promociju
+      const jeModelClanarine = event.paymentType === 'clanarina' || event.activityType === 'teren' || !!event.trailCode;
+      // Ako je u adminu slučajno uneto 0 za redovnu a 850 za člana, automatski ih postavljamo na pravo mesto
+      const redovnaCenaPoKarti = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna;
+      const clanskaCenaPoKarti = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? 0 : sirovaClanska;
+
+      // Provera da li je članarina aktivna (30 dana od datuma uplate) za sve vrste aktivnosti
+      window.proveriAktivnostClanarine30Dana = function(clanObj) {
+        if (!clanObj) return { aktivna: false, preostaloDana: 0 };
+        const TRIDESET_DANA_MS = 30 * 24 * 60 * 60 * 1000;
+        const sada = Date.now();
+
+        if (String(clanObj.card).toUpperCase().startsWith('MG-') && !clanObj.lastPaymentDate) {
+          return { aktivna: true, preostaloDana: 30 };
+        }
+
+        let datumUplateMs = clanObj.lastPaymentDate ? new Date(clanObj.lastPaymentDate).getTime() : 0;
+
+        state.bookings.forEach(b => {
+          if (b.status === 'otkazano') return;
+          const istiKod = b.memberCode && String(b.memberCode).toUpperCase() === String(clanObj.card).toUpperCase();
+          const istiTel = clanObj.phone && b.phone && b.phone.replace(/[^0-9]/g, '') === clanObj.phone.replace(/[^0-9]/g, '');
+          if ((istiKod || istiTel) && b.isPaid && (b.totalPrice || 0) > 0) {
+            const t = b.paidAt ? new Date(b.paidAt).getTime() : (b.timestamp ? new Date(b.timestamp).getTime() : 0);
+            if (t > datumUplateMs) datumUplateMs = t;
+          }
+        });
+
+        if (!datumUplateMs) return { aktivna: false, preostaloDana: 0 };
+        const prosloMs = sada - datumUplateMs;
+        if (prosloMs <= TRIDESET_DANA_MS) {
+          const preostalo = Math.max(1, Math.ceil((TRIDESET_DANA_MS - prosloMs) / (24 * 60 * 60 * 1000)));
+          return { aktivna: true, preostaloDana: preostalo };
+        }
+        return { aktivna: false, preostaloDana: 0 };
+      };
+
+      // Funkcija za obračun i prikaz cene uz podršku za 1+1 promociju iz admin panela
       window.azurirajPrikazCeneRezervacije = function() {
         const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
         const qty = qtyInput ? parseInt(qtyInput.value) : 1;
@@ -3348,45 +3478,56 @@ window.openBookingModal = function(eventId) {
 
         let tipNaziv = 'Kotizacija za učešće';
         if (event.paymentType === 'donacija') tipNaziv = 'Preporučena donacija';
-        else if (event.paymentType === 'clanarina') tipNaziv = 'Članarina podmlatka';
+        else if (jeModelClanarine) tipNaziv = 'Članarina podmlatka (pridruženi član)';
         if (priceType) priceType.innerText = tipNaziv;
 
-        // Ako je ukljucena akcija 1+1, naplacuje se tacno jedna karta cak i kada se izaberu 2 mesta
         const jePromo1plus1 = event.hasPromo1plus1 === true;
-        const obracunskiBrojKarata = (jePromo1plus1 && qty === 2) ? 1 : qty;
+        const jeDigitalni = event.activityType === 'digitalni_resurs';
+        const doplataZaDrugi = (jeDigitalni && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined)
+          ? Number(event.pdfSecondPrice)
+          : (jePromo1plus1 ? 0 : null);
 
-        const clanskiTotal = clanskaCenaPoKarti * obracunskiBrojKarata;
-        const redovniTotal = redovnaCenaPoKarti * obracunskiBrojKarata;
+        let clanskiTotal = clanskaCenaPoKarti;
+        let redovniTotal = redovnaCenaPoKarti;
+
+        if (qty === 2) {
+          if (doplataZaDrugi !== null) {
+            clanskiTotal = clanskaCenaPoKarti + doplataZaDrugi;
+            redovniTotal = redovnaCenaPoKarti + doplataZaDrugi;
+          } else {
+            clanskiTotal = clanskaCenaPoKarti * 2;
+            redovniTotal = redovnaCenaPoKarti * 2;
+          }
+        }
+        const oznakaDrugeCene = jeModelClanarine ? 'Učlanjenje' : 'Redovna cena';
 
         if (priceDisplay) {
           priceDisplay.innerHTML = `
-            <span class="block text-xs sm:text-sm font-black text-indigo-700 leading-tight">ČLAN: ${clanskiTotal} RSD</span>
-            <span class="block text-base sm:text-lg font-black text-slate-900 mt-0.5">${redovniTotal} RSD</span>
+            <span class="block text-xs sm:text-sm font-black text-emerald-700 leading-tight">Za člana: ${clanskiTotal} din</span>
+            <span class="block text-sm sm:text-base font-black text-slate-900 mt-0.5">${oznakaDrugeCene}: ${redovniTotal} din</span>
           `;
         }
 
         if (state.activeMembership) {
           if (priceCalc) {
-            if (jePromo1plus1 && qty === 2) {
-              priceCalc.innerText = clanskiTotal === 0 
-                ? '🎁 Gratis promocija: Pristup za dvoje pokriven članarinom!' 
-                : '🎁 Gratis promocija: Pristup za dvoje po ceni jedne članske karte!';
+            if (state.activeMembership.isMembershipActive) {
+              priceCalc.innerHTML = `<span class="text-emerald-700 font-black">✓ Aktivna članarina (još ${state.activeMembership.daysRemaining} dana) — Za člana: ${clanskiTotal} din</span>`;
             } else {
-              priceCalc.innerText = clanskiTotal === 0 ? 'Potpuno pokriveno članarinom' : `Povlašćena cena za članove (${qty} x ${clanskaCenaPoKarti} RSD)`;
+              priceCalc.innerHTML = `<span class="text-amber-700 font-black">⚠️ Članarina (30 dana) je istekla — ${oznakaDrugeCene}: ${redovniTotal} din (zadržavate broj ${state.activeMembership.card})</span>`;
             }
           }
         } else {
           if (priceCalc) {
-            if (jePromo1plus1 && qty === 2) {
-              priceCalc.innerHTML = '<span class="text-amber-800 font-black">🎁 Gratis promocija: Pristup za dvoje!</span>';
+            if (jeDigitalni) {
+              priceCalc.innerText = '';
             } else {
-              priceCalc.innerText = qty > 1 ? `Ukupno za 2 osobe (${qty} x ${redovnaCenaPoKarti} RSD)` : 'Iznos za 1 osobu';
+              priceCalc.innerText = qty > 1 ? `Ukupno za 2 osobe (${qty} x ${redovnaCenaPoKarti} din)` : 'Iznos za 1 osobu';
             }
           }
         }
       };
 
-      // Potvrda clanskog broja iz baze clanova
+      // Potvrda članskog broja iz baze članova uz proveru 30 dana
       const btnApplyMember = document.getElementById('btn-apply-membership');
       if (btnApplyMember) {
         btnApplyMember.onclick = () => {
@@ -3404,6 +3545,8 @@ window.openBookingModal = function(eventId) {
             return;
           }
 
+          const status30Dana = window.proveriAktivnostClanarine30Dana(pronadjenClan);
+
           const currentMonth = new Date().toISOString().slice(0, 7);
           const previousUsages = state.bookings.filter(b => {
             const matchesCode = (b.memberCode && b.memberCode.toUpperCase() === rawCode) || (b.phone && b.phone.includes(rawCode));
@@ -3419,7 +3562,9 @@ window.openBookingModal = function(eventId) {
             phone: pronadjenClan.phone,
             email: pronadjenClan.email,
             group: pronadjenClan.group || '',
-            usageCount: usageCount
+            usageCount: usageCount,
+            isMembershipActive: status30Dana.aktivna,
+            daysRemaining: status30Dana.preostaloDana
           };
 
           if (inputRow) inputRow.classList.add('hidden');
@@ -3428,7 +3573,11 @@ window.openBookingModal = function(eventId) {
             const nameEl = document.getElementById('membership-member-name');
             const infoEl = document.getElementById('membership-member-info');
             if (nameEl) nameEl.innerText = `${pronadjenClan.firstName} ${pronadjenClan.lastName} (${pronadjenClan.card})`;
-            if (infoEl) infoEl.innerText = `${usageCount + 1}. dolazak u ovom mesecu, podaci su uspešno povezani`;
+            if (infoEl) {
+              infoEl.innerText = status30Dana.aktivna
+                ? `Članarina aktivna (još ${status30Dana.preostaloDana} dana) — ${usageCount + 1}. dolazak`
+                : `Članarina od 30 dana je istekla — broj ${pronadjenClan.card} se zadržava uz uplatu članarine`;
+            }
           }
 
           if (regularFields) regularFields.classList.add('hidden');
@@ -3558,15 +3707,38 @@ window.azurirajPrikazCeneRezervacije();
 
       const radio2 = document.getElementById('radio-qty-2');
       const label2 = document.getElementById('label-qty-2');
-      const jeDigitalniBezGratis = event.activityType === 'digitalni_resurs' && !event.hasPromo1plus1;
+      const tipAkt = event.activityType || (event.trailCode ? 'teren' : 'radionica');
+      const qtyQuestionEl = document.getElementById('booking-qty-question-text');
+      const qtySubtextEl = document.getElementById('booking-qty-subtext');
 
-      if (remaining < 2 || jeDigitalniBezGratis) {
+      // Za PDF: opcija 2 je klikabilna SAMO ako je u adminu izabrano 2 I uneta cena za 2. svesku (makar 0).
+      // Ako je uključena samo 1 sveska + 1+1 Gratis promocija, opcija 2 je zaključana (dobija +1 poklon automatski).
+      const imaDefinisanuDruguSvesku = Number(event.pdfMaxQty) === 2 && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined && event.pdfSecondPrice !== '';
+
+      if (tipAkt === 'digitalni_resurs') {
+        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Želim da preuzmem:';
+        if (imaDefinisanuDruguSvesku) {
+          const tekstDrugi = Number(event.pdfSecondPrice) === 0 ? '2. sveska: 0 din' : `2. sveska: +${event.pdfSecondPrice} din`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>📖</span> ${tekstDrugi}`;
+        } else if (event.hasPromo1plus1) {
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 1 sveska + 1 poklon sveska gratis`;
+        } else {
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>📖</span> 1 sveska po korisniku`;
+        }
+      } else {
+        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Koliko mesta rezervišete?';
+        if (qtySubtextEl) qtySubtextEl.innerHTML = '<span>ℹ️</span> Maksimalno 2 po emailu';
+      }
+
+      const zabraniDvaMesta = tipAkt === 'teren' || (tipAkt === 'digitalni_resurs' && !imaDefinisanuDruguSvesku);
+
+      if (remaining < 2 || zabraniDvaMesta) {
         radio2.disabled = true;
-        label2.classList.add('opacity-50', 'cursor-not-allowed');
+        label2.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
         document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
       } else {
         radio2.disabled = false;
-        label2.classList.remove('opacity-50', 'cursor-not-allowed');
+        label2.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
         document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
       }
 
@@ -3692,18 +3864,22 @@ window.azurirajPrikazCeneRezervacije();
 
       const punoImeZaProveru = `${unetoIme} ${unetoPrezime}`.toLowerCase().trim();
 
-      // Provera duplikata: blokira se samo ako je postojeća rezervacija još uvek aktivna i neiskorišćena
+      const mojiSacuvaniIdjevi = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+      const jeDigitalniResurs = event.activityType === 'digitalni_resurs';
+
+      // Provera duplikata: za PDF sveske ne dozvoljavamo ponovno preuzimanje čak ni kada je status 'iskorišćena'
       const postojecaRezervacija = state.bookings.find(b => {
         if (b.eventId !== event.id) return false;
-        // Ako je otkazana ili potpuno iskorišćena na prijemu, više ne blokira novu rezervaciju
-        if (b.status === 'otkazano' || b.status === 'iskorišćena') return false;
+        if (b.status === 'otkazano') return false;
+        if (!jeDigitalniResurs && b.status === 'iskorišćena') return false;
 
+        const istiUredjajZaPdf = jeDigitalniResurs && mojiSacuvaniIdjevi.includes(b.id);
         const istiClan = clanskiBroj && b.memberCode && b.memberCode.toUpperCase().trim() === clanskiBroj;
         const istoIme = punoImeZaProveru && b.firstName && `${b.firstName} ${b.lastName || ''}`.toLowerCase().trim() === punoImeZaProveru;
         const istiEmail = emailValue && emailValue.includes('@') && b.email && b.email.toLowerCase().trim() === emailValue;
         const istiTelefon = phoneValue && phoneValue.length >= 6 && b.phone && b.phone.replace(/[^0-9]/g, '').includes(phoneValue);
 
-        return istiClan || istoIme || istiEmail || istiTelefon;
+        return istiUredjajZaPdf || istiClan || istoIme || istiEmail || istiTelefon;
       });
 
       if (postojecaRezervacija) {
@@ -3773,10 +3949,27 @@ window.azurirajPrikazCeneRezervacije();
       const obracunskiBroj = (jePromo1plus1 && qty === 2) ? 1 : qty;
 
       const jeSamoZaClanove = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
-      const redovnaCena = event.price || 0;
-      const clanskaCena = (event.memberPrice !== null && event.memberPrice !== undefined) ? event.memberPrice : (jeSamoZaClanove ? 0 : redovnaCena);
-      const pricePerTicket = isMemberCovered ? clanskaCena : redovnaCena;
-      const totalPrice = pricePerTicket * obracunskiBroj;
+      const sirovaRedovna = Number(event.price || 0);
+      const sirovaClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') 
+        ? Number(event.memberPrice) 
+        : (jeSamoZaClanove ? 0 : sirovaRedovna);
+      const jeModelClanarine = event.paymentType === 'clanarina' || event.activityType === 'teren' || !!event.trailCode;
+
+      const redovnaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna;
+      const clanskaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? 0 : sirovaClanska;
+
+      // Člansku cenu ostvaruje samo član kome je članarina aktivna (u okviru 30 dana od uplate)
+      const imaAktivnuClanarinu = isMemberCovered && state.activeMembership.isMembershipActive === true;
+      const pricePerTicket = imaAktivnuClanarinu ? clanskaCena : redovnaCena;
+      const jeDigitalni = event.activityType === 'digitalni_resurs';
+      const doplataZaDrugi = (jeDigitalni && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined)
+        ? Number(event.pdfSecondPrice)
+        : (jePromo1plus1 ? 0 : null);
+
+      let totalPrice = pricePerTicket * obracunskiBroj;
+      if (qty === 2 && doplataZaDrugi !== null) {
+        totalPrice = pricePerTicket + doplataZaDrugi;
+      }
 
       let finalFirstName = 'Polaznik';
       let finalLastName = '';
@@ -3844,6 +4037,12 @@ window.azurirajPrikazCeneRezervacije();
         finalAddress = addressEl && addressEl.value.trim() ? addressEl.value.trim() : 'Nije uneto';
       }
 
+      // Računamo koliko je trenutno slobodnih sveski u fondu kako bi i +1 gratis sveska skinula zeleno mesto
+      const aktivneRezDogadjaja = state.bookings.filter(b => b.eventId === event.id && b.status !== 'otkazano');
+      const zauzetoTrenutno = aktivneRezDogadjaja.reduce((s, b) => s + (b.ticketsCount || 1), 0);
+      const slobodnoTrenutno = Math.max(0, event.totalSeats - zauzetoTrenutno);
+      const stvarniBrojIzdatih = (jeDigitalni && jePromo1plus1) ? Math.min(2, Math.max(1, slobodnoTrenutno)) : qty;
+
       const newBooking = {
         id: bookingId,
         eventId: event.id,
@@ -3852,12 +4051,12 @@ window.azurirajPrikazCeneRezervacije();
         eventDate: tacanDatumTermina,
         selectedDate: tacanDatumTermina,
         eventTime: izabranoVreme,
-        ticketsCount: qty,
+        ticketsCount: stvarniBrojIzdatih,
         pricePerTicket: pricePerTicket,
         totalPrice: totalPrice,
         originalPrice: (event.price || 0) * qty,
         paymentReference: cistPozivNaBroj,
-        paymentType: (isMemberCovered && totalPrice === 0) ? 'clanarina_pokriveno' : (event.paymentType || 'kotizacija'),
+        paymentType: (imaAktivnuClanarinu && totalPrice === 0) ? 'clanarina_pokriveno' : (event.paymentType || 'kotizacija'),
         memberCode: isMemberCovered ? state.activeMembership.card : '',
         membershipVisitNumber: isMemberCovered ? (state.activeMembership.usageCount + 1) : null,
         bankAccount: event.bankAccount || '',
@@ -3866,13 +4065,14 @@ window.azurirajPrikazCeneRezervacije();
         instructorEmail: event.instructorEmail || '',
         trailCode: event.trailCode || '',
         digitalUrl: event.digitalUrl || '',
+        digitalUrl2: event.digitalUrl2 || '',
         pdfProtection: event.pdfProtection || 'view_only',
         pdfAllowPrint: event.pdfAllowPrint === true,
         pdfAllowDownload: event.pdfAllowDownload === true,
         pdfAllowShare: event.pdfAllowShare === true,
         activityType: event.activityType || 'radionica',
-        packageType: (jePromo1plus1 && qty === 2) ? 2 : (qty === 1 ? 1 : (event.packageType || 1)),
-        hasPromo1plus1: (jePromo1plus1 && qty === 2),
+        packageType: (jePromo1plus1 || stvarniBrojIzdatih === 2) ? 2 : 1,
+        hasPromo1plus1: jePromo1plus1,
         voucherType: event.voucherType || 'sati',
         isPaid: totalPrice === 0,
         scannedCount: 0,
@@ -4147,50 +4347,73 @@ window.azurirajPrikazCeneRezervacije();
       return { prerano: false };
     }
 
-    window.otvoriPdfPregledac = function(bookingId) {
-      const b = state.bookings.find(x => x.id === bookingId) || state.activeViewingTicket;
-      if (!b) return;
+    window.sastaviCitacUrl = function(b, redniBrojPdf = 1) {
+      if (!b) return '';
       const ev = state.events.find(e => e.id === b.eventId);
-      const url = (b.digitalUrl || (ev ? ev.digitalUrl : '') || '').trim();
-      if (!url) {
-        showNotification("Link do materijala još nije unet", "warning");
-        return;
+      const primarniUrl = (b.digitalUrl || (ev ? ev.digitalUrl : '') || '').trim();
+      const sekundarniUrl = (b.digitalUrl2 || (ev ? ev.digitalUrl2 : '') || '').trim();
+      const izabraniUrl = (redniBrojPdf === 2 && sekundarniUrl) ? sekundarniUrl : primarniUrl;
+      if (!izabraniUrl) return '';
+
+      let cistUrl = izabraniUrl;
+      if (cistUrl.includes('github.com') && cistUrl.includes('/blob/')) {
+        cistUrl = cistUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
 
       const dozvoliStampu = (ev ? ev.pdfAllowPrint : b.pdfAllowPrint) === true;
       const dozvoliPreuzimanje = (ev ? ev.pdfAllowDownload : b.pdfAllowDownload) === true;
       const dozvoliDeljenje = (ev ? ev.pdfAllowShare : b.pdfAllowShare) === true;
 
-      document.getElementById('pdf-viewer-title').innerText = b.eventTitle || 'Radni materijal';
+      const printParam = dozvoliStampu ? '1' : '0';
+      const downParam = dozvoliPreuzimanje ? '1' : '0';
+      const shareParam = dozvoliDeljenje ? '1' : '0';
+
+      const jeHeyzine = cistUrl.includes('heyzine.com');
+      const jeGoogleDrive = cistUrl.includes('drive.google.com') || cistUrl.includes('docs.google.com');
+
+      if (jeGoogleDrive) {
+        const idMatch = cistUrl.match(/[-\w]{25,}/);
+        return (idMatch && idMatch[0]) 
+          ? `https://drive.google.com/file/d/${idMatch[0]}/preview` 
+          : cistUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
+      }
+      if (jeHeyzine) {
+        return cistUrl;
+      }
+
+      const licTekst = `${b.id} (${b.firstName} ${b.lastName})`;
+      const naslovDokumenta = (b.ticketsCount > 1) ? `${b.eventTitle || 'Časopis'} - PDF ${redniBrojPdf}` : (b.eventTitle || 'Časopis');
+      const bazaPutanje = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+      return `${bazaPutanje}citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(naslovDokumenta)}&lic=${encodeURIComponent(licTekst)}&print=${printParam}&download=${downParam}&share=${shareParam}`;
+    };
+
+    window.otvoriPdfPregledac = async function(bookingId, redniBrojPdf = 1) {
+      const b = state.bookings.find(x => x.id === bookingId) || state.activeViewingTicket;
+      if (!b) return;
+
+      const uplataOverena = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+      if (!uplataOverena) {
+        showNotification("Pristup je zaključan dok se ne evidentira uplata.", "warning");
+        return;
+      }
+
+      const prikazniUrl = window.sastaviCitacUrl(b, redniBrojPdf);
+      if (!prikazniUrl) {
+        showNotification("Link do materijala još nije unet", "warning");
+        return;
+      }
+
+      const ev = state.events.find(e => e.id === b.eventId);
+      const dozvoliStampu = (ev ? ev.pdfAllowPrint : b.pdfAllowPrint) === true;
+      const dozvoliPreuzimanje = (ev ? ev.pdfAllowDownload : b.pdfAllowDownload) === true;
+      const dozvoliDeljenje = (ev ? ev.pdfAllowShare : b.pdfAllowShare) === true;
+
+      document.getElementById('pdf-viewer-title').innerText = (b.ticketsCount > 1) ? `${b.eventTitle || 'Časopis'} (PDF ${redniBrojPdf})` : (b.eventTitle || 'Časopis');
       document.getElementById('pdf-viewer-license').innerText = `Licenca: ${b.id} (${b.firstName} ${b.lastName})`;
 
       const btnShareTop = document.getElementById('btn-pdf-share-top');
       const badgeProt = document.getElementById('badge-pdf-protected');
       const iframe = document.getElementById('pdf-viewer-iframe');
-
-      let cistUrl = url;
-      if (cistUrl.includes('github.com') && cistUrl.includes('/blob/')) {
-        cistUrl = cistUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-      }
-
-      const jeHeyzine = cistUrl.includes('heyzine.com');
-      const jeGoogleDrive = cistUrl.includes('drive.google.com') || cistUrl.includes('docs.google.com');
-      const jePdfFajl = cistUrl.toLowerCase().split('?')[0].endsWith('.pdf');
-      const printParam = dozvoliStampu ? '1' : '0';
-      const downParam = dozvoliPreuzimanje ? '1' : '0';
-      const shareParam = dozvoliDeljenje ? '1' : '0';
-
-      let prikazniUrl = cistUrl;
-
-      if (jeGoogleDrive) {
-        const idMatch = cistUrl.match(/[-\w]{25,}/);
-        prikazniUrl = (idMatch && idMatch[0]) 
-          ? `https://drive.google.com/file/d/${idMatch[0]}/preview` 
-          : cistUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
-      } else if (jePdfFajl && !jeHeyzine) {
-        const licTekst = `${b.id} (${b.firstName} ${b.lastName})`;
-        prikazniUrl = `./citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(b.eventTitle || 'Radna sveska')}&lic=${encodeURIComponent(licTekst)}&print=${printParam}&download=${downParam}&share=${shareParam}`;
-      }
 
       if (btnShareTop) {
         if (dozvoliDeljenje) {
@@ -4210,6 +4433,24 @@ window.azurirajPrikazCeneRezervacije();
 
       if (iframe) iframe.src = prikazniUrl;
       document.getElementById('modal-pdf-viewer').classList.remove('hidden');
+
+      // Automatsko evidentiranje da je PDF časopis otvoren/preuzet (bez klizača)
+      const noviBrojOtvorenih = Math.max(b.scannedCount || 0, redniBrojPdf);
+      const noviStatus = noviBrojOtvorenih >= (b.ticketsCount || 1) ? 'iskorišćena' : 'delimično';
+      if (b.status !== 'iskorišćena') {
+        b.scannedCount = noviBrojOtvorenih;
+        b.status = noviStatus;
+        safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        if (state.isOnline && firebaseActive) {
+          try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), {
+              scannedCount: noviBrojOtvorenih,
+              status: noviStatus
+            });
+          } catch (e) {}
+        }
+        renderUI();
+      }
     };
 
 
@@ -4262,9 +4503,8 @@ window.azurirajPrikazCeneRezervacije();
         return; // Prekini dalji kod
       }
       const maxUlaza = pronadjena.ticketsCount || 1;
-      // Ako su rezervisane 2 karte (1+1 paket), aktivacija odmah poništava obe
-      const jePaketZaDvoje = pronadjena.hasPromo1plus1 || pronadjena.packageType === 2 || maxUlaza === 2;
-      const novoSkenirano = jePaketZaDvoje ? maxUlaza : ((pronadjena.scannedCount || 0) + 1);
+      // Usklađeno sa QR čitačem: za terensku stazu aktivira ceo vaučer, a za prisustvo na lokaciji poništava redom (1/2 pa 2/2)
+      const novoSkenirano = (tipAktivnosti === 'teren') ? maxUlaza : Math.min(maxUlaza, (pronadjena.scannedCount || 0) + 1);
       const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
 
       pronadjena.scannedCount = novoSkenirano;
@@ -4465,9 +4705,9 @@ window.azurirajPrikazCeneRezervacije();
           const brojMesta = booking.ticketsCount || 1;
           const pkg = booking.packageType || brojMesta;
 
-          if (brojMesta === 2 && (booking.hasPromo1plus1 || pkg === 2)) {
-            if (badgeSubtext) badgeSubtext.innerText = "Paket za 2 osobe (Gratis promocija: Pristup za dvoje)";
-          } else if (brojMesta === 1 || pkg === 1) {
+          if (booking.hasPromo1plus1) {
+            if (badgeSubtext) badgeSubtext.innerText = "1 mesto + Poklon vaučer (1+1 Gratis na isti članski broj)";
+          } else if (brojMesta === 1 && pkg === 1) {
             if (badgeSubtext) badgeSubtext.innerText = "Solo paket (1 osoba)";
           } else {
             if (badgeSubtext) badgeSubtext.innerText = `Paket za ${pkg} osoba`;
@@ -4545,34 +4785,20 @@ window.azurirajPrikazCeneRezervacije();
             if (onlineBtnText) onlineBtnText.innerText = `AKTIVNO NA DAN: ${formatiranDatum}`;
             if (btnCopyOnline) btnCopyOnline.classList.add('hidden');
           } 
-          // 3. SLUČAJ: Digitalni resurs (PDF sveska) je plaćen, ali klizač ispod još nije prevučen
-          else if (!jeMeet && tipAktivnosti === 'digitalni_resurs' && booking.status !== 'iskorišćena') {
-            if (onlineInst) {
-              onlineInst.innerText = '👉 Prevucite klizač ispod da aktivirate licencu i otključate svoju radnu svesku.';
-            }
-            if (onlineBtn) {
-              onlineBtn.removeAttribute('href');
-              onlineBtn.onclick = null;
-              onlineBtn.className = "w-full py-4 bg-slate-200 text-slate-500 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed select-none";
-            }
-            if (onlineBtnIcon) onlineBtnIcon.innerText = '🔒';
-            if (onlineBtnText) onlineBtnText.innerText = 'PREVUCITE KLIZAČ ZA OTKLJUČAVANJE';
-            if (btnCopyOnline) btnCopyOnline.classList.add('hidden');
-          }
-          // 4. SLUČAJ: Sve je potvrđeno i otključano (sveska je aktivirana klizačem ili je vreme za Meet)
+          // 3. SLUČAJ: Sve je potvrđeno i otključano (odmah dostupno za PDF časopis ili Meet)
           else {
             const dozvoliStampu = booking.pdfProtection === 'allow_print' || (pridruzeniEv && pridruzeniEv.pdfProtection === 'allow_print');
             if (onlineInst) {
               onlineInst.innerText = jeMeet 
                 ? 'Vaš termin je aktivan. Klikom na dugme ispod direktno ulazite u video sobu.' 
-                : (dozvoliStampu ? 'Vaša radna sveska je otključana za pregled i preuzimanje.' : 'Vaša radna sveska je otključana. Kliknite ispod za čitanje.');
+                : 'Vaš digitalni materijal je otključan. Kliknite na dugme ispod ili na PDF časopis za čitanje i preuzimanje.';
             }
             if (onlineBtn) {
               if (!jeMeet && tipAktivnosti === 'digitalni_resurs') {
                 onlineBtn.removeAttribute('href');
                 onlineBtn.onclick = (e) => {
                   e.preventDefault();
-                  window.otvoriPdfPregledac(booking.id);
+                  window.otvoriPdfPregledac(booking.id, 1);
                 };
               } else {
                 onlineBtn.onclick = null;
@@ -4581,20 +4807,21 @@ window.azurirajPrikazCeneRezervacije();
               onlineBtn.className = "w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition cursor-pointer";
             }
             if (onlineBtnIcon) onlineBtnIcon.innerText = jeMeet ? '🎥' : '📖';
-            if (onlineBtnText) onlineBtnText.innerText = jeMeet ? 'ULAZAK NA ONLINE SUSRET' : 'OTVORI RADNU SVESKU';
+            if (onlineBtnText) onlineBtnText.innerText = jeMeet ? 'ULAZAK NA ONLINE SUSRET' : 'OTVORI PDF 1 ČASOPIS';
             
             if (btnCopyOnline) {
+              const linkZaKopiranje = (!jeMeet && tipAktivnosti === 'digitalni_resurs') ? window.sastaviCitacUrl(booking, 1) : konacanLink;
               if (!jeMeet && tipAktivnosti === 'digitalni_resurs' && !dozvoliStampu) {
                 btnCopyOnline.classList.add('hidden');
               } else {
                 btnCopyOnline.classList.remove('hidden');
                 btnCopyOnline.onclick = () => {
                   if (navigator.clipboard) {
-                    navigator.clipboard.writeText(konacanLink).then(() => {
-                      showNotification("Link je uspešno kopiran u memoriju!", "success");
+                    navigator.clipboard.writeText(linkZaKopiranje).then(() => {
+                      showNotification("Link ka čitaču je kopiran u memoriju!", "success");
                     });
                   } else {
-                    prompt("Kopirajte pristupni link:", konacanLink);
+                    prompt("Kopirajte pristupni link:", linkZaKopiranje);
                   }
                 };
               }
@@ -4647,94 +4874,129 @@ window.azurirajPrikazCeneRezervacije();
       const potpunoIskoriscena = booking.status === 'iskorišćena' || iskorisceno >= maxUlaza;
 
       if (sliderWrapper) {
-        const danasnjiDan = new Date().toISOString().split('T')[0];
-        const datumTerminaProvera = booking.selectedDate || booking.eventDate;
-        const jeUBuducnosti = datumTerminaProvera && datumTerminaProvera > danasnjiDan;
+        // Za Digitalni resurs NEMA klizača: prikazuju se direktno klikabilne kartice PDF 1 časopis / PDF 2 časopis, a ispod samo "Omogućeno preuzimanje" kada je otključano
+        if (tipAktivnosti === 'digitalni_resurs') {
+          const klasaDugmeta = uplataOverena
+            ? 'bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-300 text-indigo-900 cursor-pointer shadow-sm active:scale-95'
+            : 'bg-slate-100 border-2 border-slate-200 text-slate-400 cursor-not-allowed opacity-75';
 
-        if (booking.status === 'otkazano') {
-          sliderWrapper.innerHTML = `
-            <div class="p-3 bg-slate-100 border border-slate-200 text-slate-600 rounded-2xl text-xs font-bold text-center">
-              Rezervacija je otkazana.
+          const imaDrugiPdf = maxUlaza > 1 || booking.hasPromo1plus1 === true;
+
+          let pdfKarticeHtml = `
+            <div class="flex items-center justify-center gap-3 ${uplataOverena ? 'mb-2.5' : ''}">
+              <button type="button" ${uplataOverena ? `onclick="window.otvoriPdfPregledac('${booking.id}', 1)"` : 'disabled'} class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${klasaDugmeta}">
+                <span>📄</span>
+                <span>PDF 1 časopis</span>
+                ${uplataOverena ? '<span class="text-emerald-600 font-black ml-1">✓</span>' : '<span>🔒</span>'}
+              </button>
+              ${imaDrugiPdf ? `
+                <button type="button" ${uplataOverena ? `onclick="window.otvoriPdfPregledac('${booking.id}', 2)"` : 'disabled'} class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${klasaDugmeta}">
+                  <span>📄</span>
+                  <span>PDF 2 časopis</span>
+                  ${uplataOverena ? '<span class="text-emerald-600 font-black ml-1">✓</span>' : '<span>🔒</span>'}
+                </button>
+              ` : ''}
             </div>
           `;
-        } else if (potpunoIskoriscena) {
-          const porukaKraj = maxUlaza > 1 
-            ? "✓ Poništene su obe karte (paket za dvoje je iskorišćen)" 
-            : "✓ Karta je uspešno iskorišćena na prijemu";
 
-          let bedzeviHtml = '';
-          if (maxUlaza > 1) {
-            bedzeviHtml = `
-              <div class="flex items-center justify-center gap-3 mb-2.5">
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 line-through opacity-75 text-xs font-black">
-                  <span>🎫</span>
-                  <span>Karta 1</span>
-                  <span class="text-emerald-600 font-bold ml-0.5">✓</span>
-                </div>
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 line-through opacity-75 text-xs font-black">
-                  <span>🎫</span>
-                  <span>Karta 2</span>
-                  <span class="text-emerald-600 font-bold ml-0.5">✓</span>
-                </div>
+          sliderWrapper.innerHTML = `
+            ${pdfKarticeHtml}
+            ${uplataOverena ? `
+              <div class="p-3 bg-emerald-50 border-2 border-emerald-300 text-emerald-900 rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 shadow-sm">
+                <span>✓ Omogućeno preuzimanje</span>
               </div>
-            `;
-          }
-
-          sliderWrapper.innerHTML = `
-            ${bedzeviHtml}
-            <div class="p-3.5 bg-slate-100 border border-slate-300 text-slate-800 rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 shadow-sm">
-              <span>${porukaKraj}</span>
-            </div>
-          `;
-        } else if (jePreranoZaPonistavanje(booking).prerano) {
-          const infoPrerano = jePreranoZaPonistavanje(booking);
-          sliderWrapper.innerHTML = `
-            <div class="p-3.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold text-center leading-relaxed">
-              ${infoPrerano.razlog}
-            </div>
+            ` : ''}
           `;
         } else {
-          let vizuelneKarticeHtml = '';
-          if (maxUlaza > 1) {
-            vizuelneKarticeHtml = `
-              <div class="flex items-center justify-center gap-3 mb-2.5">
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${iskorisceno >= 1 ? 'bg-emerald-50 border-emerald-300 text-emerald-700 line-through opacity-75' : 'bg-white border-slate-300 text-slate-800 shadow-sm'}">
-                  <span>🎫</span>
-                  <span>Karta 1</span>
-                  ${iskorisceno >= 1 ? '<span class="text-emerald-600 font-bold ml-0.5">✓</span>' : ''}
+          const danasnjiDan = new Date().toISOString().split('T')[0];
+          const datumTerminaProvera = booking.selectedDate || booking.eventDate;
+          const jeUBuducnosti = datumTerminaProvera && datumTerminaProvera > danasnjiDan;
+
+          if (booking.status === 'otkazano') {
+            sliderWrapper.innerHTML = `
+              <div class="p-3 bg-slate-100 border border-slate-200 text-slate-600 rounded-2xl text-xs font-bold text-center">
+                Rezervacija je otkazana.
+              </div>
+            `;
+          } else if (potpunoIskoriscena) {
+            const porukaKraj = maxUlaza > 1 
+              ? "✓ Poništene su obe karte (paket za dvoje je iskorišćen)" 
+              : "✓ Karta je uspešno iskorišćena na prijemu";
+
+            let bedzeviHtml = '';
+            if (maxUlaza > 1) {
+              bedzeviHtml = `
+                <div class="flex items-center justify-center gap-3 mb-2.5">
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 line-through opacity-75 text-xs font-black">
+                    <span>🎫</span>
+                    <span>Karta 1</span>
+                    <span class="text-emerald-600 font-bold ml-0.5">✓</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 line-through opacity-75 text-xs font-black">
+                    <span>🎫</span>
+                    <span>Karta 2</span>
+                    <span class="text-emerald-600 font-bold ml-0.5">✓</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${iskorisceno >= 2 ? 'bg-emerald-50 border-emerald-300 text-emerald-700 line-through opacity-75' : (iskorisceno === 1 ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm ring-2 ring-indigo-200' : 'bg-white border-slate-300 text-slate-800 shadow-sm')}">
-                  <span>🎫</span>
-                  <span>Karta 2</span>
-                  ${iskorisceno >= 2 ? '<span class="text-emerald-600 font-bold ml-0.5">✓</span>' : ''}
-                </div>
+              `;
+            }
+
+            sliderWrapper.innerHTML = `
+              ${bedzeviHtml}
+              <div class="p-3.5 bg-slate-100 border border-slate-300 text-slate-800 rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 shadow-sm">
+                <span>${porukaKraj}</span>
+              </div>
+            `;
+          } else if (jePreranoZaPonistavanje(booking).prerano) {
+            const infoPrerano = jePreranoZaPonistavanje(booking);
+            sliderWrapper.innerHTML = `
+              <div class="p-3.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold text-center leading-relaxed">
+                ${infoPrerano.razlog}
               </div>
             `;
           } else {
-            vizuelneKarticeHtml = `
-              <div class="flex items-center justify-center mb-2.5">
-                <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-black transition-all ${potpunoIskoriscena ? 'bg-emerald-50 border-emerald-300 text-emerald-700 line-through opacity-75' : 'bg-white border-slate-300 text-slate-800 shadow-sm'}">
-                  <span>🎫</span>
-                  <span>Ulaznica</span>
-                  ${potpunoIskoriscena ? '<span class="text-emerald-600 font-bold ml-0.5">✓</span>' : ''}
+            let vizuelneKarticeHtml = '';
+            if (maxUlaza > 1) {
+              vizuelneKarticeHtml = `
+                <div class="flex items-center justify-center gap-3 mb-2.5">
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${iskorisceno >= 1 ? 'bg-emerald-50 border-emerald-300 text-emerald-700 line-through opacity-75' : 'bg-white border-slate-300 text-slate-800 shadow-sm'}">
+                    <span>🎫</span>
+                    <span>Karta 1</span>
+                    ${iskorisceno >= 1 ? '<span class="text-emerald-600 font-bold ml-0.5">✓</span>' : ''}
+                  </div>
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${iskorisceno >= 2 ? 'bg-emerald-50 border-emerald-300 text-emerald-700 line-through opacity-75' : (iskorisceno === 1 ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm ring-2 ring-indigo-200' : 'bg-white border-slate-300 text-slate-800 shadow-sm')}">
+                    <span>🎫</span>
+                    <span>Karta 2</span>
+                    ${iskorisceno >= 2 ? '<span class="text-emerald-600 font-bold ml-0.5">✓</span>' : ''}
+                  </div>
+                </div>
+              `;
+            } else {
+              vizuelneKarticeHtml = `
+                <div class="flex items-center justify-center mb-2.5">
+                  <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-black transition-all ${potpunoIskoriscena ? 'bg-emerald-50 border-emerald-300 text-emerald-700 line-through opacity-75' : 'bg-white border-slate-300 text-slate-800 shadow-sm'}">
+                    <span>🎫</span>
+                    <span>Ulaznica</span>
+                    ${potpunoIskoriscena ? '<span class="text-emerald-600 font-bold ml-0.5">✓</span>' : ''}
+                  </div>
+                </div>
+              `;
+            }
+
+            sliderWrapper.innerHTML = `
+              ${vizuelneKarticeHtml}
+              <div id="ticket-slider-track" class="relative w-full h-14 bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 overflow-hidden select-none flex items-center shadow-inner">
+                <div id="ticket-slider-fill" class="absolute left-0 top-0 bottom-0 bg-transparent rounded-2xl transition-all duration-75" style="width: 0px;"></div>
+                <div id="ticket-slider-label" class="w-full text-center text-xs font-black text-slate-500 tracking-wider pointer-events-none z-0 px-10">
+                  PREVUCITE ZA PONIŠTAVANJE
+                </div>
+                <div id="ticket-slider-thumb" class="absolute left-1 top-1 bottom-1 w-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-md cursor-grab active:cursor-grabbing z-10 touch-none">
+                  ❯❯
                 </div>
               </div>
             `;
+            podesiKlizacZaKartu(booking);
           }
-
-          sliderWrapper.innerHTML = `
-            ${vizuelneKarticeHtml}
-            <div id="ticket-slider-track" class="relative w-full h-14 bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 overflow-hidden select-none flex items-center shadow-inner">
-              <div id="ticket-slider-fill" class="absolute left-0 top-0 bottom-0 bg-transparent rounded-2xl transition-all duration-75" style="width: 0px;"></div>
-              <div id="ticket-slider-label" class="w-full text-center text-xs font-black text-slate-500 tracking-wider pointer-events-none z-0 px-10">
-                PREVUCITE ZA PONIŠTAVANJE
-              </div>
-              <div id="ticket-slider-thumb" class="absolute left-1 top-1 bottom-1 w-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-md cursor-grab active:cursor-grabbing z-10 touch-none">
-                ❯❯
-              </div>
-            </div>
-          `;
-          podesiKlizacZaKartu(booking);
         }
       }
 
@@ -4782,70 +5044,84 @@ window.azurirajPrikazCeneRezervacije();
         };
       }
 
+      // Za Digitalni resurs NE prikazuje se dugme za otkazivanje niti poruka o 48h
       const cancelContainer = document.getElementById('ticket-cancel-container');
       if (cancelContainer) {
-        if (booking.status === 'otkazano') {
-          cancelContainer.innerHTML = `
-            <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold text-center">
-              Ova rezervacija je otkazana.
-            </div>
-          `;
+        if (tipAktivnosti === 'digitalni_resurs') {
+          cancelContainer.innerHTML = '';
+          cancelContainer.classList.add('hidden');
         } else {
-          const vazeciDatum = booking.selectedDate || booking.eventDate;
-          const vremeTekst = (booking.eventTime || '00:00').length === 5 ? booking.eventTime : '00:00';
-          let datumTermina = new Date(`${vazeciDatum}T${vremeTekst}`);
-          if (isNaN(datumTermina.getTime())) {
-            datumTermina = new Date(`${vazeciDatum} ${booking.eventTime || ''}`);
-          }
-          const satiDoPocetka = (datumTermina - new Date()) / (1000 * 60 * 60);
-
-          if (satiDoPocetka >= 48) {
+          cancelContainer.classList.remove('hidden');
+          if (booking.status === 'otkazano') {
             cancelContainer.innerHTML = `
-              <button onclick="window.otkaziRezervaciju('${booking.id}')" class="w-full py-3 bg-white hover:bg-orange-50 text-orange-800 border-2 border-orange-400 font-black text-xs rounded-2xl transition flex items-center justify-center gap-2 shadow-sm">
-                <span>✕</span> Otkazujem rezervaciju (moguće 48h pre termina)
-              </button>
-            `;
-          } else {
-            let datumPrikaz = vazeciDatum;
-            if (vazeciDatum && vazeciDatum.includes('-')) {
-              const delovi = vazeciDatum.split('-');
-              if (delovi.length === 3 && delovi[0].length === 4) {
-                datumPrikaz = `${delovi[2]}-${delovi[1]}-${delovi[0]}`;
-              }
-            }
-            cancelContainer.innerHTML = `
-              <div class="p-3.5 bg-white border-2 border-orange-400 text-orange-900 rounded-2xl text-xs font-bold text-center leading-relaxed shadow-sm">
-                Otkazivanje do 48h pre ${datumPrikaz} je prošlo. Smatramo rezervaciju potvrđenom, karta se računa kao da ste je iskoristili.
+              <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold text-center">
+                Ova rezervacija je otkazana.
               </div>
             `;
+          } else {
+            const vazeciDatum = booking.selectedDate || booking.eventDate;
+            const vremeTekst = (booking.eventTime || '00:00').length === 5 ? booking.eventTime : '00:00';
+            let datumTermina = new Date(`${vazeciDatum}T${vremeTekst}`);
+            if (isNaN(datumTermina.getTime())) {
+              datumTermina = new Date(`${vazeciDatum} ${booking.eventTime || ''}`);
+            }
+            const satiDoPocetka = (datumTermina - new Date()) / (1000 * 60 * 60);
+
+            if (satiDoPocetka >= 48) {
+              cancelContainer.innerHTML = `
+                <button onclick="window.otkaziRezervaciju('${booking.id}')" class="w-full py-3 bg-white hover:bg-orange-50 text-orange-800 border-2 border-orange-400 font-black text-xs rounded-2xl transition flex items-center justify-center gap-2 shadow-sm">
+                  <span>✕</span> Otkazujem rezervaciju (moguće 48h pre termina)
+                </button>
+              `;
+            } else {
+              let datumPrikaz = vazeciDatum;
+              if (vazeciDatum && vazeciDatum.includes('-')) {
+                const delovi = vazeciDatum.split('-');
+                if (delovi.length === 3 && delovi[0].length === 4) {
+                  datumPrikaz = `${delovi[2]}-${delovi[1]}-${delovi[0]}`;
+                }
+              }
+              cancelContainer.innerHTML = `
+                <div class="p-3.5 bg-white border-2 border-orange-400 text-orange-900 rounded-2xl text-xs font-bold text-center leading-relaxed shadow-sm">
+                  Otkazivanje do 48h pre ${datumPrikaz} je prošlo. Smatramo rezervaciju potvrđenom, karta se računa kao da ste je iskoristili.
+                </div>
+              `;
+            }
           }
         }
       }
 
-          const launchBtn = document.getElementById('btn-launch-trail');
-          if (launchBtn) {
-            const tip = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
-            const jeIskoriscena = booking.status === 'iskorišćena';
-            const uplataOverena = booking.isPaid || booking.paymentType === 'clanarina_pokriveno' || (booking.totalPrice || 0) === 0;
+      const launchBtn = document.getElementById('btn-launch-trail');
+      if (launchBtn) {
+        const tip = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+        const jeIskoriscena = booking.status === 'iskorišćena';
 
-            if (tip === 'teren' && uplataOverena && jeIskoriscena) {
-              launchBtn.href = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
-              launchBtn.innerHTML = `<span>🚀</span> POKRENI AVANTURU NA STAZI`;
-              launchBtn.className = "w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition";
-              launchBtn.classList.remove('hidden');
-            } else {
-              launchBtn.classList.add('hidden');
-            }
-          }
+        if (tip === 'teren' && uplataOverena && jeIskoriscena) {
+          launchBtn.href = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
+          launchBtn.innerHTML = `<span>🚀</span> POKRENI AVANTURU NA STAZI`;
+          launchBtn.className = "w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition";
+          launchBtn.classList.remove('hidden');
+        } else {
+          launchBtn.classList.add('hidden');
+        }
+      }
 
-          // Prikaz i priprema poklon karte za akciju 1+1 (isključivo kada su izabrana 2 mesta)
+      // Prikaz i priprema poklon karte za akciju 1+1 (za PDF piše "Poklon sveska za još jednu osobu" bez suvišne rečenice)
       const giftBox = document.getElementById('ticket-gift-container');
+      const giftSubtitle = document.getElementById('ticket-gift-subtitle');
+      const giftDesc = document.getElementById('ticket-gift-desc');
       const btnGiftShare = document.getElementById('btn-share-gift-ticket');
-      const brojIzabranihMesta = booking.ticketsCount || 1;
-      const imaGratisDrugiUredjaj = (brojIzabranihMesta === 2 && booking.hasPromo1plus1);
+      const imaGratisDrugiUredjaj = booking.hasPromo1plus1 === true || (tipAktivnosti === 'digitalni_resurs' && (booking.ticketsCount || 1) === 2);
 
       if (giftBox) {
         if (imaGratisDrugiUredjaj && booking.status !== 'otkazano') {
+          if (tipAktivnosti === 'digitalni_resurs') {
+            if (giftSubtitle) giftSubtitle.innerText = 'Poklon sveska za još jednu osobu';
+            if (giftDesc) giftDesc.classList.add('hidden');
+          } else {
+            if (giftSubtitle) giftSubtitle.innerText = 'Poklon pristup za još jednu osobu';
+            if (giftDesc) giftDesc.classList.remove('hidden');
+          }
           giftBox.classList.remove('hidden');
         } else {
           giftBox.classList.add('hidden');
@@ -4853,26 +5129,44 @@ window.azurirajPrikazCeneRezervacije();
       }
 
       if (btnGiftShare) {
-        btnGiftShare.onclick = async () => {
-          const linkStaze = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
-          const porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa tebe učešće ne košta ništa! Možeš pokrenuti avanturu na svom telefonu klikom na link: ${linkStaze}`;
+        if (!uplataOverena) {
+          btnGiftShare.disabled = true;
+          btnGiftShare.className = "w-full py-2.5 bg-slate-200 text-slate-500 text-xs font-black rounded-xl flex items-center justify-center gap-2 cursor-not-allowed select-none";
+          btnGiftShare.innerHTML = "<span>🔒</span> Poklon je zaključan dok se ne potvrdi uplata";
+          btnGiftShare.onclick = null;
+        } else {
+          btnGiftShare.disabled = false;
+          btnGiftShare.className = "w-full py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-xs font-black rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer";
+          btnGiftShare.innerHTML = tipAktivnosti === 'digitalni_resurs'
+            ? "<span>🎁</span> Prosledi PDF časopis prijatelju"
+            : "<span>🎁</span> Prosledi poklon kartu prijatelju";
 
-          if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
-            try {
-              await navigator.share({
-                title: `Poklon karta za ${booking.eventTitle}`,
-                text: porukaPoklon,
-                url: linkStaze
+          btnGiftShare.onclick = async () => {
+            let linkZaSlanje = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
+            let porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa tebe učešće ne košta ništa! Možeš pokrenuti avanturu na svom telefonu klikom na link: ${linkZaSlanje}`;
+
+            if (tipAktivnosti === 'digitalni_resurs') {
+              linkZaSlanje = window.sastaviCitacUrl(booking, 2);
+              porukaPoklon = `Zdravo! Šaljem ti poklon pristup za digitalni časopis / radnu svesku "${booking.eventTitle}". Možeš otvoriti i preuzeti svoj primerak u čitaču klikom na link: ${linkZaSlanje}`;
+            }
+
+            if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+              try {
+                await navigator.share({
+                  title: `Poklon: ${booking.eventTitle}`,
+                  text: porukaPoklon,
+                  url: linkZaSlanje
+                });
+              } catch (err) {}
+            } else if (navigator.clipboard) {
+              navigator.clipboard.writeText(porukaPoklon).then(() => {
+                showNotification("Poruka i link ka čitaču su kopirani, možete ih zalepiti na Viber!", "success");
               });
-            } catch (err) {}
-          } else if (navigator.clipboard) {
-            navigator.clipboard.writeText(porukaPoklon).then(() => {
-              showNotification("Poruka i link za poklon kartu su kopirani, možete ih zalepiti na Viber!", "success");
-            });
-          } else {
-            prompt("Kopirajte ovu poruku i pošaljite je prijatelju:", porukaPoklon);
-          }
-        };
+            } else {
+              prompt("Kopirajte ovu poruku i pošaljite je prijatelju:", porukaPoklon);
+            }
+          };
+        }
       }
 
           const directConfirmWrap = document.getElementById('ticket-direct-confirm-wrapper');
@@ -5152,6 +5446,8 @@ window.azurirajPrikazCeneRezervacije();
 let prevlacenjeStartX = 0;
     let prevlacenjeStartY = 0;
     let prevlacenjeAktivno = false;
+    let upravoPrevlaceno = false;
+    window.okrenuteKarticeSet = window.okrenuteKarticeSet || new Set();
 
     window.pocetakPrevlacenja = function(e) {
       if (e.touches && e.touches.length > 1) {
@@ -5159,19 +5455,32 @@ let prevlacenjeStartX = 0;
         return;
       }
       prevlacenjeAktivno = true;
+      upravoPrevlaceno = false;
       prevlacenjeStartX = e.touches ? e.touches[0].clientX : e.clientX;
       prevlacenjeStartY = e.touches ? e.touches[0].clientY : e.clientY;
     };
 
     window.okreniKarticu = function(e, dugmeIliElement, eventId) {
-      if (e) e.stopPropagation();
-      const card = dugmeIliElement.closest('.flip-card');
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (upravoPrevlaceno) {
+        upravoPrevlaceno = false;
+        return;
+      }
+      const card = dugmeIliElement ? dugmeIliElement.closest('.flip-card') : null;
       if (card) {
-        card.classList.toggle('is-flipped');
-        if (eventId && typeof window.zabeleziInterakciju === 'function') {
-          window.zabeleziInterakciju(eventId);
+        const sadaOkrenuta = card.classList.toggle('is-flipped');
+        if (eventId) {
+          if (sadaOkrenuta) window.okrenuteKarticeSet.add(eventId);
+          else window.okrenuteKarticeSet.delete(eventId);
         }
       }
+    };
+
+    window.okreniKarticuDirektno = function(e, dugmeIliElement, eventId) {
+      window.okreniKarticu(e, dugmeIliElement, eventId);
     };
 
     window.krajPrevlacenja = function(e, element, eventId) {
@@ -5184,10 +5493,13 @@ let prevlacenjeStartX = 0;
       const razlikaX = krajX - prevlacenjeStartX;
       const razlikaY = krajY - prevlacenjeStartY;
 
-      if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
-        element.classList.toggle('is-flipped');
-        if (eventId && typeof window.zabeleziInterakciju === 'function') {
-          window.zabeleziInterakciju(eventId);
+      if (Math.abs(razlikaX) > 45 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.2) {
+        upravoPrevlaceno = true;
+        setTimeout(() => { upravoPrevlaceno = false; }, 300);
+        const sadaOkrenuta = element.classList.toggle('is-flipped');
+        if (eventId) {
+          if (sadaOkrenuta) window.okrenuteKarticeSet.add(eventId);
+          else window.okrenuteKarticeSet.delete(eventId);
         }
       }
     };
@@ -5436,13 +5748,39 @@ let prevlacenjeStartX = 0;
     async function proveriIUpisiNovogClana(b) {
       if (!b || !b.isPaid) return;
 
+      const sada = new Date();
+      const za30Dana = new Date(sada.getTime() + (30 * 24 * 60 * 60 * 1000));
+      const formatirajDatum = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}.`;
+
       const pronadjen = (state.membersList || []).find(m => 
+        (b.memberCode && String(m.card).toUpperCase() === String(b.memberCode).toUpperCase()) ||
         (b.phone && b.phone !== 'Nije traženo' && m.phone && m.phone.replace(/[^0-9]/g, '') === b.phone.replace(/[^0-9]/g, '')) ||
         (b.email && b.email !== 'Nije uneto' && m.email && m.email.toLowerCase().trim() === b.email.toLowerCase().trim())
       );
 
+      b.paidAt = sada.toISOString();
+
+      // Paket zavisi isključivo od toga da li je za tu aktivnost u adminu uključena 1+1 promocija
+      const dogadjaj = state.events.find(e => e.id === b.eventId);
+      const imaPromoAktivnost = (dogadjaj && dogadjaj.hasPromo1plus1 === true) || b.hasPromo1plus1 === true;
+      b.packageType = imaPromoAktivnost ? 2 : 1;
+      b.hasPromo1plus1 = imaPromoAktivnost;
+
       if (pronadjen) {
+        // Članski broj se zadržava, a članarina se aktivira za narednih 30 dana od uplate
         b.memberCode = pronadjen.card;
+        pronadjen.lastPaymentDate = sada.toISOString();
+        pronadjen.validUntil = formatirajDatum(za30Dana);
+        safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+
+        if (state.isOnline && firebaseActive) {
+          try {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', pronadjen.card), pronadjen);
+          } catch (err) {
+            console.error('Greška pri produženju članarine:', err);
+          }
+        }
+        showNotification(`Članarina za broj ${pronadjen.card} je aktivna 30 dana (do ${pronadjen.validUntil})`, "success");
       } else {
         const noviBroj = generisiNoviClanskiBroj();
         const noviClan = {
@@ -5450,13 +5788,16 @@ let prevlacenjeStartX = 0;
           firstName: b.firstName || 'Polaznik',
           lastName: b.lastName || '',
           phone: b.phone && b.phone !== 'Nije traženo' ? b.phone : '',
-          email: b.email && b.email !== 'Nije uneto' ? b.email : ''
+          email: b.email && b.email !== 'Nije uneto' ? b.email : '',
+          group: 'Članarina podmlatka - pridruženi član',
+          joinedDate: formatirajDatum(sada),
+          lastPaymentDate: sada.toISOString(),
+          validUntil: formatirajDatum(za30Dana)
         };
 
         state.membersList = [noviClan, ...(state.membersList || [])];
         safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
         b.memberCode = noviBroj;
-        b.packageType = 2; // Automatski poklon 1+1 za novog člana
 
         if (state.isOnline && firebaseActive) {
           try {
@@ -5465,7 +5806,7 @@ let prevlacenjeStartX = 0;
             console.error('Greška pri automatskom upisu člana:', err);
           }
         }
-        showNotification(`Aktiviran je novi članski broj: ${noviBroj}`, "success");
+        showNotification(`Aktiviran je članski broj: ${noviBroj} (važi 30 dana, do ${noviClan.validUntil})`, "success");
         setTimeout(() => {
           window.otvoriClanskuKartu(noviBroj);
         }, 300);
@@ -6002,30 +6343,40 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
           const jeAktivno = evt.isActive && infoVreme.jeAktivno && remaining > 0;
 
           const jeSamoZaClanove = evt.accessTarget === 'clanovi' || (!evt.accessTarget && evt.paymentType === 'clanarina');
-          const clanskaCena = (evt.memberPrice !== null && evt.memberPrice !== undefined) ? evt.memberPrice : (jeSamoZaClanove ? 0 : (evt.price || 0));
-          const redovnaCena = evt.price || 0;
+          const sirovaRedovna = Number(evt.price || 0);
+          const sirovaClanska = (evt.memberPrice !== null && evt.memberPrice !== undefined && evt.memberPrice !== '') 
+            ? Number(evt.memberPrice) 
+            : (jeSamoZaClanove ? 0 : sirovaRedovna);
+          const jeModelClanarine = evt.paymentType === 'clanarina' || evt.activityType === 'teren' || !!evt.trailCode;
+
+          const redovnaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna;
+          const clanskaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? 0 : sirovaClanska;
           const imaClanskiPopust = clanskaCena < redovnaCena;
 
           let oznakaCeneHtml = '';
-          if (jeSamoZaClanove) {
-            // Samo članovi: prikazuje se isključivo članski iznos bez redovne cene
+          if (jeModelClanarine) {
+            oznakaCeneHtml = `
+              <div class="bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-md text-left leading-tight select-none">
+                <span class="block text-xs font-black text-emerald-700 tracking-wide">Za člana: ${clanskaCena} din</span>
+                <span class="block text-xs font-black text-indigo-700 mt-0.5">Učlanjenje: ${redovnaCena} din</span>
+              </div>
+            `;
+          } else if (jeSamoZaClanove) {
             oznakaCeneHtml = `
               <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-md text-center leading-tight select-none">
-                <span class="block text-xs font-black text-indigo-700 tracking-wide">ČLAN: ${clanskaCena} RSD</span>
+                <span class="block text-xs font-black text-emerald-700 tracking-wide">Za člana: ${clanskaCena} din</span>
                 <span class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mt-0.5">SAMO ČLANOVI</span>
               </div>
             `;
           } else if (imaClanskiPopust) {
-            // Otvoreno za sve, ali članovi imaju popust: prikazuju se obe cene
             oznakaCeneHtml = `
-              <div class="bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-md text-center leading-tight select-none">
-                <span class="block text-xs font-black text-indigo-700 tracking-wide">ČLAN: ${clanskaCena} RSD</span>
-                <span class="block text-xs font-black text-slate-900 mt-0.5">${redovnaCena} RSD</span>
+              <div class="bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-md text-left leading-tight select-none">
+                <span class="block text-xs font-black text-emerald-700 tracking-wide">Za člana: ${clanskaCena} din</span>
+                <span class="block text-xs font-black text-slate-900 mt-0.5">Kotizacija: ${redovnaCena} din</span>
               </div>
             `;
           } else {
-            // Cena je ista za sve posetioce
-            const ispis = redovnaCena === 0 ? 'BESPLATNO' : `${redovnaCena} RSD`;
+            const ispis = redovnaCena === 0 ? 'BESPLATNO' : `${redovnaCena} din`;
             oznakaCeneHtml = `
               <div class="bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-md text-center leading-tight select-none">
                 <span class="block text-xs font-black text-slate-900 tracking-wide">${ispis}</span>
@@ -6077,18 +6428,20 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
             `;
           }
 
+          const jeOkrenutaKartica = window.okrenuteKarticeSet && window.okrenuteKarticeSet.has(evt.id);
+
           return `
-            <div onmousedown="pocetakPrevlacenja(event)" onmouseup="krajPrevlacenja(event, this, '${evt.id}')" ontouchstart="pocetakPrevlacenja(event)" ontouchend="krajPrevlacenja(event, this, '${evt.id}')" class="flip-card h-[520px] w-full cursor-grab active:cursor-grabbing select-none">
+            <div onmousedown="pocetakPrevlacenja(event)" onmouseup="krajPrevlacenja(event, this, '${evt.id}')" ontouchstart="pocetakPrevlacenja(event)" ontouchend="krajPrevlacenja(event, this, '${evt.id}')" class="flip-card ${jeOkrenutaKartica ? 'is-flipped' : ''} h-[520px] w-full cursor-grab active:cursor-grabbing select-none">
               <div class="flip-card-inner">
                 
                 <!-- PREDNJA STRANA KARTICE -->
                 <div class="flip-card-front bg-white border border-slate-300 shadow-xl shadow-slate-400/30 flex flex-col justify-between rounded-3xl overflow-hidden">
-                  <div onclick="window.okreniKarticuDirektno(event, this, '${evt.id}')" class="relative h-48 w-full overflow-hidden shrink-0 cursor-pointer" title="Kliknite da pogledate plakat">
-                    <img src="${evt.image}" draggable="false" class="w-full h-full object-cover block pointer-events-none" />
+                  <div class="relative h-48 w-full overflow-hidden shrink-0">
+                    <img src="${evt.image}" onclick="window.okreniKarticu(event, this, '${evt.id}')" draggable="false" class="w-full h-full object-cover block cursor-pointer" title="Kliknite da pogledate plakat" />
                     <div class="absolute top-3 left-3 z-10 pointer-events-none">
                       ${oznakaCeneHtml}
                     </div>
-                    <button type="button" onclick="window.okreniKarticu(event, this, '${evt.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-2.5 right-2.5 z-30 bg-slate-900/85 hover:bg-black text-white text-xs font-black px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/30 shadow-lg flex items-center gap-1.5 transition cursor-pointer" title="Okreni karticu (3D plakat i deljenje)">
+                    <button type="button" onclick="window.okreniKarticu(event, this, '${evt.id}')" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" class="absolute bottom-2.5 right-2.5 z-30 bg-slate-900/85 hover:bg-black active:scale-95 text-white text-xs font-black px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/30 shadow-lg flex items-center gap-1.5 transition cursor-pointer" title="Okreni karticu (3D plakat i deljenje)">
                       <span>🔄</span> Plakat
                     </button>
                     ${evt.hasPromo1plus1 ? `
@@ -6140,18 +6493,23 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                   <img src="${evt.image}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none" />
                   <img src="${evt.image}" draggable="false" class="relative z-10 w-full h-full object-contain p-2 pointer-events-none" />
 
-                  <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none">
-                    <span class="bg-slate-900/90 backdrop-blur-md text-white text-sm font-black px-3.5 py-2 rounded-xl border border-white/10 shadow-sm truncate max-w-[65%]">${evt.title}</span>
-                    <button type="button" onclick="event.stopPropagation(); window.podeliObuku('${evt.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="pointer-events-auto bg-slate-900/90 hover:bg-black active:scale-95 backdrop-blur-md text-white text-sm font-black px-3.5 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-2 transition cursor-pointer z-30" title="Podeli sa prijateljem">
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                      </svg>
-                      <span>Podeli</span>
-                    </button>
+                  <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none gap-2">
+                    <span class="bg-slate-900/90 backdrop-blur-md text-white text-xs sm:text-sm font-black px-3 py-2 rounded-xl border border-white/10 shadow-sm truncate max-w-[50%]">${evt.title}</span>
+                    <div class="flex items-center gap-1.5 pointer-events-auto">
+                      <button type="button" onclick="window.okreniKarticu(event, this, '${evt.id}')" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" class="bg-slate-900/90 hover:bg-black active:scale-95 backdrop-blur-md text-white text-xs font-black px-3 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-1 transition cursor-pointer z-30" title="Vrati na prednju stranu">
+                        <span>🔄</span> Nazad
+                      </button>
+                      <button type="button" onclick="event.stopPropagation(); window.podeliObuku('${evt.id}')" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" class="bg-indigo-600/95 hover:bg-indigo-700 active:scale-95 backdrop-blur-md text-white text-xs font-black px-3 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-1.5 transition cursor-pointer z-30" title="Podeli sa prijateljem">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="18" cy="5" r="3"></circle>
+                          <circle cx="6" cy="12" r="3"></circle>
+                          <circle cx="18" cy="19" r="3"></circle>
+                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>Podeli</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent z-20 flex gap-2.5">
@@ -7196,6 +7554,10 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const activityType = document.getElementById('event-activity-type')?.value || 'radionica';
       const subCategory = document.getElementById('event-sub-category')?.value || 'aktivan_odmor';
       const digitalUrl = document.getElementById('event-digital-url')?.value.trim() || '';
+      const digitalUrl2 = document.getElementById('event-digital-url-2')?.value.trim() || '';
+      const pdfMaxQty = parseInt(document.getElementById('event-pdf-max-qty')?.value || '2', 10);
+      const pdfSecondPriceVal = document.getElementById('event-pdf-second-price')?.value;
+      const pdfSecondPrice = (pdfSecondPriceVal !== '' && pdfSecondPriceVal !== null && !isNaN(pdfSecondPriceVal)) ? parseFloat(pdfSecondPriceVal) : null;
       const pdfAllowPrint = document.getElementById('event-pdf-allow-print-cb')?.checked === true;
       const pdfAllowDownload = document.getElementById('event-pdf-allow-download-cb')?.checked === true;
       const pdfAllowShare = document.getElementById('event-pdf-allow-share-cb')?.checked === true;
@@ -7216,6 +7578,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         activityType: activityType,
         subCategory: subCategory,
         digitalUrl: digitalUrl,
+        digitalUrl2: digitalUrl2,
+        pdfMaxQty: pdfMaxQty,
+        pdfSecondPrice: pdfSecondPrice,
         pdfProtection: pdfProtection,
         pdfAllowPrint: pdfAllowPrint,
         pdfAllowDownload: pdfAllowDownload,
