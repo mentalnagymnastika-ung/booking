@@ -3482,10 +3482,15 @@ window.azurirajPrikazCeneRezervacije();
         document.querySelector('input[name="booking-quantity"][value="1"]').checked = true;
       }
 
-      const reqName = event.formFields?.name !== false;
-      const reqEmail = event.formFields?.email !== false;
-      const reqPhone = event.formFields?.phone !== false;
-      const reqAddress = event.formFields?.address !== false;
+      const stName = event.formFields?.name ?? 'required';
+      const stEmail = event.formFields?.email ?? 'required';
+      const stPhone = event.formFields?.phone ?? 'required';
+      const stAddress = event.formFields?.address ?? 'optional';
+
+      const reqName = stName !== false && stName !== 'hidden';
+      const reqEmail = stEmail !== false && stEmail !== 'hidden';
+      const reqPhone = stPhone !== false && stPhone !== 'hidden';
+      const reqAddress = stAddress !== false && stAddress !== 'hidden';
 
       const nameWrapper = document.getElementById('wrapper-booking-name');
       if (nameWrapper) nameWrapper.style.display = reqName ? 'grid' : 'none';
@@ -3495,17 +3500,29 @@ window.azurirajPrikazCeneRezervacije();
       if (lNameInput) lNameInput.required = false;
 
       const emailWrapper = document.getElementById('wrapper-booking-email');
-      if (emailWrapper) emailWrapper.style.display = reqEmail ? 'block' : 'none';
+      if (emailWrapper) {
+        emailWrapper.style.display = reqEmail ? 'block' : 'none';
+        const lbl = emailWrapper.querySelector('label');
+        if (lbl) lbl.innerText = (stEmail === 'required' || stEmail === true) ? 'Email za potvrdu *' : 'Email za potvrdu (opciono)';
+      }
       const emailInput = document.getElementById('booking-email');
       if (emailInput) emailInput.required = false;
 
       const phoneWrapper = document.getElementById('wrapper-booking-phone');
-      if (phoneWrapper) phoneWrapper.style.display = reqPhone ? 'block' : 'none';
+      if (phoneWrapper) {
+        phoneWrapper.style.display = reqPhone ? 'block' : 'none';
+        const lbl = phoneWrapper.querySelector('label');
+        if (lbl) lbl.innerText = (stPhone === 'required' || stPhone === true) ? 'Kontakt telefon *' : 'Kontakt telefon (opciono)';
+      }
       const phoneInput = document.getElementById('booking-phone');
       if (phoneInput) phoneInput.required = false;
 
       const addressWrapper = document.getElementById('wrapper-booking-address');
-      if (addressWrapper) addressWrapper.style.display = reqAddress ? 'block' : 'none';
+      if (addressWrapper) {
+        addressWrapper.style.display = reqAddress ? 'block' : 'none';
+        const lbl = addressWrapper.querySelector('label');
+        if (lbl) lbl.innerText = (stAddress === 'required' || stAddress === true) ? 'Adresa i Grad *' : 'Adresa i Grad (opciono)';
+      }
       const addressInput = document.getElementById('booking-address');
       if (addressInput) addressInput.required = false;
 
@@ -3633,10 +3650,13 @@ window.azurirajPrikazCeneRezervacije();
         tacanDatumTermina = dateChoiceInput.value;
       }
 
-      // Provera izabranog vremena za prisustvo na lokaciji ili konsultacije
+      // Provera izabranog vremena (ako događaj nema satnicu, ostaje prazno bez lažnih 10:00h)
       const wrapperTime = document.getElementById('wrapper-booking-time-choice');
       const hiddenTimeInput = document.getElementById('booking-selected-time');
-      const izabranoVreme = (hiddenTimeInput && hiddenTimeInput.value) ? hiddenTimeInput.value.trim() : (event.time || '10:00');
+      const koristiSatnicuDogadjaj = event.useTimeSchedule !== false && !!(event.time && event.time.trim() !== '');
+      const izabranoVreme = koristiSatnicuDogadjaj 
+        ? ((hiddenTimeInput && hiddenTimeInput.value) ? hiddenTimeInput.value.trim() : (event.time || '')) 
+        : '';
 
       if (wrapperTime && !wrapperTime.classList.contains('hidden') && !hiddenTimeInput?.value) {
         showNotification("Molimo izaberite slobodan termin održavanja", "warning");
@@ -3700,20 +3720,38 @@ window.azurirajPrikazCeneRezervacije();
         const phoneEl = document.getElementById('booking-phone');
         const addressEl = document.getElementById('booking-address');
 
-        if (reqName && (!fNameEl?.value.trim() || !lNameEl?.value.trim())) {
+        const stName = event.formFields?.name ?? 'required';
+        const stEmail = event.formFields?.email ?? 'required';
+        const stPhone = event.formFields?.phone ?? 'required';
+        const stAddress = event.formFields?.address ?? 'optional';
+
+        const moraIme = stName === 'required' || stName === true;
+        const moraEmail = stEmail === 'required' || stEmail === true;
+        const moraTelefon = stPhone === 'required' || stPhone === true;
+        const moraAdresa = stAddress === 'required' || stAddress === true;
+
+        if (moraIme && (!fNameEl?.value.trim() || !lNameEl?.value.trim())) {
           showNotification("Molimo unesite ime i prezime polaznika", "warning");
           return;
         }
-        if (reqEmail && !emailValue) {
+        if (moraEmail && !emailValue) {
           showNotification("Molimo unesite ispravnu email adresu", "warning");
           return;
         }
+        if (moraTelefon && !phoneValue) {
+          showNotification("Molimo unesite kontakt telefon", "warning");
+          return;
+        }
+        if (moraAdresa && (!addressEl || !addressEl.value.trim())) {
+          showNotification("Molimo unesite adresu i grad", "warning");
+          return;
+        }
 
-        finalFirstName = fNameEl ? fNameEl.value.trim() : 'Polaznik';
-        finalLastName = lNameEl ? lNameEl.value.trim() : '';
+        finalFirstName = fNameEl && fNameEl.value.trim() ? fNameEl.value.trim() : 'Polaznik';
+        finalLastName = lNameEl && lNameEl.value.trim() ? lNameEl.value.trim() : '';
         finalEmail = emailValue || 'Nije uneto';
-        finalPhone = reqPhone && phoneEl && phoneEl.value ? phoneEl.value.trim() : 'Nije traženo';
-        finalAddress = reqAddress && addressEl && addressEl.value ? addressEl.value.trim() : 'Nije traženo';
+        finalPhone = phoneEl && phoneEl.value.trim() ? phoneEl.value.trim() : 'Nije uneto';
+        finalAddress = addressEl && addressEl.value.trim() ? addressEl.value.trim() : 'Nije uneto';
       }
 
       const newBooking = {
@@ -3816,26 +3854,57 @@ window.azurirajPrikazCeneRezervacije();
       openTicketModal(newBooking);
     });
 
-    // Zvanični NBS IPS generator za uplatnice
+    // Pomoćna funkcija koja svaki srpski račun (npr. 160-12345-67) pretvara u tačno 18 cifara za NBS IPS
+    function formatirajRacunZaNBS(siroviRacun) {
+      if (!siroviRacun) return '';
+      const saCrticama = siroviRacun.trim().split('-').map(d => d.replace(/[^0-9]/g, '')).filter(Boolean);
+      if (saCrticama.length === 3) {
+        const banka = saCrticama[0].padStart(3, '0').substring(0, 3);
+        const partija = saCrticama[1].padStart(13, '0').substring(0, 13);
+        const kontrola = saCrticama[2].padStart(2, '0').substring(0, 2);
+        return `${banka}${partija}${kontrola}`;
+      }
+      const samoCifre = siroviRacun.replace(/[^0-9]/g, '');
+      if (samoCifre.length === 18) return samoCifre;
+      if (samoCifre.length > 5 && samoCifre.length < 18) {
+        const banka = samoCifre.substring(0, 3);
+        const kontrola = samoCifre.substring(samoCifre.length - 2);
+        const partija = samoCifre.substring(3, samoCifre.length - 2).padStart(13, '0');
+        return `${banka}${partija}${kontrola}`;
+      }
+      return samoCifre;
+    }
+
+    function ocistiTekstZaIps(tekst) {
+      return (tekst || '')
+        .replace(/[čć]/g, 'c').replace(/[ČĆ]/g, 'C')
+        .replace(/š/g, 's').replace(/Š/g, 'S')
+        .replace(/ž/g, 'z').replace(/Ž/g, 'Z')
+        .replace(/đ/g, 'dj').replace(/Đ/g, 'Dj')
+        .replace(/[^a-zA-Z0-9 .,/-]/g, '')
+        .trim();
+    }
+
+    // Zvanični NBS IPS generator za uplatnice po standardu Narodne banke Srbije
     function generateNbsIpsString(booking) {
-      const rawAccount = (booking.bankAccount || '').replace(/[^0-9]/g, '');
-      const recipient = booking.recipientName || 'Organizator obuke';
-      const formattedAmount = Number(booking.totalPrice).toFixed(2).replace('.', ',');
+      const rawAccount = formatirajRacunZaNBS(booking.bankAccount);
+      const recipient = ocistiTekstZaIps(booking.recipientName || 'Centar Mentalne Gimnastike').substring(0, 70);
+      const formattedAmount = Number(booking.totalPrice || 0).toFixed(2).replace('.', ',');
       const opisBrojaKarata = booking.ticketsCount > 1 ? '2 mesta' : '1 mesto';
 
       let sifraPlacanja = '289';
-      let purpose = `Kotizacija za obuku (${opisBrojaKarata}) ${booking.id}`;
+      let purpose = `Kotizacija ${opisBrojaKarata} ${booking.id}`;
 
       if (booking.paymentType === 'donacija') {
         sifraPlacanja = '287';
-        purpose = `Donacija za program (${opisBrojaKarata}) ${booking.id}`;
+        purpose = `Donacija ${opisBrojaKarata} ${booking.id}`;
       } else if (booking.paymentType === 'clanarina') {
-        sifraPlacanja = '290';
-        purpose = `Namenska clanarina podmlatka (${opisBrojaKarata}) ${booking.id}`;
+        sifraPlacanja = '289';
+        purpose = `Clanarina podmlatka ${opisBrojaKarata} ${booking.id}`;
       }
 
-      const cistPozivNaBroj = booking.paymentReference || String(booking.id || '').replace(/[^0-9]/g, '');
-      return `K:PR|V:01|C:1|R:${rawAccount}|N:${recipient}|I:RSD${formattedAmount}|SF:${sifraPlacanja}|S:${purpose}|RO:${cistPozivNaBroj}`;
+      const cistaSvrha = ocistiTekstZaIps(purpose).substring(0, 35);
+      return `K:PR|V:01|C:1|R:${rawAccount}|N:${recipient}|I:RSD${formattedAmount}|SF:${sifraPlacanja}|S:${cistaSvrha}`;
     }
 
     function podesiKlizacZaKartu(booking) {
@@ -4087,9 +4156,15 @@ window.azurirajPrikazCeneRezervacije();
       document.getElementById('ticket-user-name').innerHTML = `${booking.firstName} ${booking.lastName} ${badgeOsobe}`;
       
       document.getElementById('ticket-user-email').innerText = booking.email;
-      const tacanTerminIspis = (booking.eventTime && booking.eventTime !== 'undefined') 
-        ? `${booking.selectedDate || booking.eventDate} u ${booking.eventTime}h` 
-        : (booking.selectedDate || booking.eventDate);
+      let osnovniDatum = booking.selectedDate || booking.eventDate || '';
+      if (osnovniDatum.includes('-')) {
+        const delovi = osnovniDatum.split('-');
+        if (delovi.length === 3) osnovniDatum = `${delovi[2]}.${delovi[1]}.${delovi[0]}.`;
+      }
+      const imaSatnicuKarta = booking.eventTime && booking.eventTime !== 'undefined' && booking.eventTime.trim() !== '';
+      const tacanTerminIspis = imaSatnicuKarta 
+        ? `${osnovniDatum} u ${booking.eventTime}h` 
+        : `${osnovniDatum} (u toku radnog vremena)`;
       document.getElementById('ticket-datetime').innerText = tacanTerminIspis;
 
       const createdAtEl = document.getElementById('ticket-created-at');
@@ -4306,6 +4381,7 @@ window.azurirajPrikazCeneRezervacije();
       const prikaziIpsUplatnicu = () => {
         if (ticketCanvas) ticketCanvas.classList.add('hidden');
         if (nonQrWrapper) nonQrWrapper.classList.add('hidden');
+        if (onlineWrapper) onlineWrapper.classList.add('hidden');
         if (ipsWrapper) ipsWrapper.classList.remove('hidden');
       };
 
