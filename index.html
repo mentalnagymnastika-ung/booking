@@ -4102,7 +4102,7 @@ window.azurirajPrikazCeneRezervacije();
       return { prerano: false };
     }
 
-    window.otvoriPdfPregledac = function(bookingId) {
+window.otvoriPdfPregledac = function(bookingId) {
       const b = state.bookings.find(x => x.id === bookingId) || state.activeViewingTicket;
       if (!b) return;
       const ev = state.events.find(e => e.id === b.eventId);
@@ -4120,10 +4120,27 @@ window.azurirajPrikazCeneRezervacije();
       const badgeProt = document.getElementById('badge-pdf-protected');
       const iframe = document.getElementById('pdf-viewer-iframe');
 
-      // Automatsko prilagođavanje Google Drive linka da ne bi prikazao beli ekran u okviru
-      let prikazniUrl = url;
-      if (prikazniUrl.includes('drive.google.com/file/d/')) {
-        prikazniUrl = prikazniUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
+      let cistUrl = url;
+      if (cistUrl.includes('github.com') && cistUrl.includes('/blob/')) {
+        cistUrl = cistUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+      }
+
+      const jeHeyzine = cistUrl.includes('heyzine.com');
+      const jeGoogleDrive = cistUrl.includes('drive.google.com') || cistUrl.includes('docs.google.com');
+      const jePdfFajl = cistUrl.toLowerCase().split('?')[0].endsWith('.pdf');
+      const dozvoliStampuParam = dozvola === 'allow_print' ? '1' : '0';
+
+      let prikazniUrl = cistUrl;
+
+      if (jeGoogleDrive) {
+        const idMatch = cistUrl.match(/[-\w]{25,}/);
+        prikazniUrl = (idMatch && idMatch[0]) 
+          ? `https://drive.google.com/file/d/${idMatch[0]}/preview` 
+          : cistUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
+      } else if (jePdfFajl && !jeHeyzine) {
+        // Otvara PDF iz drugog repozitorijuma (npr. nagrade_G2H) u našem 3D čitaču za listanje
+        const licTekst = `${b.id} (${b.firstName} ${b.lastName})`;
+        prikazniUrl = `./citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(b.eventTitle || 'Radna sveska')}&lic=${encodeURIComponent(licTekst)}&print=${dozvoliStampuParam}`;
       }
 
       if (dozvola === 'view_only') {
@@ -4132,12 +4149,9 @@ window.azurirajPrikazCeneRezervacije();
           btnPrint.classList.remove('flex');
         }
         if (badgeProt) badgeProt.classList.remove('hidden');
-        if (prikazniUrl.toLowerCase().split('?')[0].endsWith('.pdf')) {
-          prikazniUrl = `${prikazniUrl}#toolbar=0&navpanes=0&scrollbar=1`;
-        }
       } else {
         if (btnPrint) {
-          btnPrint.href = url;
+          btnPrint.href = cistUrl;
           btnPrint.classList.remove('hidden');
           btnPrint.classList.add('flex');
         }
