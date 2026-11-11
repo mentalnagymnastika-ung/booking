@@ -7,7 +7,7 @@
   
   <meta name="theme-color" content="#4f46e5">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style"   content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="@booker">
 
   <link rel="manifest" href="manifest.json">
@@ -68,41 +68,46 @@
       perspective: 1000px;
     }
     .flip-card-inner {
-      position: relative;
+      position: relative !important;
       width: 100%;
       height: 100%;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      transform-style: preserve-3d;
     }
     .flip-card img {
       -webkit-user-drag: none;
-      user-drag: none;
       user-select: none;
-    }
-    .flip-card.is-flipped .flip-card-inner {
-      transform: rotateY(180deg);
     }
     .flip-card-front,
     .flip-card-back {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      -webkit-backface-visibility: hidden !important;
+      backface-visibility: hidden !important;
       border-radius: 1.5rem;
       overflow: hidden;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card-front {
+      transform: rotateY(0deg);
+      z-index: 2;
     }
     .flip-card-back {
-      transform: rotateY(180deg);
-    }
-    .flip-card:not(.is-flipped) .flip-card-back {
+      transform: rotateY(-180deg);
+      z-index: 1;
       pointer-events: none;
-      visibility: hidden;
     }
     .flip-card.is-flipped .flip-card-front {
+      transform: rotateY(180deg);
+      z-index: 1;
       pointer-events: none;
-      visibility: hidden;
+    }
+    .flip-card.is-flipped .flip-card-back {
+      transform: rotateY(0deg);
+      z-index: 3;
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -1438,16 +1443,38 @@
                 <p id="label-digital-url-desc" class="text-[11px] text-indigo-900 font-medium">Korisnik na svojoj kartici dobija direktno dugme za ulazak na sastanak ili otvaranje materijala.</p>
               </div>
 
-              <!-- Zaštita PDF sveske od dijeljenja i štampe (prikazuje se za Digitalni resurs) -->
-              <div id="box-pdf-protection-options" class="hidden pt-2 border-t border-indigo-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <span class="text-xs font-black text-indigo-950 block">Režim zaštite radne sveske / PDF-a:</span>
-                  <span class="text-[11px] text-indigo-800 font-medium">Odredite da li polaznik smije da štampa i preuzima fajl.</span>
+              <!-- Tri odvojene dozvole: Štampanje, Preuzimanje PDF-a i Deljenje -->
+              <div id="box-pdf-protection-options" class="hidden pt-3 border-t border-indigo-200/70 space-y-2.5">
+                <span class="text-xs font-black text-indigo-950 uppercase tracking-wide block">Dozvole u čitaču radne sveske (svaka opcija se uključuje posebno):</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <label class="flex items-center justify-between bg-white p-3 rounded-xl border border-indigo-200 cursor-pointer select-none shadow-xs">
+                    <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <span>🖨️</span> Dozvoli štampanje
+                    </span>
+                    <input type="checkbox" id="event-pdf-allow-print-cb" class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0" />
+                  </label>
+
+                  <label class="flex items-center justify-between bg-white p-3 rounded-xl border border-indigo-200 cursor-pointer select-none shadow-xs">
+                    <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <span>📥</span> Dozvoli preuzimanje PDF-a
+                    </span>
+                    <input type="checkbox" id="event-pdf-allow-download-cb" class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0" />
+                  </label>
+
+                  <label class="flex items-center justify-between bg-white p-3 rounded-xl border border-indigo-200 cursor-pointer select-none shadow-xs">
+                    <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <svg class="w-4 h-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                      </svg>
+                      <span>Dozvoli deljenje</span>
+                    </span>
+                    <input type="checkbox" id="event-pdf-allow-share-cb" class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0" />
+                  </label>
                 </div>
-                <select id="event-pdf-allow-print" class="bg-white border border-indigo-300 rounded-xl px-3 py-2 text-xs font-black text-indigo-950 focus:outline-none shadow-xs">
-                  <option value="view_only" selected>🔒 Samo zaštićen pregled (bez štampe i dijeljenja)</option>
-                  <option value="allow_print">🖨️ Dozvoli štampanje i preuzimanje</option>
-                </select>
               </div>
             </div>
 
@@ -1646,11 +1673,18 @@
         </div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <a id="btn-pdf-print-download" href="#" target="_blank" class="hidden px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm">
-          <span>🖨️</span> Otvori / Preuzmi PDF
-        </a>
+        <button type="button" id="btn-pdf-share-top" class="hidden px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition items-center gap-1.5 shadow-sm" title="Podijeli radnu svesku">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span>Podijeli</span>
+        </button>
         <span id="badge-pdf-protected" class="px-3 py-1.5 bg-slate-800 text-amber-300 border border-slate-700 rounded-xl text-[11px] font-bold hidden sm:inline-block">
-          🔒 Zaštićeno od deljenja
+          🔒 Zaštićen pregled
         </span>
         <button type="button" onclick="window.zatvoriPdfPregledac()" class="w-9 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-base flex items-center justify-center transition">✕</button>
       </div>
@@ -2805,7 +2839,15 @@ function startRealtimeSync() {
         window.prilagodiFormuObuke(prepoznatTip);
       }
       if (document.getElementById('event-digital-url')) document.getElementById('event-digital-url').value = ev.digitalUrl || '';
-      if (document.getElementById('event-pdf-allow-print')) document.getElementById('event-pdf-allow-print').value = ev.pdfProtection || 'view_only';
+      if (document.getElementById('event-pdf-allow-print-cb')) {
+        document.getElementById('event-pdf-allow-print-cb').checked = ev.pdfAllowPrint === true;
+      }
+      if (document.getElementById('event-pdf-allow-download-cb')) {
+        document.getElementById('event-pdf-allow-download-cb').checked = ev.pdfAllowDownload === true;
+      }
+      if (document.getElementById('event-pdf-allow-share-cb')) {
+        document.getElementById('event-pdf-allow-share-cb').checked = ev.pdfAllowShare === true;
+      }
       if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
       // Prvo potpuno čistimo kalkulator od prethodno otvaranog programa
       window.resetujKalkulatorNaPodrazumevano();
@@ -3825,6 +3867,9 @@ window.azurirajPrikazCeneRezervacije();
         trailCode: event.trailCode || '',
         digitalUrl: event.digitalUrl || '',
         pdfProtection: event.pdfProtection || 'view_only',
+        pdfAllowPrint: event.pdfAllowPrint === true,
+        pdfAllowDownload: event.pdfAllowDownload === true,
+        pdfAllowShare: event.pdfAllowShare === true,
         activityType: event.activityType || 'radionica',
         packageType: (jePromo1plus1 && qty === 2) ? 2 : (qty === 1 ? 1 : (event.packageType || 1)),
         hasPromo1plus1: (jePromo1plus1 && qty === 2),
@@ -4102,7 +4147,7 @@ window.azurirajPrikazCeneRezervacije();
       return { prerano: false };
     }
 
-window.otvoriPdfPregledac = function(bookingId) {
+    window.otvoriPdfPregledac = function(bookingId) {
       const b = state.bookings.find(x => x.id === bookingId) || state.activeViewingTicket;
       if (!b) return;
       const ev = state.events.find(e => e.id === b.eventId);
@@ -4112,11 +4157,14 @@ window.otvoriPdfPregledac = function(bookingId) {
         return;
       }
 
-      const dozvola = b.pdfProtection || (ev ? ev.pdfProtection : 'view_only') || 'view_only';
+      const dozvoliStampu = (ev ? ev.pdfAllowPrint : b.pdfAllowPrint) === true;
+      const dozvoliPreuzimanje = (ev ? ev.pdfAllowDownload : b.pdfAllowDownload) === true;
+      const dozvoliDeljenje = (ev ? ev.pdfAllowShare : b.pdfAllowShare) === true;
+
       document.getElementById('pdf-viewer-title').innerText = b.eventTitle || 'Radni materijal';
       document.getElementById('pdf-viewer-license').innerText = `Licenca: ${b.id} (${b.firstName} ${b.lastName})`;
 
-      const btnPrint = document.getElementById('btn-pdf-print-download');
+      const btnShareTop = document.getElementById('btn-pdf-share-top');
       const badgeProt = document.getElementById('badge-pdf-protected');
       const iframe = document.getElementById('pdf-viewer-iframe');
 
@@ -4128,7 +4176,9 @@ window.otvoriPdfPregledac = function(bookingId) {
       const jeHeyzine = cistUrl.includes('heyzine.com');
       const jeGoogleDrive = cistUrl.includes('drive.google.com') || cistUrl.includes('docs.google.com');
       const jePdfFajl = cistUrl.toLowerCase().split('?')[0].endsWith('.pdf');
-      const dozvoliStampuParam = dozvola === 'allow_print' ? '1' : '0';
+      const printParam = dozvoliStampu ? '1' : '0';
+      const downParam = dozvoliPreuzimanje ? '1' : '0';
+      const shareParam = dozvoliDeljenje ? '1' : '0';
 
       let prikazniUrl = cistUrl;
 
@@ -4138,29 +4188,31 @@ window.otvoriPdfPregledac = function(bookingId) {
           ? `https://drive.google.com/file/d/${idMatch[0]}/preview` 
           : cistUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
       } else if (jePdfFajl && !jeHeyzine) {
-        // Otvara PDF iz drugog repozitorijuma (npr. nagrade_G2H) u našem 3D čitaču za listanje
         const licTekst = `${b.id} (${b.firstName} ${b.lastName})`;
-        prikazniUrl = `./citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(b.eventTitle || 'Radna sveska')}&lic=${encodeURIComponent(licTekst)}&print=${dozvoliStampuParam}`;
+        prikazniUrl = `./citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(b.eventTitle || 'Radna sveska')}&lic=${encodeURIComponent(licTekst)}&print=${printParam}&download=${downParam}&share=${shareParam}`;
       }
 
-      if (dozvola === 'view_only') {
-        if (btnPrint) {
-          btnPrint.classList.add('hidden');
-          btnPrint.classList.remove('flex');
+      if (btnShareTop) {
+        if (dozvoliDeljenje) {
+          btnShareTop.classList.remove('hidden');
+          btnShareTop.classList.add('flex');
+          btnShareTop.onclick = () => window.podeliObuku(b.eventId);
+        } else {
+          btnShareTop.classList.add('hidden');
+          btnShareTop.classList.remove('flex');
         }
-        if (badgeProt) badgeProt.classList.remove('hidden');
-      } else {
-        if (btnPrint) {
-          btnPrint.href = cistUrl;
-          btnPrint.classList.remove('hidden');
-          btnPrint.classList.add('flex');
-        }
-        if (badgeProt) badgeProt.classList.add('hidden');
+      }
+
+      if (badgeProt) {
+        if (!dozvoliStampu && !dozvoliPreuzimanje && !dozvoliDeljenje) badgeProt.classList.remove('hidden');
+        else badgeProt.classList.add('hidden');
       }
 
       if (iframe) iframe.src = prikazniUrl;
       document.getElementById('modal-pdf-viewer').classList.remove('hidden');
     };
+
+
 
     window.zatvoriPdfPregledac = function() {
       const iframe = document.getElementById('pdf-viewer-iframe');
@@ -4517,18 +4569,11 @@ window.otvoriPdfPregledac = function(bookingId) {
             }
             if (onlineBtn) {
               if (!jeMeet && tipAktivnosti === 'digitalni_resurs') {
-                if (dozvoliStampu) {
-                  // Ako je dozvoljeno preuzimanje i štampa, otvara direktno kao što je radilo donje dugme
-                  onlineBtn.onclick = null;
-                  onlineBtn.href = konacanLink || '#';
-                } else {
-                  // Ako je samo zaštićen pregled, otvara naš čitač
-                  onlineBtn.removeAttribute('href');
-                  onlineBtn.onclick = (e) => {
-                    e.preventDefault();
-                    window.otvoriPdfPregledac(booking.id);
-                  };
-                }
+                onlineBtn.removeAttribute('href');
+                onlineBtn.onclick = (e) => {
+                  e.preventDefault();
+                  window.otvoriPdfPregledac(booking.id);
+                };
               } else {
                 onlineBtn.onclick = null;
                 onlineBtn.href = konacanLink || '#';
@@ -5104,7 +5149,7 @@ window.otvoriPdfPregledac = function(bookingId) {
       return `<svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`;
     }
 
-    let prevlacenjeStartX = 0;
+let prevlacenjeStartX = 0;
     let prevlacenjeStartY = 0;
     let prevlacenjeAktivno = false;
 
@@ -5118,7 +5163,18 @@ window.otvoriPdfPregledac = function(bookingId) {
       prevlacenjeStartY = e.touches ? e.touches[0].clientY : e.clientY;
     };
 
-window.krajPrevlacenja = function(e, element, eventId) {
+    window.okreniKarticu = function(e, dugmeIliElement, eventId) {
+      if (e) e.stopPropagation();
+      const card = dugmeIliElement.closest('.flip-card');
+      if (card) {
+        card.classList.toggle('is-flipped');
+        if (eventId && typeof window.zabeleziInterakciju === 'function') {
+          window.zabeleziInterakciju(eventId);
+        }
+      }
+    };
+
+    window.krajPrevlacenja = function(e, element, eventId) {
       if (!prevlacenjeAktivno) return;
       prevlacenjeAktivno = false;
 
@@ -5130,9 +5186,12 @@ window.krajPrevlacenja = function(e, element, eventId) {
 
       if (Math.abs(razlikaX) > 95 && Math.abs(razlikaX) > Math.abs(razlikaY) * 1.5) {
         element.classList.toggle('is-flipped');
-        if (eventId) window.zabeleziInterakciju(eventId);
+        if (eventId && typeof window.zabeleziInterakciju === 'function') {
+          window.zabeleziInterakciju(eventId);
+        }
       }
     };
+
 
     window.uvozPrivremeniRedovi = [];
 
@@ -6024,13 +6083,16 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                 
                 <!-- PREDNJA STRANA KARTICE -->
                 <div class="flip-card-front bg-white border border-slate-300 shadow-xl shadow-slate-400/30 flex flex-col justify-between rounded-3xl overflow-hidden">
-                  <div class="relative h-48 w-full overflow-hidden shrink-0">
-                    <img src="${evt.image}" class="w-full h-full object-cover block" />
-                    <div class="absolute top-3 left-3 z-10">
+                  <div onclick="window.okreniKarticuDirektno(event, this, '${evt.id}')" class="relative h-48 w-full overflow-hidden shrink-0 cursor-pointer" title="Kliknite da pogledate plakat">
+                    <img src="${evt.image}" draggable="false" class="w-full h-full object-cover block pointer-events-none" />
+                    <div class="absolute top-3 left-3 z-10 pointer-events-none">
                       ${oznakaCeneHtml}
                     </div>
+                    <button type="button" onclick="window.okreniKarticu(event, this, '${evt.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-2.5 right-2.5 z-30 bg-slate-900/85 hover:bg-black text-white text-xs font-black px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/30 shadow-lg flex items-center gap-1.5 transition cursor-pointer" title="Okreni karticu (3D plakat i deljenje)">
+                      <span>🔄</span> Plakat
+                    </button>
                     ${evt.hasPromo1plus1 ? `
-                      <div class="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-md text-amber-950 border-2 border-amber-300 px-3 py-2 rounded-2xl shadow-lg flex flex-col items-center justify-center leading-none select-none">
+                      <div class="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-md text-amber-950 border-2 border-amber-300 px-3 py-2 rounded-2xl shadow-lg flex flex-col items-center justify-center leading-none select-none pointer-events-none">
                         <span class="text-xl">🎁</span>
                         <span class="text-xs font-black tracking-widest text-amber-950 mt-1">1+1</span>
                       </div>
@@ -6074,9 +6136,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                 </div>
 
                 <!-- POLEĐINA KARTICE -->
-                <div class="flip-card-back bg-slate-950 flex flex-col justify-between relative shadow-xl border border-slate-800">
-                  <img src="${evt.image}" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110" />
-                  <img src="${evt.image}" class="relative z-10 w-full h-full object-contain p-2" />
+                <div onclick="window.okreniKarticu(event, this, '${evt.id}')" class="flip-card-back bg-slate-950 flex flex-col justify-between shadow-xl border border-slate-800 cursor-pointer">
+                  <img src="${evt.image}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none" />
+                  <img src="${evt.image}" draggable="false" class="relative z-10 w-full h-full object-contain p-2 pointer-events-none" />
 
                   <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none">
                     <span class="bg-slate-900/90 backdrop-blur-md text-white text-sm font-black px-3.5 py-2 rounded-xl border border-white/10 shadow-sm truncate max-w-[65%]">${evt.title}</span>
@@ -7134,7 +7196,10 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const activityType = document.getElementById('event-activity-type')?.value || 'radionica';
       const subCategory = document.getElementById('event-sub-category')?.value || 'aktivan_odmor';
       const digitalUrl = document.getElementById('event-digital-url')?.value.trim() || '';
-      const pdfProtection = document.getElementById('event-pdf-allow-print')?.value || 'view_only';
+      const pdfAllowPrint = document.getElementById('event-pdf-allow-print-cb')?.checked === true;
+      const pdfAllowDownload = document.getElementById('event-pdf-allow-download-cb')?.checked === true;
+      const pdfAllowShare = document.getElementById('event-pdf-allow-share-cb')?.checked === true;
+      const pdfProtection = (pdfAllowPrint || pdfAllowDownload) ? 'allow_print' : 'view_only';
       const trailCode = activityType === 'teren' ? (document.getElementById('event-trail-code')?.value.trim().toUpperCase() || '') : '';
       const packageType = parseInt(document.getElementById('event-package-type')?.value, 10) || 5;
       const voucherType = document.getElementById('event-voucher-type')?.value || 'sati';
@@ -7152,6 +7217,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         subCategory: subCategory,
         digitalUrl: digitalUrl,
         pdfProtection: pdfProtection,
+        pdfAllowPrint: pdfAllowPrint,
+        pdfAllowDownload: pdfAllowDownload,
+        pdfAllowShare: pdfAllowShare,
         totalSeats: konacnaMesta,
         accessTarget: accessTarget,
         price: price,
