@@ -903,10 +903,16 @@
     <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-5 sm:p-6 shadow-2xl text-center space-y-4 relative max-h-[95vh] overflow-y-auto no-scrollbar">
       <button id="btn-close-ticket-modal" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-lg font-black z-10 shadow-sm border border-slate-200">✕</button>
       
-      <h3 class="text-xl font-black text-slate-900 pt-1">Karta Rezervisana!</h3>
+      <h3 id="modal-ticket-main-heading" class="text-xl font-black text-slate-900 pt-1">Karta Rezervisana!</h3>
       
-      <div id="physical-ticket-card" class="border border-slate-200 rounded-3xl bg-white p-4 sm:p-5 text-left space-y-3.5 relative shadow-inner">
-        <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg tracking-wider" id="ticket-id-badge">...</span>
+      <div id="physical-ticket-card" class="border border-slate-200 rounded-3xl bg-white p-4 sm:p-5 text-left space-y-3.5 relative shadow-inner overflow-hidden">
+        <!-- Pečat preko cele karte kada je iskorišćena ili otkazana -->
+        <div id="ticket-used-stamp" class="hidden absolute inset-0 z-30 pointer-events-none flex items-center justify-center bg-slate-900/10 backdrop-blur-[1px]">
+          <div id="ticket-used-stamp-text" class="border-4 border-rose-600 bg-white/95 text-rose-600 px-5 py-2 rounded-2xl font-black text-lg sm:text-xl uppercase tracking-widest -rotate-12 shadow-2xl text-center leading-tight">
+            @Booker<br><span class="text-xs tracking-wider">ISKORIŠĆENA KARTA</span>
+          </div>
+        </div>
+        <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg tracking-wider inline-block" id="ticket-id-badge">...</span>
         <h4 class="text-base sm:text-lg font-bold text-slate-900 leading-tight" id="ticket-event-title">...</h4>
         
         <div class="border-t border-dashed border-slate-200 pt-3 text-sm space-y-1.5 text-slate-600">
@@ -4581,6 +4587,12 @@ window.azurirajPrikazCeneRezervacije();
       const b = state.bookings.find(x => x.id === bookingId) || state.activeViewingTicket;
       if (!b) return;
 
+      const maxUlaza = b.ticketsCount || 1;
+      if (b.status === 'iskorišćena' || b.status === 'otkazano' || (b.scannedCount || 0) >= maxUlaza) {
+        showNotification("Ova karta je već iskorišćena i svi linkovi na njoj su ugašeni.", "warning");
+        return;
+      }
+
       const uplataOverena = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
       if (!uplataOverena) {
         showNotification("Pristup je zaključan dok se ne evidentira uplata.", "warning");
@@ -4638,6 +4650,9 @@ window.azurirajPrikazCeneRezervacije();
               status: noviStatus
             });
           } catch (e) {}
+        }
+        if (state.activeViewingTicket && state.activeViewingTicket.id === b.id) {
+          openTicketModal(b);
         }
         renderUI();
       }
@@ -4780,8 +4795,48 @@ window.azurirajPrikazCeneRezervacije();
 
     function openTicketModal(booking) {
       state.activeViewingTicket = booking;
-      document.getElementById('ticket-id-badge').innerText = `KOD: ${booking.id}`;
-      document.getElementById('ticket-event-title').innerText = booking.eventTitle;
+      const maxUlazaProvera = booking.ticketsCount || 1;
+      const iskoriscenoProvera = booking.scannedCount || 0;
+      const jeIskoriscenaKarta = booking.status === 'iskorišćena' || iskoriscenoProvera >= maxUlazaProvera;
+      const jeOtkazanaKarta = booking.status === 'otkazano';
+      const jeNevazecaKarta = jeIskoriscenaKarta || jeOtkazanaKarta;
+
+      const mainHeadingEl = document.getElementById('modal-ticket-main-heading');
+      if (mainHeadingEl) {
+        mainHeadingEl.innerText = jeOtkazanaKarta ? 'Karta je otkazana' : (jeIskoriscenaKarta ? 'Karta je iskorišćena' : 'Karta Rezervisana!');
+        mainHeadingEl.className = jeNevazecaKarta ? 'text-xl font-black text-slate-500 line-through pt-1' : 'text-xl font-black text-slate-900 pt-1';
+      }
+
+      const stampEl = document.getElementById('ticket-used-stamp');
+      const stampTextEl = document.getElementById('ticket-used-stamp-text');
+      if (stampEl) {
+        if (jeNevazecaKarta) {
+          stampEl.classList.remove('hidden');
+          if (stampTextEl) {
+            stampTextEl.innerHTML = jeOtkazanaKarta
+              ? `@Booker<br><span class="text-xs tracking-wider">OTKAZANA KARTA</span>`
+              : `@Booker<br><span class="text-xs tracking-wider">ISKORIŠĆENA KARTA</span>`;
+          }
+        } else {
+          stampEl.classList.add('hidden');
+        }
+      }
+
+      const idBadgeEl = document.getElementById('ticket-id-badge');
+      if (idBadgeEl) {
+        idBadgeEl.innerText = `KOD: ${booking.id}`;
+        idBadgeEl.className = jeNevazecaKarta
+          ? "text-xs font-black text-slate-500 bg-slate-200 px-3 py-1.5 rounded-lg tracking-wider line-through inline-block"
+          : "text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg tracking-wider inline-block";
+      }
+
+      const titleEl = document.getElementById('ticket-event-title');
+      if (titleEl) {
+        titleEl.innerText = booking.eventTitle;
+        titleEl.className = jeNevazecaKarta
+          ? "text-base sm:text-lg font-bold text-slate-400 leading-tight line-through"
+          : "text-base sm:text-lg font-bold text-slate-900 leading-tight";
+      }
       
       const badgeOsobe = booking.ticketsCount > 1 ? `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-xs ml-2 uppercase font-black align-middle">Važi za ${booking.ticketsCount} osobe</span>` : '';
       document.getElementById('ticket-user-name').innerHTML = `${booking.firstName} ${booking.lastName} ${badgeOsobe}`;
@@ -4888,6 +4943,11 @@ window.azurirajPrikazCeneRezervacije();
       const badgeSubtext = document.getElementById('ticket-badge-subtext');
 
       if (nonQrWrapper) {
+        if (badgeMainCode) {
+          badgeMainCode.className = jeNevazecaKarta
+            ? "text-3xl sm:text-4xl font-mono font-black text-slate-400 tracking-wider line-through"
+            : "text-3xl sm:text-4xl font-mono font-black text-slate-900 tracking-wider";
+        }
         if (tipAktivnosti === 'teren') {
           if (badgeTypeLabel) badgeTypeLabel.innerText = "VIP Vaučer za stazu";
           if (badgeMainCode) badgeMainCode.innerText = booking.id;
@@ -4954,8 +5014,25 @@ window.azurirajPrikazCeneRezervacije();
 
           if (onlineTag) onlineTag.innerText = jeMeet ? 'Online susret (Video poziv)' : 'Digitalni materijal (PDF)';
 
+          // 0. SLUČAJ: Karta je iskorišćena ili otkazana — svi linkovi su trajno ugašeni
+          if (jeNevazecaKarta) {
+            if (onlineInst) {
+              onlineInst.innerText = 'Ova karta je iskorišćena. Svi pristupni linkovi za ovu kartu su ugašeni.';
+            }
+            if (onlineBtn) {
+              onlineBtn.removeAttribute('href');
+              onlineBtn.onclick = null;
+              onlineBtn.className = "w-full py-4 bg-slate-200 text-slate-400 rounded-2xl text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed select-none line-through";
+            }
+            if (onlineBtnIcon) onlineBtnIcon.innerText = '✓';
+            if (onlineBtnText) onlineBtnText.innerText = 'KARTA JE ISKORIŠĆENA (LINK UGAŠEN)';
+            if (btnCopyOnline) {
+              btnCopyOnline.classList.add('hidden');
+              btnCopyOnline.onclick = null;
+            }
+          }
           // 1. SLUČAJ: Uplata još uvek nije evidentirana (Meet/Zoom ili PDF link je strogo zaključan i uklonjen iz memorije dugmeta)
-          if (!uplataOverena) {
+          else if (!uplataOverena) {
             if (onlineInst) {
               onlineInst.innerText = '🔒 Pristupni link za online susret / pregled je zaključan i biće prikazan tek nakon potvrde uplate.';
             }
@@ -5077,26 +5154,27 @@ window.azurirajPrikazCeneRezervacije();
       const potpunoIskoriscena = booking.status === 'iskorišćena' || iskorisceno >= maxUlaza;
 
       if (sliderWrapper) {
-        // Za Digitalni resurs NEMA klizača: prikazuju se direktno klikabilne kartice PDF 1 časopis / PDF 2 časopis, a ispod samo "Omogućeno preuzimanje" kada je otključano
+        // Za Digitalni resurs NEMA klizača: ako je karta već iskorišćena, dugmad su precrtana i ugašena
         if (tipAktivnosti === 'digitalni_resurs') {
-          const klasaDugmeta = uplataOverena
+          const mozeKlikPdf = uplataOverena && !jeNevazecaKarta;
+          const klasaDugmeta = mozeKlikPdf
             ? 'bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-300 text-indigo-900 cursor-pointer shadow-sm active:scale-95'
-            : 'bg-slate-100 border-2 border-slate-200 text-slate-400 cursor-not-allowed opacity-75';
+            : 'bg-slate-100 border-2 border-slate-200 text-slate-400 cursor-not-allowed opacity-75 line-through';
 
           const imaDrugiPdf = maxUlaza > 1 || booking.hasPromo1plus1 === true;
 
           let pdfKarticeHtml = `
-            <div class="flex items-center justify-center gap-3 ${uplataOverena ? 'mb-2.5' : ''}">
-              <button type="button" ${uplataOverena ? `onclick="window.otvoriPdfPregledac('${booking.id}', 1)"` : 'disabled'} class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${klasaDugmeta}">
+            <div class="flex items-center justify-center gap-3 mb-2.5">
+              <button type="button" ${mozeKlikPdf ? `onclick="window.otvoriPdfPregledac('${booking.id}', 1)"` : 'disabled'} class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${klasaDugmeta}">
                 <span>📄</span>
                 <span>PDF 1 časopis</span>
-                ${uplataOverena ? '<span class="text-emerald-600 font-black ml-1">✓</span>' : '<span>🔒</span>'}
+                ${jeNevazecaKarta ? '<span>✓</span>' : (uplataOverena ? '<span class="text-emerald-600 font-black ml-1">✓</span>' : '<span>🔒</span>')}
               </button>
               ${imaDrugiPdf ? `
-                <button type="button" ${uplataOverena ? `onclick="window.otvoriPdfPregledac('${booking.id}', 2)"` : 'disabled'} class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${klasaDugmeta}">
+                <button type="button" ${mozeKlikPdf ? `onclick="window.otvoriPdfPregledac('${booking.id}', 2)"` : 'disabled'} class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${klasaDugmeta}">
                   <span>📄</span>
                   <span>PDF 2 časopis</span>
-                  ${uplataOverena ? '<span class="text-emerald-600 font-black ml-1">✓</span>' : '<span>🔒</span>'}
+                  ${jeNevazecaKarta ? '<span>✓</span>' : (uplataOverena ? '<span class="text-emerald-600 font-black ml-1">✓</span>' : '<span>🔒</span>')}
                 </button>
               ` : ''}
             </div>
@@ -5104,11 +5182,15 @@ window.azurirajPrikazCeneRezervacije();
 
           sliderWrapper.innerHTML = `
             ${pdfKarticeHtml}
-            ${uplataOverena ? `
+            ${jeNevazecaKarta ? `
+              <div class="p-3 bg-slate-100 border border-slate-300 text-slate-700 rounded-2xl text-xs sm:text-sm font-black text-center">
+                ✓ Karta je iskorišćena (preuzimanje završeno)
+              </div>
+            ` : (uplataOverena ? `
               <div class="p-3 bg-emerald-50 border-2 border-emerald-300 text-emerald-900 rounded-2xl text-xs sm:text-sm font-black text-center flex items-center justify-center gap-2 shadow-sm">
                 <span>✓ Omogućeno preuzimanje</span>
               </div>
-            ` : ''}
+            ` : '')}
           `;
         } else {
           const danasnjiDan = new Date().toISOString().split('T')[0];
@@ -5247,10 +5329,15 @@ window.azurirajPrikazCeneRezervacije();
         };
       }
 
-      // Za Digitalni resurs NE prikazuje se dugme za otkazivanje niti poruka o 48h
+      // Ako je karta iskorišćena, gasimo i prekidač za uplatnicu (Termin / NBS IPS Uplata)
+      if (jeNevazecaKarta && paymentSwitch) {
+        paymentSwitch.classList.add('hidden');
+      }
+
+      // Za Digitalni resurs i za SVE ISKORIŠĆENE karte NE prikazuje se dugme za otkazivanje niti poruka o 48h
       const cancelContainer = document.getElementById('ticket-cancel-container');
       if (cancelContainer) {
-        if (tipAktivnosti === 'digitalni_resurs') {
+        if (tipAktivnosti === 'digitalni_resurs' || jeIskoriscenaKarta) {
           cancelContainer.innerHTML = '';
           cancelContainer.classList.add('hidden');
         } else {
@@ -5296,32 +5383,23 @@ window.azurirajPrikazCeneRezervacije();
 
       const launchBtn = document.getElementById('btn-launch-trail');
       if (launchBtn) {
-        const tip = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
-        const jeIskoriscena = booking.status === 'iskorišćena';
-
-        if (tip === 'teren' && uplataOverena && jeIskoriscena) {
-          launchBtn.href = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
-          launchBtn.innerHTML = `<span>🚀</span> POKRENI AVANTURU NA STAZI`;
-          launchBtn.className = "w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition";
-          launchBtn.classList.remove('hidden');
-        } else {
-          launchBtn.classList.add('hidden');
-        }
+        launchBtn.classList.add('hidden');
+        launchBtn.removeAttribute('href');
       }
 
-      // Prikaz i priprema poklon karte za akciju 1+1 (prilagođeno za sve tipove aktivnosti)
+      // Prikaz i priprema poklon karte za akciju 1+1 (ako je karta iskorišćena, poklon boks i linkovi se gase)
       const giftBox = document.getElementById('ticket-gift-container');
       const giftSubtitle = document.getElementById('ticket-gift-subtitle');
       const giftDesc = document.getElementById('ticket-gift-desc');
       const btnGiftShare = document.getElementById('btn-share-gift-ticket');
       const imaGratisDrugiUredjaj = booking.hasPromo1plus1 === true || !!booking.pairedBookingId || (tipAktivnosti === 'digitalni_resurs' && (booking.ticketsCount || 1) === 2);
 
-      // Ako postoji uparena druga pozivnica (kod zakazivanja 2 termina), uzimamo nju za slanje poklona
       const uparenaKarta = booking.pairedBookingId ? state.bookings.find(x => x.id === booking.pairedBookingId) : null;
       const kartaZaPoklon = uparenaKarta || booking;
+      const jePoklonIskoriscen = kartaZaPoklon.status === 'iskorišćena' || (kartaZaPoklon.scannedCount || 0) >= (kartaZaPoklon.ticketsCount || 1);
 
       if (giftBox) {
-        if (imaGratisDrugiUredjaj && booking.status !== 'otkazano') {
+        if (imaGratisDrugiUredjaj && !jeNevazecaKarta && !jePoklonIskoriscen) {
           if (tipAktivnosti === 'digitalni_resurs') {
             if (giftSubtitle) giftSubtitle.innerText = 'Poklon sveska za još jednu osobu';
             if (giftDesc) giftDesc.classList.add('hidden');
@@ -5423,8 +5501,25 @@ window.azurirajPrikazCeneRezervacije();
       const pridruzeniDogadjaj = state.events.find(e => e.id === booking.eventId);
       const telPredavaca = (booking.instructorPhone || pridruzeniDogadjaj?.instructorPhone || '').replace(/[^0-9]/g, '');
 
+      const btnDownImg = document.getElementById('btn-download-ticket-img');
+      const btnShareTkt = document.getElementById('btn-share-ticket');
+      if (btnDownImg && btnShareTkt) {
+        if (jeNevazecaKarta) {
+          btnDownImg.disabled = true;
+          btnShareTkt.disabled = true;
+          btnDownImg.className = "py-3 bg-slate-200 text-slate-400 rounded-2xl font-black flex items-center justify-center cursor-not-allowed pointer-events-none";
+          btnShareTkt.className = "py-3 bg-slate-200 text-slate-400 rounded-2xl font-black flex items-center justify-center cursor-not-allowed pointer-events-none";
+        } else {
+          btnDownImg.disabled = false;
+          btnShareTkt.disabled = false;
+          btnDownImg.className = "py-3 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-2xl font-black shadow-md flex items-center justify-center";
+          btnShareTkt.className = "py-3 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-2xl font-black shadow-md flex items-center justify-center";
+        }
+      }
+
       if (directConfirmWrap) {
-        if (telPredavaca && booking.status !== 'otkazano') {
+        // Ako je karta već iskorišćena ili otkazana, gasimo Viber i WhatsApp dugmad za potvrdu dolaska
+        if (telPredavaca && !jeNevazecaKarta) {
           directConfirmWrap.classList.remove('hidden');
           let medjunarodniBroj = telPredavaca;
           if (medjunarodniBroj.startsWith('00381')) medjunarodniBroj = medjunarodniBroj.substring(2);
@@ -6921,13 +7016,13 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                   </div>
                 `;
               } else if (isPotpunoIskoriscena) {
-                temaZaglavlja = 'bg-slate-700 text-slate-200';
-                okvirKartice = 'border-2 border-slate-300 bg-slate-100/95 opacity-85';
-                btnStyle = 'bg-slate-300 text-slate-700 hover:bg-slate-400';
-                btnText = '✓ Karta je poništena (Pregled)';
+                temaZaglavlja = 'bg-slate-700 text-slate-200 line-through';
+                okvirKartice = 'border-2 border-slate-300 bg-slate-100/95 opacity-80';
+                btnStyle = 'bg-slate-300 text-slate-600 line-through';
+                btnText = '@Booker — ISKORIŠĆENA KARTA (Linkovi ugašeni)';
                 pecatStatusaHtml = `
-                  <div class="bg-emerald-100 border-2 border-emerald-500 text-emerald-900 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-widest shadow-xs flex items-center gap-1">
-                    <span>✓</span> PONIŠTENO / ISKORIŠĆENO
+                  <div class="bg-rose-100 border-2 border-rose-500 text-rose-900 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-widest shadow-xs flex items-center gap-1">
+                    <span>@Booker</span> • ISKORIŠĆENO
                   </div>
                 `;
               } else if (cekaUplatu) {
