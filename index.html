@@ -803,11 +803,13 @@
               <span class="text-[10px] font-black bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-800 shrink-0">1+1 Poklon</span>
             </div>
 
-            <!-- Izbor datuma termina (za višednevne aktivnosti) -->
-            <div id="wrapper-booking-date-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2">
-              <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite dan dolaska *</label>
-              <input id="booking-selected-date" type="date" onclick="try { this.showPicker(); } catch(e) {}" onchange="window.azurirajPrikazTerminaSatnice()" class="w-full bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer transition shadow-xs" />
-              <p class="text-[11px] text-slate-500 font-semibold">Aktivnost traje više dana, kliknite bilo gde na polje da izaberete datum.</p>
+            <!-- Izbor datuma termina (jasan prikaz bez nepotrebnog teksta) -->
+            <div id="wrapper-booking-date-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite dan dolaska *</label>
+                <span class="text-[11px] font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-xs">Kalendar</span>
+              </div>
+              <input id="booking-selected-date" type="date" onclick="try { this.showPicker(); } catch(e) {}" onchange="window.azurirajPrikazTerminaSatnice()" class="w-full bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-xl px-4 py-3 text-sm font-black text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer transition shadow-xs" />
             </div>
 
             <!-- Izbor termina i satnice (za preglede, radionice i individualne konsultacije) -->
@@ -1025,9 +1027,9 @@
             </button>
           </div>
 
-          <!-- Direktna potvrda termina 1 na 1 (Viber i WhatsApp) -->
+          <!-- Direktna potvrda zakazanog termina (Viber i WhatsApp) -->
           <div id="ticket-direct-confirm-wrapper" class="hidden w-full bg-slate-50 border border-indigo-100 rounded-2xl p-3.5 text-center space-y-2.5 mt-2">
-            <p class="text-[11px] font-black text-indigo-950 uppercase tracking-wide">Potvrda zakazanog termina (1 na 1)</p>
+            <p class="text-[11px] font-black text-indigo-950 uppercase tracking-wide">Potvrda zakazanog termina</p>
             <p class="text-xs text-slate-600 font-medium leading-snug">Pošaljite kratku poruku predavaču kako biste direktno potvrdili svoj dolazak:</p>
             <div class="grid grid-cols-2 gap-2 pt-0.5">
               <button type="button" id="btn-confirm-viber" class="py-2.5 px-3 bg-[#7360f2] hover:opacity-95 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5">
@@ -1260,11 +1262,11 @@
             <div class="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-1.5">
                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">1. Izaberite model i vrstu aktivnosti *</label>
                <select id="event-activity-type" onchange="window.prilagodiFormuObuke(this.value)" class="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
-                 <option value="radionica">1. Prisustvo na lokaciji (Radionica, predavanje, pregled)</option>
+                 <option value="radionica">1. Prisustvo na lokaciji (Radionica, predavanje)</option>
                  <option value="teren">2. Terenska staza (Samostalna avantura na otvorenom uz vaučer)</option>
                  <option value="online">💻 3. Online susret / Edukacija na daljinu (Google Meet, Zoom, Webinar)</option>
                  <option value="digitalni_resurs">📥 4. Digitalni resurs (PDF radna sveska, flipbook, video materijal)</option>
-                 <option value="individualno">👤 5. Individualne konsultacije (1 na 1 zakazani termin)</option>
+                 <option value="individualno">🩺 5. Usluga / Pregled / Konsultacije (Zakazivanje termina)</option>
                </select>
             </div>
 
@@ -1501,6 +1503,31 @@
                   </label>
                 </div>
               </div>
+            </div>
+
+            <!-- Podešavanje za Usluge / Preglede / Konsultacije (1 ili 2 vremenska termina i Gratis kombinacije) -->
+            <div id="box-service-settings" class="hidden border border-indigo-200 bg-indigo-50/70 rounded-2xl p-4 space-y-3">
+              <p class="text-xs font-black text-indigo-950 uppercase tracking-wide">Podešavanje zakazivanja termina (Usluga / Pregled):</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Koliko termina može da zakaže?</label>
+                  <select id="event-service-max-qty" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <option value="1">Samo 1 termin (opcija 2 je zaključana)</option>
+                    <option value="2" selected>1 ili 2 termina (bira 2 različita vremena)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Model naplate i Gratis opcija</label>
+                  <select id="event-service-promo-mode" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <option value="standard" selected>Standardno (svaki termin po ceni)</option>
+                    <option value="second_free">Drugi termin GRATIS (1+1 — plaća samo 1.)</option>
+                    <option value="first_free">Samo prvi termin GRATIS (1. je 0 din, 2. se plaća)</option>
+                  </select>
+                </div>
+              </div>
+              <p class="text-[11px] text-indigo-900 font-semibold leading-snug">
+                Kada korisnik izabere 2 termina, mora da označi 2 različita vremena u kalendaru i dobija 2 odvojene pozivnice.
+              </p>
             </div>
 
             <!-- Podešavanje načina plaćanja i računa (automatski sakriveno ako je 0 RSD) -->
@@ -2792,6 +2819,7 @@ function startRealtimeSync() {
       if (boxTrail) boxTrail.classList.add('hidden');
       if (boxDigital) boxDigital.classList.add('hidden');
       if (document.getElementById('box-pdf-protection-options')) document.getElementById('box-pdf-protection-options').classList.add('hidden');
+      if (document.getElementById('box-service-settings')) document.getElementById('box-service-settings').classList.add('hidden');
       if (boxLocation) boxLocation.classList.remove('hidden');
       if (boxTime) boxTime.classList.remove('hidden');
       if (seatsInput) {
@@ -2830,10 +2858,13 @@ function startRealtimeSync() {
         if (labelDesc) labelDesc.innerText = "Materijal se otvara u ugrađenom @Booker čitaču prema izabranom režimu zaštite.";
         if (urlInput) urlInput.placeholder = "https://heyzine.com/... ili link do PDF-a";
       } else if (tip === 'individualno') {
-        // Individualne konsultacije: otvaramo polje za online link ako se radi preko interneta
+        // Usluga / Pregled / Konsultacije: otvaramo podešavanje za 1 ili 2 termina i opciono online link
+        if (document.getElementById('box-service-settings')) {
+          document.getElementById('box-service-settings').classList.remove('hidden');
+        }
         if (boxDigital) boxDigital.classList.remove('hidden');
-        if (labelTitle) labelTitle.innerText = "Link za Google Meet ili Zoom (opciono, ako je online):";
-        if (labelDesc) labelDesc.innerText = "Ukoliko se konsultacije održavaju online, unesite link koji će se pojaviti na kartici polaznika.";
+        if (labelTitle) labelTitle.innerText = "Link za Google Meet ili Zoom (opciono, ako je pregled/konsultacija online):";
+        if (labelDesc) labelDesc.innerText = "Link je strogo zaključan i postaje vidljiv klijentu tek nakon potvrde uplate.";
         if (urlInput) urlInput.placeholder = "https://meet.google.com/xxx-xxxx-xxx";
         if (document.getElementById('slot-duration-select')) {
           document.getElementById('slot-duration-select').value = '30';
@@ -2841,6 +2872,7 @@ function startRealtimeSync() {
         if (document.getElementById('slot-break-select')) {
           document.getElementById('slot-break-select').value = '5';
         }
+        window.promeniVidljivostKalkulatoraSatnice(true);
       }
     };
 
@@ -2931,6 +2963,12 @@ function startRealtimeSync() {
       }
       if (document.getElementById('event-digital-url-2')) {
         document.getElementById('event-digital-url-2').value = ev.digitalUrl2 || '';
+      }
+      if (document.getElementById('event-service-max-qty')) {
+        document.getElementById('event-service-max-qty').value = String(ev.serviceMaxQty || 2);
+      }
+      if (document.getElementById('event-service-promo-mode')) {
+        document.getElementById('event-service-promo-mode').value = ev.servicePromoMode || (ev.hasPromo1plus1 ? 'second_free' : 'standard');
       }
       if (document.getElementById('event-trail-code')) document.getElementById('event-trail-code').value = ev.trailCode || '';if (document.getElementById('event-package-type')) document.getElementById('event-package-type').value = ev.packageType || 5;     if (document.getElementById('event-voucher-type')) document.getElementById('event-voucher-type').value = ev.voucherType || 'sati';
       // Prvo potpuno čistimo kalkulator od prethodno otvaranog programa
@@ -3257,26 +3295,28 @@ window.openBookingModal = function(eventId) {
       const dateChoiceWrapper = document.getElementById('wrapper-booking-date-choice');
       const dateChoiceInput = document.getElementById('booking-selected-date');
       const tipZaDatum = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
-      // Kod PDF digitalnih resursa nikada ne tražimo "dan dolaska"
-      const jeVisednevniProgram = tipZaDatum !== 'digitalni_resurs' && event.startDate && event.endDate && event.startDate !== event.endDate;
+      // Za Usluge / Preglede (individualno) i višednevne programe prikazujemo jasan kalendar "Izaberite dan dolaska"
+      const prikaziIzborDana = tipZaDatum !== 'digitalni_resurs' && (tipZaDatum === 'individualno' || (event.startDate && event.endDate && event.startDate !== event.endDate));
 
       if (dateChoiceInput) {
         const danasnjiDan = new Date().toISOString().split('T')[0];
         const pocetniDan = (event.startDate && event.startDate > danasnjiDan) ? event.startDate : danasnjiDan;
         dateChoiceInput.min = pocetniDan;
-        dateChoiceInput.max = event.endDate || event.startDate;
+        dateChoiceInput.max = event.endDate || event.startDate || pocetniDan;
         dateChoiceInput.value = pocetniDan;
       }
 
       if (dateChoiceWrapper) {
-        if (jeVisednevniProgram) {
+        if (prikaziIzborDana) {
           dateChoiceWrapper.classList.remove('hidden');
         } else {
           dateChoiceWrapper.classList.add('hidden');
         }
       }
 
-      // Funkcija za automatsko iscrtavanje slobodnih i zauzetih satnica
+      window.izabraniTerminiNiz = [];
+
+      // Funkcija za automatsko iscrtavanje slobodnih i zauzetih satnica (podržava izbor 1 ili 2 različita termina)
       window.azurirajPrikazTerminaSatnice = function() {
         const wrapperTime = document.getElementById('wrapper-booking-time-choice');
         const containerTime = document.getElementById('booking-time-slots-container');
@@ -3287,7 +3327,6 @@ window.openBookingModal = function(eventId) {
         const sirovoVreme = (event.time || '').trim();
         const tipAktivnosti = event.activityType || (event.trailCode ? 'teren' : 'radionica');
 
-        // Ako je terenska staza ili digitalni resurs, vreme se ne bira
         if (!sirovoVreme || tipAktivnosti === 'teren' || tipAktivnosti === 'digitalni_resurs') {
           wrapperTime.classList.add('hidden');
           hiddenTimeInput.value = sirovoVreme;
@@ -3306,7 +3345,6 @@ window.openBookingModal = function(eventId) {
         const izabraniDan = (dateChoiceInput && dateChoiceInput.value) ? dateChoiceInput.value : (event.startDate || event.date);
         const sada = Date.now();
 
-        // Razdvajamo plaćene (potvrđene) termine od onih koji su sivi (na čekanju uplate do 60 min)
         const placeniTermini = new Set();
         const naCekanjuTermini = new Set();
 
@@ -3327,15 +3365,16 @@ window.openBookingModal = function(eventId) {
           }
         });
 
-        let prviSlobodan = null;
+        const slobodnaVremena = [];
         hiddenTimeInput.value = '';
+        window.izabraniTerminiNiz = [];
 
         containerTime.innerHTML = slotovi.map(slot => {
           const jePlaceno = placeniTermini.has(slot);
           const jeNaCekanju = !jePlaceno && naCekanjuTermini.has(slot);
           const nijeDostupno = jePlaceno || jeNaCekanju;
 
-          if (!nijeDostupno && !prviSlobodan) prviSlobodan = slot;
+          if (!nijeDostupno) slobodnaVremena.push(slot);
 
           if (jePlaceno) {
             return `
@@ -3358,13 +3397,19 @@ window.openBookingModal = function(eventId) {
           return `
             <button type="button" onclick="window.izaberiTerminSatnice('${slot}')" id="time-slot-btn-${slot.replace(/[^a-zA-Z0-9]/g, '_')}" class="time-slot-btn py-2.5 px-2 rounded-xl text-xs font-black bg-white hover:bg-indigo-50 border-2 border-indigo-200 text-slate-800 transition flex flex-col items-center justify-center shadow-xs cursor-pointer">
               <span>${slot}h</span>
-              <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5">Slobodno</span>
+              <span class="slot-sublabel text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5">Slobodno</span>
             </button>
           `;
         }).join('');
 
-        if (prviSlobodan) {
-          window.izaberiTerminSatnice(prviSlobodan);
+        const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
+        const trazenBrojTermina = (tipAktivnosti === 'individualno' && qtyInput) ? parseInt(qtyInput.value, 10) : 1;
+
+        if (slobodnaVremena.length > 0) {
+          window.izaberiTerminSatnice(slobodnaVremena[0]);
+          if (trazenBrojTermina === 2 && slobodnaVremena.length > 1) {
+            window.izaberiTerminSatnice(slobodnaVremena[1]);
+          }
         } else if (statusLabel) {
           statusLabel.innerText = "Svi termini su popunjeni!";
           statusLabel.className = "text-[11px] font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 shadow-xs";
@@ -3374,20 +3419,62 @@ window.openBookingModal = function(eventId) {
       window.izaberiTerminSatnice = function(slot) {
         const hiddenTimeInput = document.getElementById('booking-selected-time');
         const statusLabel = document.getElementById('booking-time-status-label');
-        if (hiddenTimeInput) hiddenTimeInput.value = slot;
+        const tipAktivnosti = event.activityType || (event.trailCode ? 'teren' : 'radionica');
+        const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
+        const trazenBroj = (tipAktivnosti === 'individualno' && qtyInput) ? parseInt(qtyInput.value, 10) : 1;
+
+        if (trazenBroj === 1) {
+          window.izabraniTerminiNiz = [slot];
+        } else {
+          const idx = window.izabraniTerminiNiz.indexOf(slot);
+          if (idx > -1) {
+            window.izabraniTerminiNiz.splice(idx, 1);
+          } else {
+            if (window.izabraniTerminiNiz.length >= 2) {
+              window.izabraniTerminiNiz.shift();
+            }
+            window.izabraniTerminiNiz.push(slot);
+          }
+        }
+
+        if (hiddenTimeInput) {
+          hiddenTimeInput.value = window.izabraniTerminiNiz.join(', ');
+        }
 
         document.querySelectorAll('.time-slot-btn').forEach(btn => {
           btn.className = "time-slot-btn py-2.5 px-2 rounded-xl text-xs font-black bg-white hover:bg-indigo-50 border-2 border-indigo-200 text-slate-800 transition flex flex-col items-center justify-center shadow-xs cursor-pointer";
+          const sub = btn.querySelector('.slot-sublabel');
+          if (sub) {
+            sub.innerText = "Slobodno";
+            sub.className = "slot-sublabel text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5";
+          }
         });
 
-        const izabranoDugme = document.getElementById(`time-slot-btn-${slot.replace(/[^a-zA-Z0-9]/g, '_')}`);
-        if (izabranoDugme) {
-          izabranoDugme.className = "time-slot-btn py-2.5 px-2 rounded-xl text-xs font-black bg-indigo-600 text-white border-2 border-indigo-600 transition flex flex-col items-center justify-center shadow-md scale-102";
-        }
+        window.izabraniTerminiNiz.forEach((izabraniSlot, rBr) => {
+          const btn = document.getElementById(`time-slot-btn-${izabraniSlot.replace(/[^a-zA-Z0-9]/g, '_')}`);
+          if (btn) {
+            btn.className = "time-slot-btn py-2.5 px-2 rounded-xl text-xs font-black bg-indigo-600 text-white border-2 border-indigo-600 transition flex flex-col items-center justify-center shadow-md scale-102";
+            const sub = btn.querySelector('.slot-sublabel');
+            if (sub) {
+              sub.innerText = trazenBroj === 2 ? `${rBr + 1}. termin` : "Izabrano";
+              sub.className = "slot-sublabel text-[9px] font-black text-amber-200 uppercase tracking-wider mt-0.5";
+            }
+          }
+        });
 
         if (statusLabel) {
-          statusLabel.innerText = `Izabran termin: ${slot}h`;
-          statusLabel.className = "text-[11px] font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-xs";
+          if (trazenBroj === 2) {
+            if (window.izabraniTerminiNiz.length === 2) {
+              statusLabel.innerText = `Termini: ${window.izabraniTerminiNiz[0]}h i ${window.izabraniTerminiNiz[1]}h`;
+              statusLabel.className = "text-[11px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shadow-xs";
+            } else {
+              statusLabel.innerText = `Izaberite još ${2 - window.izabraniTerminiNiz.length} termin (${window.izabraniTerminiNiz.length}/2)`;
+              statusLabel.className = "text-[11px] font-black text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-300 shadow-xs animate-pulse";
+            }
+          } else {
+            statusLabel.innerText = window.izabraniTerminiNiz[0] ? `Izabran termin: ${window.izabraniTerminiNiz[0]}h` : 'Izaberite termin';
+            statusLabel.className = "text-[11px] font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-xs";
+          }
         }
       };
 
@@ -3483,6 +3570,9 @@ window.openBookingModal = function(eventId) {
 
         const jePromo1plus1 = event.hasPromo1plus1 === true;
         const jeDigitalni = event.activityType === 'digitalni_resurs';
+        const jeUsluga = event.activityType === 'individualno';
+        const rezimUsluge = event.servicePromoMode || (jePromo1plus1 ? 'second_free' : 'standard');
+
         const doplataZaDrugi = (jeDigitalni && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined)
           ? Number(event.pdfSecondPrice)
           : (jePromo1plus1 ? 0 : null);
@@ -3490,7 +3580,20 @@ window.openBookingModal = function(eventId) {
         let clanskiTotal = clanskaCenaPoKarti;
         let redovniTotal = redovnaCenaPoKarti;
 
-        if (qty === 2) {
+        if (jeUsluga) {
+          if (rezimUsluge === 'first_free') {
+            // Samo prvi termin je GRATIS (0 din), a ako zakazuje 2 termina plaća samo drugi
+            clanskiTotal = (qty === 1) ? 0 : clanskaCenaPoKarti;
+            redovniTotal = (qty === 1) ? 0 : redovnaCenaPoKarti;
+          } else if (rezimUsluge === 'second_free' || jePromo1plus1) {
+            // Drugi termin je GRATIS (plaća samo prvi termin)
+            clanskiTotal = clanskaCenaPoKarti;
+            redovniTotal = redovnaCenaPoKarti;
+          } else {
+            clanskiTotal = clanskaCenaPoKarti * qty;
+            redovniTotal = redovnaCenaPoKarti * qty;
+          }
+        } else if (qty === 2) {
           if (doplataZaDrugi !== null) {
             clanskiTotal = clanskaCenaPoKarti + doplataZaDrugi;
             redovniTotal = redovnaCenaPoKarti + doplataZaDrugi;
@@ -3499,7 +3602,7 @@ window.openBookingModal = function(eventId) {
             redovniTotal = redovnaCenaPoKarti * 2;
           }
         }
-        const oznakaDrugeCene = jeModelClanarine ? 'Učlanjenje' : 'Redovna cena';
+        const oznakaDrugeCene = jeModelClanarine ? 'Učlanjenje' : (jeUsluga ? 'Cena usluge' : 'Redovna cena');
 
         if (priceDisplay) {
           priceDisplay.innerHTML = `
@@ -3663,7 +3766,12 @@ window.openBookingModal = function(eventId) {
 window.azurirajPrikazCeneRezervacije();
 
       document.querySelectorAll('input[name="booking-quantity"]').forEach(radio => {
-        radio.onchange = window.azurirajPrikazCeneRezervacije;
+        radio.onchange = () => {
+          window.azurirajPrikazCeneRezervacije();
+          if (event.activityType === 'individualno') {
+            window.azurirajPrikazTerminaSatnice();
+          }
+        };
       });
 
       const seatsGrid = document.getElementById('modal-booking-seats-grid');
@@ -3715,6 +3823,10 @@ window.azurirajPrikazCeneRezervacije();
       // Ako je uključena samo 1 sveska + 1+1 Gratis promocija, opcija 2 je zaključana (dobija +1 poklon automatski).
       const imaDefinisanuDruguSvesku = Number(event.pdfMaxQty) === 2 && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined && event.pdfSecondPrice !== '';
 
+      const jeOrdinacija = event.subCategory === 'medicinski_stit' || event.category === 'medicinski_stit' || (event.title && event.title.toLowerCase().includes('pregled'));
+      const maxTerminaUsluge = event.serviceMaxQty ? Number(event.serviceMaxQty) : 2;
+      const rezimUsluge = event.servicePromoMode || (event.hasPromo1plus1 ? 'second_free' : 'standard');
+
       if (tipAkt === 'digitalni_resurs') {
         if (qtyQuestionEl) qtyQuestionEl.innerText = 'Želim da preuzmem:';
         if (imaDefinisanuDruguSvesku) {
@@ -3725,12 +3837,21 @@ window.azurirajPrikazCeneRezervacije();
         } else {
           if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>📖</span> 1 sveska po korisniku`;
         }
+      } else if (tipAkt === 'individualno') {
+        if (qtyQuestionEl) qtyQuestionEl.innerText = jeOrdinacija ? 'Zakazujem pregled (broj termina):' : 'Rezerviši uslugu (broj termina):';
+        if (rezimUsluge === 'first_free') {
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 1. termin GRATIS, za 2 termina birate 2 vremena`;
+        } else if (rezimUsluge === 'second_free' || event.hasPromo1plus1) {
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 2. termin GRATIS (birate 2 različita vremena)`;
+        } else {
+          if (qtySubtextEl) qtySubtextEl.innerHTML = maxTerminaUsluge === 2 ? `<span>🕒</span> Za 2 termina birate 2 različita vremena` : `<span>🕒</span> Zakazivanje 1 vremenskog termina`;
+        }
       } else {
         if (qtyQuestionEl) qtyQuestionEl.innerText = 'Koliko mesta rezervišete?';
         if (qtySubtextEl) qtySubtextEl.innerHTML = '<span>ℹ️</span> Maksimalno 2 po emailu';
       }
 
-      const zabraniDvaMesta = tipAkt === 'teren' || (tipAkt === 'digitalni_resurs' && !imaDefinisanuDruguSvesku);
+      const zabraniDvaMesta = tipAkt === 'teren' || (tipAkt === 'digitalni_resurs' && !imaDefinisanuDruguSvesku) || (tipAkt === 'individualno' && maxTerminaUsluge < 2);
 
       if (remaining < 2 || zabraniDvaMesta) {
         radio2.disabled = true;
@@ -3922,26 +4043,39 @@ window.azurirajPrikazCeneRezervacije();
         ? ((hiddenTimeInput && hiddenTimeInput.value) ? hiddenTimeInput.value.trim() : (event.time || '')) 
         : '';
 
-      if (wrapperTime && !wrapperTime.classList.contains('hidden') && !hiddenTimeInput?.value) {
-        showNotification("Molimo izaberite slobodan termin održavanja", "warning");
-        return;
+      // Ako je uključen izbor satnice (ili je Usluga/Pregled), zakazivanje mora imati izabran vremenski termin
+      if ((wrapperTime && !wrapperTime.classList.contains('hidden')) || event.activityType === 'individualno') {
+        if (!hiddenTimeInput?.value) {
+          showNotification("Molimo izaberite slobodno vreme termina", "warning");
+          return;
+        }
+        if (event.activityType === 'individualno' && qty === 2 && (!window.izabraniTerminiNiz || window.izabraniTerminiNiz.length < 2)) {
+          showNotification("Za 2 pregleda/usluge morate izabrati 2 različita vremena termina u kalendaru!", "warning");
+          return;
+        }
       }
 
-      // Za individualne konsultacije i preglede, proveravamo da li je termin slobodan
+      // Za Usluge i Preglede proveravamo da li su svi izabrani vremenski termini slobodni
       if (event.activityType === 'individualno') {
-        const vecZauzeto = state.bookings.some(b => 
-          b.eventId === event.id && 
-          (b.selectedDate || b.eventDate) === tacanDatumTermina && 
-          (b.eventTime || '').trim() === izabranoVreme && 
-          b.status !== 'otkazano'
-        );
+        const terminiZaProveru = (window.izabraniTerminiNiz && window.izabraniTerminiNiz.length > 0)
+          ? window.izabraniTerminiNiz
+          : [izabranoVreme];
 
-        if (vecZauzeto) {
-          showNotification(`Termin u ${izabranoVreme}h je u međuvremenu zauzet, molimo izaberite drugi`, "warning");
-          if (typeof window.azurirajPrikazTerminaSatnice === 'function') {
-            window.azurirajPrikazTerminaSatnice();
+        for (const pojedinacnoVreme of terminiZaProveru) {
+          const vecZauzeto = state.bookings.some(b => 
+            b.eventId === event.id && 
+            (b.selectedDate || b.eventDate) === tacanDatumTermina && 
+            (b.eventTime || '').trim() === pojedinacnoVreme && 
+            b.status !== 'otkazano'
+          );
+
+          if (vecZauzeto) {
+            showNotification(`Termin u ${pojedinacnoVreme}h je u međuvremenu zauzet, molimo izaberite drugi`, "warning");
+            if (typeof window.azurirajPrikazTerminaSatnice === 'function') {
+              window.azurirajPrikazTerminaSatnice();
+            }
+            return;
           }
-          return;
         }
       }
 
@@ -3966,8 +4100,19 @@ window.azurirajPrikazCeneRezervacije();
         ? Number(event.pdfSecondPrice)
         : (jePromo1plus1 ? 0 : null);
 
+      const jeUsluga = event.activityType === 'individualno';
+      const rezimUsluge = event.servicePromoMode || (jePromo1plus1 ? 'second_free' : 'standard');
+
       let totalPrice = pricePerTicket * obracunskiBroj;
-      if (qty === 2 && doplataZaDrugi !== null) {
+      if (jeUsluga) {
+        if (rezimUsluge === 'first_free') {
+          totalPrice = (qty === 1) ? 0 : pricePerTicket;
+        } else if (rezimUsluge === 'second_free' || jePromo1plus1) {
+          totalPrice = pricePerTicket;
+        } else {
+          totalPrice = pricePerTicket * qty;
+        }
+      } else if (qty === 2 && doplataZaDrugi !== null) {
         totalPrice = pricePerTicket + doplataZaDrugi;
       }
 
@@ -4090,10 +4235,53 @@ window.azurirajPrikazCeneRezervacije();
         status: 'aktivna'
       };
 
-      state.bookings = [newBooking, ...state.bookings];
+      // Ako je Usluga / Pregled sa 2 izabrana vremenska termina, pravimo 2 odvojene pozivnice (sve duplo)
+      const listaKreiranihRezervacija = [];
+      if (jeUsluga && qty === 2 && window.izabraniTerminiNiz && window.izabraniTerminiNiz.length === 2) {
+        const vreme1 = window.izabraniTerminiNiz[0];
+        const vreme2 = window.izabraniTerminiNiz[1];
+        const nasumicneCifre2 = Math.floor(100000 + Math.random() * 900000);
+        const bookingId2 = `BK-${nasumicneCifre2}`;
+
+        let cenaPrve = pricePerTicket;
+        let cenaDruge = pricePerTicket;
+        if (rezimUsluge === 'first_free') {
+          cenaPrve = 0;
+          cenaDruge = pricePerTicket;
+        } else if (rezimUsluge === 'second_free' || jePromo1plus1) {
+          cenaPrve = pricePerTicket;
+          cenaDruge = 0;
+        }
+
+        const prvaPozivnica = {
+          ...newBooking,
+          eventTime: vreme1,
+          ticketsCount: 1,
+          totalPrice: cenaPrve,
+          isPaid: cenaPrve === 0,
+          pairedBookingId: bookingId2
+        };
+
+        const drugaPozivnica = {
+          ...newBooking,
+          id: bookingId2,
+          paymentReference: `${brojDogadjaja}${mesecDogadjaja}${nasumicneCifre2}`,
+          eventTime: vreme2,
+          ticketsCount: 1,
+          totalPrice: cenaDruge,
+          isPaid: cenaDruge === 0,
+          pairedBookingId: newBooking.id
+        };
+
+        listaKreiranihRezervacija.push(prvaPozivnica, drugaPozivnica);
+      } else {
+        listaKreiranihRezervacija.push(newBooking);
+      }
+
+      state.bookings = [...listaKreiranihRezervacija, ...state.bookings];
       safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
       let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
-      myTickets.push(newBooking.id);
+      listaKreiranihRezervacija.forEach(item => myTickets.push(item.id));
       safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
 
       if (newBooking.memberCode) safeStorage.setItem('edubooker_last_card', newBooking.memberCode);
@@ -4101,7 +4289,9 @@ window.azurirajPrikazCeneRezervacije();
 
       if (state.isOnline && firebaseActive) {
         try {
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', newBooking.id), newBooking);
+          for (const pojedinacnaRez of listaKreiranihRezervacija) {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', pojedinacnaRez.id), pojedinacnaRez);
+          }
           
           // Vaučer u bazu staza šaljemo odmah samo ako je karta već plaćena ili besplatna
           if (zdravaDb && newBooking.isPaid && (newBooking.trailCode || event.category === 'umg')) {
@@ -4717,9 +4907,15 @@ window.azurirajPrikazCeneRezervacije();
           if (badgeMainCode) badgeMainCode.innerText = booking.id;
           if (badgeSubtext) badgeSubtext.innerText = "Digitalna radna sveska (Online pristup)";
         } else if (tipAktivnosti === 'individualno') {
-          if (badgeTypeLabel) badgeTypeLabel.innerText = "Broj rezervacije termina";
+          if (badgeTypeLabel) badgeTypeLabel.innerText = "Pozivnica za zakazani termin";
           if (badgeMainCode) badgeMainCode.innerText = booking.id;
-          if (badgeSubtext) badgeSubtext.innerText = "Individualne konsultacije (1 na 1)";
+          if (booking.pairedBookingId) {
+            if (badgeSubtext) {
+              badgeSubtext.innerHTML = `Zakazan termin u <strong>${booking.eventTime}h</strong> <button type="button" onclick="window.viewTicket('${booking.pairedBookingId}')" class="ml-1.5 text-indigo-700 underline font-black">👉 Otvori 2. pozivnicu (${booking.pairedBookingId})</button>`;
+            }
+          } else {
+            if (badgeSubtext) badgeSubtext.innerText = "Rezervisana usluga / pregled";
+          }
         }
       }
 
@@ -4758,18 +4954,25 @@ window.azurirajPrikazCeneRezervacije();
 
           if (onlineTag) onlineTag.innerText = jeMeet ? 'Online susret (Video poziv)' : 'Digitalni materijal (PDF)';
 
-          // 1. SLUČAJ: Uplata još uvek nije evidentirana (link je strogo zaključan)
+          // 1. SLUČAJ: Uplata još uvek nije evidentirana (Meet/Zoom ili PDF link je strogo zaključan i uklonjen iz memorije dugmeta)
           if (!uplataOverena) {
             if (onlineInst) {
-              onlineInst.innerText = '🔒 Pristupni link je zaključan dok se ne evidentira uplata. Rezervacija mesta se čuva 60 minuta.';
+              onlineInst.innerText = '🔒 Pristupni link za online susret / pregled je zaključan i biće prikazan tek nakon potvrde uplate.';
             }
             if (onlineBtn) {
               onlineBtn.removeAttribute('href');
+              onlineBtn.onclick = (e) => {
+                e.preventDefault();
+                showNotification("Link nije dostupan pre potvrde uplate!", "warning");
+              };
               onlineBtn.className = "w-full py-4 bg-slate-200 text-slate-500 rounded-2xl text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed select-none";
             }
-            if (onlineBtnIcon) onlineBtnIcon.innerText = '⏳';
-            if (onlineBtnText) onlineBtnText.innerText = 'ČEKA SE POTVRDA UPLATE';
-            if (btnCopyOnline) btnCopyOnline.classList.add('hidden');
+            if (onlineBtnIcon) onlineBtnIcon.innerText = '🔒';
+            if (onlineBtnText) onlineBtnText.innerText = 'LINK ZAKLJUČAN DO POTVRDE UPLATE';
+            if (btnCopyOnline) {
+              btnCopyOnline.classList.add('hidden');
+              btnCopyOnline.onclick = null;
+            }
           } 
           // 2. SLUČAJ: Uplata je potvrđena, ali je datum online susreta tek u budućnosti
           else if (jeMeet && jeUBuducnosti) {
@@ -6385,6 +6588,11 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
             `;
           }
 
+          const jeOrdinacijaKartica = evt.subCategory === 'medicinski_stit' || evt.category === 'medicinski_stit' || (evt.title && evt.title.toLowerCase().includes('pregled'));
+          const tekstDugmetaRezervacije = (evt.activityType === 'individualno')
+            ? (jeOrdinacijaKartica ? 'Zakazujem pregled' : 'Rezerviši uslugu')
+            : (jeOrdinacijaKartica ? 'Zakazujem pregled' : 'Brza rezervacija mesta');
+
           if (!evt.image) {
             return `
               <div onclick="openInfoModal('${evt.id}')" class="bg-white rounded-3xl border border-slate-300 overflow-hidden flex flex-col justify-between shadow-xl shadow-slate-400/30 p-6 hover:shadow-2xl transition cursor-pointer select-none">
@@ -6420,8 +6628,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                      <span>@Bookiranih: <strong class="text-slate-950 font-black">${bookedCount} / ${evt.totalSeats}</strong></span>
                      <span class="${remaining > 0 ? 'text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200' : 'text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200'} font-black text-xs sm:text-sm">${remaining > 0 ? `Slobodno: ${remaining}` : 'Popunjeno'}</span>
                    </div>
-                   <button onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-4 rounded-xl text-base sm:text-lg font-black tracking-wide shadow-md transition ${jeAktivno ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed shadow-none border border-slate-300'}" ${!jeAktivno ? 'disabled' : ''}>
-                     ${!evt.isActive ? 'Prijave su zatvorene' : infoVreme.jeIsteklo ? 'Prijave su zatvorene' : remaining === 0 ? 'Mesta su popunjena' : 'Brza rezervacija mesta'}
+<button onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-4 rounded-xl text-base sm:text-lg font-black tracking-wide shadow-md transition ${jeAktivno ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed shadow-none border border-slate-300'}" ${!jeAktivno ? 'disabled' : ''}>
+                     ${!evt.isActive ? 'Prijave su zatvorene' : infoVreme.jeIsteklo ? 'Prijave su zatvorene' : remaining === 0 ? 'Mesta su popunjena' : tekstDugmetaRezervacije}
                    </button>
                 </div>
               </div>
@@ -6482,7 +6690,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                         <span class="${remaining > 0 ? 'text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200' : 'text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200'} font-black text-xs sm:text-sm">${remaining > 0 ? `Slobodno: ${remaining}` : 'Popunjeno'}</span>
                       </div>
                       <button onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-3 rounded-xl text-sm sm:text-base font-black tracking-wide shadow-md transition ${jeAktivno ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed shadow-none border border-slate-300'}" ${!jeAktivno ? 'disabled' : ''}>
-                        ${!evt.isActive ? 'Prijave su zatvorene' : infoVreme.jeIsteklo ? 'Prijave su zatvorene' : remaining === 0 ? 'Mesta su popunjena' : 'Brza rezervacija mesta'}
+                        ${!evt.isActive ? 'Prijave su zatvorene' : infoVreme.jeIsteklo ? 'Prijave su zatvorene' : remaining === 0 ? 'Mesta su popunjena' : tekstDugmetaRezervacije}
                       </button>
                     </div>
                   </div>
@@ -7556,6 +7764,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const digitalUrl = document.getElementById('event-digital-url')?.value.trim() || '';
       const digitalUrl2 = document.getElementById('event-digital-url-2')?.value.trim() || '';
       const pdfMaxQty = parseInt(document.getElementById('event-pdf-max-qty')?.value || '2', 10);
+      const serviceMaxQty = parseInt(document.getElementById('event-service-max-qty')?.value || '2', 10);
+      const servicePromoMode = document.getElementById('event-service-promo-mode')?.value || 'standard';
       const pdfSecondPriceVal = document.getElementById('event-pdf-second-price')?.value;
       const pdfSecondPrice = (pdfSecondPriceVal !== '' && pdfSecondPriceVal !== null && !isNaN(pdfSecondPriceVal)) ? parseFloat(pdfSecondPriceVal) : null;
       const pdfAllowPrint = document.getElementById('event-pdf-allow-print-cb')?.checked === true;
@@ -7580,6 +7790,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         digitalUrl: digitalUrl,
         digitalUrl2: digitalUrl2,
         pdfMaxQty: pdfMaxQty,
+        serviceMaxQty: serviceMaxQty,
+        servicePromoMode: servicePromoMode,
         pdfSecondPrice: pdfSecondPrice,
         pdfProtection: pdfProtection,
         pdfAllowPrint: pdfAllowPrint,
