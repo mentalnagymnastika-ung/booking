@@ -1030,7 +1030,7 @@
           <!-- Direktna potvrda zakazanog termina (Viber i WhatsApp) -->
           <div id="ticket-direct-confirm-wrapper" class="hidden w-full bg-slate-50 border border-indigo-100 rounded-2xl p-3.5 text-center space-y-2.5 mt-2">
             <p class="text-[11px] font-black text-indigo-950 uppercase tracking-wide">Potvrda zakazanog termina</p>
-            <p class="text-xs text-slate-600 font-medium leading-snug">Pošaljite kratku poruku predavaču kako biste direktno potvrdili svoj dolazak:</p>
+            <p class="text-xs text-slate-600 font-medium leading-snug">Pošaljite kratku poruku kako biste direktno potvrdili svoj dolazak:</p>
             <div class="grid grid-cols-2 gap-2 pt-0.5">
               <button type="button" id="btn-confirm-viber" class="py-2.5 px-3 bg-[#7360f2] hover:opacity-95 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5">
                 <span>💬</span> Viber potvrda
@@ -3842,7 +3842,7 @@ window.azurirajPrikazCeneRezervacije();
         if (rezimUsluge === 'first_free') {
           if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 1. termin GRATIS, za 2 termina birate 2 vremena`;
         } else if (rezimUsluge === 'second_free' || event.hasPromo1plus1) {
-          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 2. termin GRATIS (birate 2 različita vremena)`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> DUGI termin GRATIS (birate 2 različita vremena)`;
         } else {
           if (qtySubtextEl) qtySubtextEl.innerHTML = maxTerminaUsluge === 2 ? `<span>🕒</span> Za 2 termina birate 2 različita vremena` : `<span>🕒</span> Zakazivanje 1 vremenskog termina`;
         }
@@ -5309,21 +5309,40 @@ window.azurirajPrikazCeneRezervacije();
         }
       }
 
-      // Prikaz i priprema poklon karte za akciju 1+1 (za PDF piše "Poklon sveska za još jednu osobu" bez suvišne rečenice)
+      // Prikaz i priprema poklon karte za akciju 1+1 (prilagođeno za sve tipove aktivnosti)
       const giftBox = document.getElementById('ticket-gift-container');
       const giftSubtitle = document.getElementById('ticket-gift-subtitle');
       const giftDesc = document.getElementById('ticket-gift-desc');
       const btnGiftShare = document.getElementById('btn-share-gift-ticket');
-      const imaGratisDrugiUredjaj = booking.hasPromo1plus1 === true || (tipAktivnosti === 'digitalni_resurs' && (booking.ticketsCount || 1) === 2);
+      const imaGratisDrugiUredjaj = booking.hasPromo1plus1 === true || !!booking.pairedBookingId || (tipAktivnosti === 'digitalni_resurs' && (booking.ticketsCount || 1) === 2);
+
+      // Ako postoji uparena druga pozivnica (kod zakazivanja 2 termina), uzimamo nju za slanje poklona
+      const uparenaKarta = booking.pairedBookingId ? state.bookings.find(x => x.id === booking.pairedBookingId) : null;
+      const kartaZaPoklon = uparenaKarta || booking;
 
       if (giftBox) {
         if (imaGratisDrugiUredjaj && booking.status !== 'otkazano') {
           if (tipAktivnosti === 'digitalni_resurs') {
             if (giftSubtitle) giftSubtitle.innerText = 'Poklon sveska za još jednu osobu';
             if (giftDesc) giftDesc.classList.add('hidden');
-          } else {
+          } else if (tipAktivnosti === 'teren') {
             if (giftSubtitle) giftSubtitle.innerText = 'Poklon pristup za još jednu osobu';
-            if (giftDesc) giftDesc.classList.remove('hidden');
+            if (giftDesc) {
+              giftDesc.innerText = 'Vaša rezervacija uključuje besplatan pristup za još jednu osobu. Prosledite joj link i istražujte zajedno!';
+              giftDesc.classList.remove('hidden');
+            }
+          } else if (tipAktivnosti === 'individualno') {
+            if (giftSubtitle) giftSubtitle.innerText = 'Poklon termin za još jednu osobu';
+            if (giftDesc) {
+              giftDesc.innerText = `Prosledite prijatelju poklon kartu sa brojem (${kartaZaPoklon.id}) za zakazani termin.`;
+              giftDesc.classList.remove('hidden');
+            }
+          } else {
+            if (giftSubtitle) giftSubtitle.innerText = 'Poklon ulaznica za još jednu osobu';
+            if (giftDesc) {
+              giftDesc.innerText = 'Vaša rezervacija uključuje besplatno mesto za još jednu osobu. Prosledite joj podatke karte.';
+              giftDesc.classList.remove('hidden');
+            }
           }
           giftBox.classList.remove('hidden');
         } else {
@@ -5345,25 +5364,51 @@ window.azurirajPrikazCeneRezervacije();
             : "<span>🎁</span> Prosledi poklon kartu prijatelju";
 
           btnGiftShare.onclick = async () => {
-            let linkZaSlanje = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
-            let porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa tebe učešće ne košta ništa! Možeš pokrenuti avanturu na svom telefonu klikom na link: ${linkZaSlanje}`;
+            let datumPoklon = kartaZaPoklon.selectedDate || kartaZaPoklon.eventDate || '';
+            if (datumPoklon.includes('-')) {
+              const d = datumPoklon.split('-');
+              if (d.length === 3) datumPoklon = `${d[2]}.${d[1]}.${d[0]}.`;
+            }
+            const vremePoklon = (kartaZaPoklon.eventTime && kartaZaPoklon.eventTime !== 'undefined' && kartaZaPoklon.eventTime.trim() !== '')
+              ? ` u ${kartaZaPoklon.eventTime}h`
+              : '';
+            const terminIspis = `${datumPoklon}${vremePoklon}`;
 
-            if (tipAktivnosti === 'digitalni_resurs') {
+            let linkZaSlanje = '';
+            let porukaPoklon = '';
+
+            if (tipAktivnosti === 'teren') {
+              // 1. Terenska staza u prirodi
+              linkZaSlanje = `https://zdrava-aktivnost.web.app/index.html?vip=${booking.id}`;
+              porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa tebe učešće ne košta ništa! Možeš pokrenuti avanturu na svom telefonu klikom na link: ${linkZaSlanje}`;
+            } else if (tipAktivnosti === 'digitalni_resurs') {
+              // 2. Digitalni resurs (PDF časopis / radna sveska)
               linkZaSlanje = window.sastaviCitacUrl(booking, 2);
               porukaPoklon = `Zdravo! Šaljem ti poklon pristup za digitalni časopis / radnu svesku "${booking.eventTitle}". Možeš otvoriti i preuzeti svoj primerak u čitaču klikom na link: ${linkZaSlanje}`;
+            } else if (tipAktivnosti === 'individualno') {
+              // 3. Usluga / Pregled / Konsultacije (šalje broj karte i termin)
+              porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa za tebe ne košta ništa! Pokaži ovu kartu odnosno broj sa poruke: ${kartaZaPoklon.id} (Termin: ${terminIspis}, Lokacija: ${kartaZaPoklon.eventLocation}).`;
+            } else if (tipAktivnosti === 'online') {
+              // 4. Online susret / Edukacija
+              const onlinePristup = konacanLink ? `\nLink za pristup: ${konacanLink}` : '';
+              porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u online programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa za tebe ne košta ništa! Broj tvoje poklon karte je: ${kartaZaPoklon.id} (Termin: ${terminIspis}).${onlinePristup}`;
+            } else {
+              // 5. Prisustvo na lokaciji (Radionica / Predavanje)
+              porukaPoklon = `Zdravo! Šaljem ti poklon kartu za učešće u programu "${booking.eventTitle}". Naš paket je 1+1 gratis, pa za tebe ne košta ništa! Pokaži ovu kartu odnosno broj sa poruke: ${kartaZaPoklon.id} (Termin: ${terminIspis}, Lokacija: ${kartaZaPoklon.eventLocation}).`;
             }
 
             if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
               try {
-                await navigator.share({
-                  title: `Poklon: ${booking.eventTitle}`,
-                  text: porukaPoklon,
-                  url: linkZaSlanje
-                });
+                const shareObj = {
+                  title: `Poklon karta: ${booking.eventTitle}`,
+                  text: porukaPoklon
+                };
+                if (linkZaSlanje) shareObj.url = linkZaSlanje;
+                await navigator.share(shareObj);
               } catch (err) {}
             } else if (navigator.clipboard) {
               navigator.clipboard.writeText(porukaPoklon).then(() => {
-                showNotification("Poruka i link ka čitaču su kopirani, možete ih zalepiti na Viber!", "success");
+                showNotification("Poruka za poklon kartu je kopirana, možete je zalepiti na Viber ili WhatsApp!", "success");
               });
             } else {
               prompt("Kopirajte ovu poruku i pošaljite je prijatelju:", porukaPoklon);
