@@ -117,6 +117,31 @@
       opacity: 1;
       pointer-events: auto;
     }
+
+    /* Instagram / TikTok Story efekti na poleđini kartice */
+    @keyframes kenBurnsZoom {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.14); }
+    }
+    .story-ken-burns {
+      animation: kenBurnsZoom 3.6s ease-out forwards;
+    }
+    @keyframes storyTextPop {
+      0% { opacity: 0; transform: translateY(14px) scale(0.94); }
+      15% { opacity: 1; transform: translateY(0) scale(1); }
+      90% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0.95; transform: translateY(-2px) scale(1); }
+    }
+    .story-text-anim {
+      animation: storyTextPop 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes storyBarFill {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    .story-bar-active {
+      animation: storyBarFill 3.5s linear forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-24 lg:pb-0 relative">
@@ -514,7 +539,10 @@
                 <span class="text-xl">👥</span>
                 <span id="bulk-selected-count" class="font-black text-xs sm:text-sm">Izabrano: 0 članova</span>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" id="btn-bulk-send-emails" onclick="window.masovnoPosaljiKarticeNaEmail()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl transition shadow-sm border border-emerald-400/30 flex items-center gap-1.5">
+                  <span>✉️</span> Pošalji kartice na Email
+                </button>
                 <button type="button" onclick="window.masovnoPromeniGrupu()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-xl transition shadow-sm border border-indigo-400/30 flex items-center gap-1.5">
                   <span>🏷️</span> Promeni odeljenje / partnera
                 </button>
@@ -1145,6 +1173,11 @@
             <span class="text-[11px] font-black bg-white px-2.5 py-1 rounded-lg border border-emerald-300 text-emerald-800 shadow-sm">Automatski članski brojevi</span>
           </div>
 
+          <label class="flex items-center gap-2.5 p-3 bg-indigo-50/80 border border-indigo-200 rounded-xl cursor-pointer select-none text-xs font-bold text-indigo-950">
+            <input type="checkbox" id="import-auto-send-email" checked class="w-4 h-4 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0" />
+            <span>✉️ Automatski pošalji vizuelne članske kartice na email svim uvezenim članovima (preko Google Skripte)</span>
+          </label>
+
           <div class="pt-1 flex gap-2">
             <button type="button" onclick="window.potvrdiUvozClanova()" class="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs sm:text-sm shadow-md transition">
               ✓ Uvezi i dodeli članske brojeve
@@ -1390,9 +1423,64 @@
             <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm">
               <div id="event-image-preview" class="w-20 h-20 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-sm text-3xl shrink-0">🖼️</div>
               <div class="flex-1 space-y-2">
-                <p class="text-sm font-bold text-slate-700">Glavna fotografija</p>
+                <p class="text-sm font-bold text-slate-700">Glavna fotografija (Plakat)</p>
                 <input type="file" id="event-image-file" accept="image/*" class="hidden" />
                 <button type="button" onclick="document.getElementById('event-image-file').click()" class="px-5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-100 transition w-full sm:w-auto">Odaberi sliku</button>
+              </div>
+            </div>
+
+            <!-- Opcioni Story Slajdovi ili Video direktno na poleđini kartice -->
+            <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-3">
+              <div onclick="document.getElementById('story-builder-body').classList.toggle('hidden')" class="flex items-center justify-between cursor-pointer select-none">
+                <div>
+                  <span class="text-xs font-black text-indigo-950 uppercase tracking-wide flex items-center gap-1.5">
+                    <span>✨</span> Dinamična poleđina kartice (Story slajdovi ili Video)
+                  </span>
+                  <span class="text-[11px] text-slate-500 font-semibold block mt-0.5">Oživite plakat kratkim slajdovima sa krupnim slovima ili videom (opciono)</span>
+                </div>
+                <span class="text-xs font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-2xs">Podesi ▼</span>
+              </div>
+
+              <div id="story-builder-body" class="hidden space-y-3 pt-3 border-t border-indigo-100">
+                <p class="text-[11px] font-bold text-indigo-900 leading-snug">
+                  Upišite kratke, efektne poruke (4 do 6 reči). Ako ne izaberete posebnu sliku za slajd, koristiće se glavna slika plakata uz efekat zumiranja:
+                </p>
+
+                <!-- Slajd 1 -->
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 flex items-center gap-3">
+                  <div id="story-img-preview-1" onclick="document.getElementById('story-img-file-1').click()" class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 cursor-pointer shrink-0 overflow-hidden" title="Klikni za sliku 1. slajda (opciono)">📷 1</div>
+                  <input type="file" id="story-img-file-1" accept="image/*" onchange="window.ucitajSlikuSlajda(1, event)" class="hidden" />
+                  <div class="flex-1">
+                    <input id="story-text-1" type="text" maxlength="75" placeholder="1. Slajd (Udica, npr: Gde ovog vikenda sa decom bez ekrana?)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <button type="button" onclick="window.obrisiSlajd(1)" class="text-slate-400 hover:text-rose-600 text-xs font-black px-1.5" title="Očisti slajd 1">✕</button>
+                </div>
+
+                <!-- Slajd 2 -->
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 flex items-center gap-3">
+                  <div id="story-img-preview-2" onclick="document.getElementById('story-img-file-2').click()" class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 cursor-pointer shrink-0 overflow-hidden" title="Klikni za sliku 2. slajda (opciono)">📷 2</div>
+                  <input type="file" id="story-img-file-2" accept="image/*" onchange="window.ucitajSlikuSlajda(2, event)" class="hidden" />
+                  <div class="flex-1">
+                    <input id="story-text-2" type="text" maxlength="75" placeholder="2. Slajd (Akcija, npr: 60 minuta kretanja, logike i zabave u parku!)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <button type="button" onclick="window.obrisiSlajd(2)" class="text-slate-400 hover:text-rose-600 text-xs font-black px-1.5" title="Očisti slajd 2">✕</button>
+                </div>
+
+                <!-- Slajd 3 -->
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 flex items-center gap-3">
+                  <div id="story-img-preview-3" onclick="document.getElementById('story-img-file-3').click()" class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 cursor-pointer shrink-0 overflow-hidden" title="Klikni za sliku 3. slajda (opciono)">📷 3</div>
+                  <input type="file" id="story-img-file-3" accept="image/*" onchange="window.ucitajSlikuSlajda(3, event)" class="hidden" />
+                  <div class="flex-1">
+                    <input id="story-text-3" type="text" maxlength="75" placeholder="3. Slajd (Poziv, npr: 1+1 GRATIS — Jedna karta za celu porodicu!)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <button type="button" onclick="window.obrisiSlajd(3)" class="text-slate-400 hover:text-rose-600 text-xs font-black px-1.5" title="Očisti slajd 3">✕</button>
+                </div>
+
+                <!-- Opcioni direktni video link umesto slajdova -->
+                <div class="pt-2 border-t border-indigo-100/80">
+                  <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Ili nalepite link ka kratkom videu (YouTube Shorts / MP4):</label>
+                  <input id="event-video-url" type="url" placeholder="https://youtube.com/shorts/... ili link do .mp4 snimka" class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500" />
+                </div>
               </div>
             </div>
             
@@ -2349,6 +2437,49 @@ function startRealtimeSync() {
       reader.readAsDataURL(file);
     });
 
+    window.tempStoryImages = { 1: '', 2: '', 3: '' };
+
+    window.ucitajSlikuSlajda = function(broj, e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 480;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxW) {
+            h = Math.round((h * maxW) / w);
+            w = maxW;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const b64 = canvas.toDataURL('image/jpeg', 0.6);
+            window.tempStoryImages[broj] = b64;
+            const prev = document.getElementById(`story-img-preview-${broj}`);
+            if (prev) prev.innerHTML = `<img src="${b64}" class="w-full h-full object-cover" />`;
+          }
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.obrisiSlajd = function(broj) {
+      window.tempStoryImages[broj] = '';
+      const txt = document.getElementById(`story-text-${broj}`);
+      if (txt) txt.value = '';
+      const prev = document.getElementById(`story-img-preview-${broj}`);
+      if (prev) prev.innerHTML = `📷 ${broj}`;
+      const fileIn = document.getElementById(`story-img-file-${broj}`);
+      if (fileIn) fileIn.value = '';
+    };
+
     window.html5QrCode = null;
     window.obradjujeSeKod = false; 
     window.tajmerZaSkeniranje = null;
@@ -3023,6 +3154,21 @@ function startRealtimeSync() {
       if (document.getElementById('event-ordinal-number')) document.getElementById('event-ordinal-number').value = ev.ordinalNumber || '';
       if (document.getElementById('event-title')) document.getElementById('event-title').value = ev.title;
       if (document.getElementById('event-description')) document.getElementById('event-description').value = ev.description;
+      if (document.getElementById('event-video-url')) document.getElementById('event-video-url').value = ev.videoUrl || '';
+
+      window.tempStoryImages = { 1: '', 2: '', 3: '' };
+      [1, 2, 3].forEach(br => {
+        const sacuvanSlajd = (ev.storySlides && ev.storySlides[br - 1]) ? ev.storySlides[br - 1] : null;
+        const txtEl = document.getElementById(`story-text-${br}`);
+        const prevEl = document.getElementById(`story-img-preview-${br}`);
+        if (txtEl) txtEl.value = sacuvanSlajd?.text || '';
+        if (sacuvanSlajd?.image) {
+          window.tempStoryImages[br] = sacuvanSlajd.image;
+          if (prevEl) prevEl.innerHTML = `<img src="${sacuvanSlajd.image}" class="w-full h-full object-cover" />`;
+        } else if (prevEl) {
+          prevEl.innerHTML = `📷 ${br}`;
+        }
+      });
       if (document.getElementById('event-total-seats')) document.getElementById('event-total-seats').value = ev.totalSeats;
       if (document.getElementById('event-price')) {
         document.getElementById('event-price').value = ev.price || 0;
@@ -5933,6 +6079,106 @@ let prevlacenjeStartX = 0;
       prevlacenjeStartY = e.touches ? e.touches[0].clientY : e.clientY;
     };
 
+    window.storyTajmeri = window.storyTajmeri || {};
+
+    window.zaustaviStoryNaKartici = function(eventId) {
+      if (window.storyTajmeri[eventId]) {
+        clearTimeout(window.storyTajmeri[eventId]);
+        delete window.storyTajmeri[eventId];
+      }
+      const videoCont = document.getElementById(`card-back-video-${eventId}`);
+      if (videoCont) videoCont.innerHTML = '';
+    };
+
+    window.pokreniStoryNaKartici = function(eventId) {
+      window.zaustaviStoryNaKartici(eventId);
+      const ev = state.events.find(x => x.id === eventId);
+      if (!ev) return;
+
+      // 1. Ako događaj ima unet Video link, puštamo ga direktno u okviru poleđine kartice
+      if (ev.videoUrl && ev.videoUrl.trim() !== '') {
+        const videoCont = document.getElementById(`card-back-video-${eventId}`);
+        if (videoCont) {
+          const url = ev.videoUrl.trim();
+          const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+          if (ytMatch && ytMatch[1]) {
+            videoCont.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=0&loop=1&playlist=${ytMatch[1]}&rel=0&modestbranding=1&playsinline=1" class="w-full h-full border-0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+          } else if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) {
+            videoCont.innerHTML = `<video src="${url}" autoplay loop controls playsinline class="w-full h-full object-contain bg-black"></video>`;
+          } else if (url.includes('instagram.com/')) {
+            const cistInsta = url.split('?')[0].replace(/\/$/, '');
+            videoCont.innerHTML = `<iframe src="${cistInsta}/embed" class="w-full h-full border-0 bg-black" allowtransparency="true" allowfullscreen="true"></iframe>`;
+          }
+          return;
+        }
+      }
+
+      // 2. Ako događaj ima Story slajdove, vrtimo ih sa Ken Burns efektom i krupnim slovima, pa na kraju ostavljamo čist plakat
+      const slajdovi = Array.isArray(ev.storySlides) ? ev.storySlides.filter(s => s && (s.text || s.image)) : [];
+      if (slajdovi.length === 0) return;
+
+      const stage = document.getElementById(`card-back-stage-${eventId}`);
+      if (!stage) return;
+
+      const ukupnoKoraka = slajdovi.length;
+      let trenutniIdx = 0;
+
+      const prikaziKorak = (idx) => {
+        if (!window.okrenuteKarticeSet.has(eventId)) return;
+
+        // Nakon što prođu svi slajdovi, prikazujemo čist završni plakat
+        if (idx >= ukupnoKoraka) {
+          stage.innerHTML = `
+            <img src="${ev.image}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none" />
+            <img src="${ev.image}" draggable="false" class="relative z-10 w-full h-full object-contain p-2 pointer-events-none fade-in" />
+            <button type="button" onclick="event.stopPropagation(); window.pokreniStoryNaKartici('${ev.id}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute top-16 right-3 z-30 bg-black/60 hover:bg-black/80 text-white text-[11px] font-black px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/20 flex items-center gap-1 transition cursor-pointer">
+              <span>▶️</span> Ponovi priču
+            </button>
+          `;
+          return;
+        }
+
+        const slajd = slajdovi[idx];
+        const slikaSlajda = slajd.image || ev.image;
+
+        // Gornje Instagram Story crtice
+        const crticeHtml = slajdovi.map((_, i) => {
+          let unutrasnjaKlasa = 'w-0';
+          if (i < idx) unutrasnjaKlasa = 'w-full';
+          else if (i === idx) unutrasnjaKlasa = 'story-bar-active';
+          return `
+            <div class="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+              <div class="h-full bg-white rounded-full ${unutrasnjaKlasa}"></div>
+            </div>
+          `;
+        }).join('');
+
+        stage.innerHTML = `
+          <div class="absolute top-2.5 inset-x-3 z-30 flex gap-1.5 pointer-events-none">
+            ${crticeHtml}
+          </div>
+          <img src="${slikaSlajda}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-50 scale-110 pointer-events-none" />
+          <div class="relative z-10 w-full h-full overflow-hidden flex items-center justify-center">
+            <img src="${slikaSlajda}" draggable="false" class="w-full h-full object-cover story-ken-burns pointer-events-none" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/40 pointer-events-none"></div>
+            ${slajd.text ? `
+              <div class="absolute inset-x-4 bottom-24 z-20 text-center pointer-events-none story-text-anim">
+                <p class="inline-block bg-black/65 backdrop-blur-xs text-white text-xl sm:text-2xl font-black leading-snug px-4 py-3 rounded-2xl border border-white/20 shadow-2xl tracking-tight">
+                  ${slajd.text}
+                </p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+
+        window.storyTajmeri[eventId] = setTimeout(() => {
+          prikaziKorak(idx + 1);
+        }, 3500);
+      };
+
+      prikaziKorak(0);
+    };
+
     window.okreniKarticu = function(e, dugmeIliElement, eventId) {
       if (e) {
         e.preventDefault();
@@ -5946,8 +6192,13 @@ let prevlacenjeStartX = 0;
       if (card) {
         const sadaOkrenuta = card.classList.toggle('is-flipped');
         if (eventId) {
-          if (sadaOkrenuta) window.okrenuteKarticeSet.add(eventId);
-          else window.okrenuteKarticeSet.delete(eventId);
+          if (sadaOkrenuta) {
+            window.okrenuteKarticeSet.add(eventId);
+            window.pokreniStoryNaKartici(eventId);
+          } else {
+            window.okrenuteKarticeSet.delete(eventId);
+            window.zaustaviStoryNaKartici(eventId);
+          }
         }
       }
     };
@@ -5971,8 +6222,13 @@ let prevlacenjeStartX = 0;
         setTimeout(() => { upravoPrevlaceno = false; }, 300);
         const sadaOkrenuta = element.classList.toggle('is-flipped');
         if (eventId) {
-          if (sadaOkrenuta) window.okrenuteKarticeSet.add(eventId);
-          else window.okrenuteKarticeSet.delete(eventId);
+          if (sadaOkrenuta) {
+            window.okrenuteKarticeSet.add(eventId);
+            window.pokreniStoryNaKartici(eventId);
+          } else {
+            window.okrenuteKarticeSet.delete(eventId);
+            window.zaustaviStoryNaKartici(eventId);
+          }
         }
       }
     };
@@ -6125,6 +6381,10 @@ let prevlacenjeStartX = 0;
       let tekuciRedniBroj = (postojeciBrojevi.length > 0 ? Math.max(...postojeciBrojevi) : 100) + 1;
       let uvezenoBrojac = 0;
       let azuriranoBrojac = 0;
+      const novouvezeniZaEmail = [];
+
+      const datumUclanjenja = `${String(sad.getDate()).padStart(2, '0')}.${String(sad.getMonth() + 1).padStart(2, '0')}.${sad.getFullYear()}.`;
+      const vaziDoDefault = `31.08.${sad.getFullYear() + 1}.`;
 
       const preskociPrviRed = document.getElementById('import-skip-first-row')?.checked || false;
       const redoviZaObradu = preskociPrviRed ? window.uvozPrivremeniRedovi.slice(1) : window.uvozPrivremeniRedovi;
@@ -6177,11 +6437,17 @@ let prevlacenjeStartX = 0;
             lastName: cistoPrezime || '',
             phone: phone || '',
             email: email || '',
-            group: group || ''
+            group: group || '',
+            joinedDate: datumUclanjenja,
+            validUntil: vaziDoDefault
           };
 
           state.membersList.unshift(noviClan);
           uvezenoBrojac++;
+
+          if (noviClan.email && noviClan.email.includes('@')) {
+            novouvezeniZaEmail.push(noviClan);
+          }
 
           if (state.isOnline && firebaseActive) {
             try {
@@ -6195,8 +6461,98 @@ let prevlacenjeStartX = 0;
 
       safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
       document.getElementById('modal-import-partner').classList.add('hidden');
-      showNotification(`Uvoz završen: ${uvezenoBrojac} novih članova dodato, ${azuriranoBrojac} ažurirano!`, "success");
+      
+      const autoPosalji = document.getElementById('import-auto-send-email')?.checked || false;
+      if (autoPosalji && novouvezeniZaEmail.length > 0) {
+        window.posaljiKarticePrekoGoogleSkripte(novouvezeniZaEmail);
+        showNotification(`Uvezeno ${uvezenoBrojac} članova i pokrenuto slanje ${novouvezeniZaEmail.length} kartica na email!`, "success");
+      } else {
+        showNotification(`Uvoz završen: ${uvezenoBrojac} novih članova dodato, ${azuriranoBrojac} ažurirano!`, "success");
+      }
       renderUI();
+    };
+
+    // Funkcija koja šalje spisak članova ka Google Apps Script-u radi slanja vizuelnih kartica
+    window.posaljiKarticePrekoGoogleSkripte = async function(listaClanova) {
+      if (!GOOGLE_SCRIPT_WEBHOOK_URL) {
+        showNotification("Link ka Google skripti nije podešen", "warning");
+        return false;
+      }
+
+      const validniClanovi = (listaClanova || []).filter(m => m.email && m.email.includes('@'));
+      if (validniClanovi.length === 0) {
+        showNotification("Nijedan od izabranih članova nema upisanu validnu email adresu", "warning");
+        return false;
+      }
+
+      const sad = new Date();
+      const datumIspis = `${String(sad.getDate()).padStart(2, '0')}.${String(sad.getMonth() + 1).padStart(2, '0')}.${sad.getFullYear()}.`;
+      const vaziDoIspis = `31.08.${sad.getFullYear() + 1}.`;
+
+      const paket = {
+        tipAkcije: 'POSALJI_CLANSKE_KARTICE',
+        appUrl: window.location.origin + window.location.pathname,
+        clanovi: validniClanovi.map(m => ({
+          card: m.card,
+          firstName: m.firstName || 'Član',
+          lastName: m.lastName || '',
+          email: m.email.trim(),
+          phone: m.phone || '',
+          group: m.group || 'Udruženje za Mentalnu Gimnastiku',
+          joinedDate: m.joinedDate || datumIspis,
+          validUntil: m.validUntil || vaziDoIspis
+        }))
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paket)
+        });
+        return true;
+      } catch (err) {
+        console.error("Greška pri slanju ka Google skripti:", err);
+        return false;
+      }
+    };
+
+    window.masovnoPosaljiKarticeNaEmail = async function() {
+      const brojOznacenih = window.oznaceniClanoviSet.size;
+      if (brojOznacenih === 0) return;
+
+      const izabraniClanovi = (state.membersList || []).filter(m => window.oznaceniClanoviSet.has(m.card));
+      const saEmailom = izabraniClanovi.filter(m => m.email && m.email.includes('@'));
+
+      if (saEmailom.length === 0) {
+        showNotification("Izabrani članovi nemaju unete email adrese!", "warning");
+        return;
+      }
+
+      const potvrda = confirm(`Želite li da pošaljete personalizovane vizuelne članske kartice na email za ${saEmailom.length} članova (od ukupno ${brojOznacenih} označenih)?`);
+      if (!potvrda) return;
+
+      const btn = document.getElementById('btn-bulk-send-emails');
+      const stariTekst = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = `<span>⏳</span> Slanje u toku...`;
+        btn.disabled = true;
+      }
+
+      const uspeh = await window.posaljiKarticePrekoGoogleSkripte(saEmailom);
+
+      if (btn) {
+        btn.innerHTML = stariTekst;
+        btn.disabled = false;
+      }
+
+      if (uspeh) {
+        showNotification(`Nalog za slanje ${saEmailom.length} članskih kartica je prosleđen Google Skripti!`, "success");
+        window.ponistiIzborClanova();
+      } else {
+        showNotification("Došlo je do greške pri komunikaciji sa skriptom", "warning");
+      }
     };
 
     function generisiNoviClanskiBroj() {
@@ -6370,17 +6726,24 @@ let prevlacenjeStartX = 0;
         };
       }
 
-      // Slanje email poruke
+      // Slanje vizuelne kartice na email direktno preko Google Skripte
       const btnEmail = document.getElementById('btn-send-member-email');
       if (btnEmail) {
-        btnEmail.onclick = () => {
-          if (!clan.email || clan.email === 'Nije uneto') {
-            showNotification("Član nema upisanu email adresu", "warning");
+        btnEmail.onclick = async () => {
+          if (!clan.email || !clan.email.includes('@')) {
+            showNotification("Član nema upisanu ispravnu email adresu", "warning");
             return;
           }
-          const naslov = encodeURIComponent("Dobrodošli u Mentalnu Gimnastiku, Vaša članska kartica");
-          const telo = encodeURIComponent(`Poštovani ${clan.firstName} ${clan.lastName},\n\nVaša prijava i uplata su uspešno evidentirani. Dobrodošli u Mentalnu Gimnastiku!\n\nVaš zvanični članski broj je: ${clan.card}\n\nKao novom članu, Vaš vaučer za avanturu važi za dve osobe, odnosno za 2 uređaja. Možete ga proslediti dragoj osobi i istraživati zajedno!\n\nSrdačan pozdrav,\nCentar Mentalne Gimnastike`);
-          window.location.href = `mailto:${clan.email}?subject=${naslov}&body=${telo}`;
+          const origHtml = btnEmail.innerHTML;
+          btnEmail.innerHTML = `<span>⏳</span> Slanje kartice na email...`;
+          const poslato = await window.posaljiKarticePrekoGoogleSkripte([clan]);
+          if (poslato) {
+            btnEmail.innerHTML = `<span>✅</span> Kartica je poslata na ${clan.email}`;
+            showNotification(`Vizuelna kartica je poslata na ${clan.email}`, "success");
+          } else {
+            btnEmail.innerHTML = origHtml;
+          }
+          setTimeout(() => { btnEmail.innerHTML = origHtml; }, 3000);
         };
       }
 
@@ -6966,17 +7329,24 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                   </div>
                 </div>
 
-                <!-- POLEĐINA KARTICE -->
+                <!-- POLEĐINA KARTICE (Sa ugrađenim Story slajdovima, videom ili plakatom) -->
                 <div onclick="window.okreniKarticu(event, this, '${evt.id}')" class="flip-card-back bg-slate-950 flex flex-col justify-between shadow-xl border border-slate-800 cursor-pointer">
-                  <img src="${evt.image}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none" />
-                  <img src="${evt.image}" draggable="false" class="relative z-10 w-full h-full object-contain p-2 pointer-events-none" />
+                  
+                  <!-- Dinamička pozornica za slajdove ili statični plakat -->
+                  <div id="card-back-stage-${evt.id}" class="absolute inset-0 w-full h-full overflow-hidden">
+                    <img src="${evt.image}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none" />
+                    <img src="${evt.image}" draggable="false" class="relative z-10 w-full h-full object-contain p-2 pointer-events-none" />
+                  </div>
 
-                  <div class="absolute top-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none gap-2">
-                    <span class="bg-slate-900/90 backdrop-blur-md text-white text-xs sm:text-sm font-black px-3 py-2 rounded-xl border border-white/10 shadow-sm truncate max-w-[50%]">${evt.title}</span>
+                  <!-- Kontejner za direktni video unutar kartice (ako je unet video link) -->
+                  ${evt.videoUrl ? `
+                    <div id="card-back-video-${evt.id}" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute inset-x-0 top-14 bottom-20 z-20 bg-black overflow-hidden"></div>
+                  ` : ''}
+
+                  <!-- Gornja traka: puniji naslov + Podeli + mala ikonica za okretanje u ćošku -->
+                  <div class="absolute top-5 left-3 right-3 z-30 flex justify-between items-center pointer-events-none gap-2">
+                    <span class="bg-slate-900/90 backdrop-blur-md text-white text-xs sm:text-sm font-black px-3 py-2 rounded-xl border border-white/10 shadow-sm truncate max-w-[62%]">${evt.title}</span>
                     <div class="flex items-center gap-1.5 pointer-events-auto">
-                      <button type="button" onclick="window.okreniKarticu(event, this, '${evt.id}')" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" class="bg-slate-900/90 hover:bg-black active:scale-95 backdrop-blur-md text-white text-xs font-black px-3 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-1 transition cursor-pointer z-30" title="Vrati na prednju stranu">
-                        <span>🔄</span> Nazad
-                      </button>
                       <button type="button" onclick="event.stopPropagation(); window.podeliObuku('${evt.id}')" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" class="bg-indigo-600/95 hover:bg-indigo-700 active:scale-95 backdrop-blur-md text-white text-xs font-black px-3 py-2 rounded-xl border border-white/20 shadow-md flex items-center gap-1.5 transition cursor-pointer z-30" title="Podeli sa prijateljem">
                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                           <circle cx="18" cy="5" r="3"></circle>
@@ -6987,10 +7357,14 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                         </svg>
                         <span>Podeli</span>
                       </button>
+                      <button type="button" onclick="window.okreniKarticu(event, this, '${evt.id}')" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" class="w-9 h-9 bg-slate-900/90 hover:bg-black active:scale-95 backdrop-blur-md text-white text-sm font-black rounded-xl border border-white/20 shadow-md flex items-center justify-center transition cursor-pointer z-30" title="Vrati na prednju stranu">
+                        🔄
+                      </button>
                     </div>
                   </div>
 
-                  <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent z-20 flex gap-2.5">
+                  <!-- Donja dugmad akcije -->
+                  <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent z-30 flex gap-2.5">
                     <button onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="flex-1 py-4 rounded-xl text-base font-black shadow-lg transition ${jeAktivno ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-700 text-slate-400 cursor-not-allowed'}" ${!jeAktivno ? 'disabled' : ''}>
                       ${!evt.isActive ? 'Zatvoreno' : infoVreme.jeIsteklo ? 'Zatvoreno' : remaining === 0 ? 'Popunjeno' : 'Rezerviši mesto'}
                     </button>
@@ -8185,6 +8559,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       }
       const preview = document.getElementById('event-image-preview');
       if (preview) preview.innerHTML = "🖼️";
+      if (document.getElementById('event-video-url')) document.getElementById('event-video-url').value = '';
+      [1, 2, 3].forEach(br => window.obrisiSlajd(br));
       if (document.getElementById('event-activity-type')) {
         document.getElementById('event-activity-type').value = 'radionica';
         window.prilagodiFormuObuke('radionica');
@@ -8267,6 +8643,15 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
 
       const activityType = document.getElementById('event-activity-type')?.value || 'radionica';
       const subCategory = document.getElementById('event-sub-category')?.value || 'aktivan_odmor';
+      const videoUrl = document.getElementById('event-video-url')?.value.trim() || '';
+      const storySlides = [];
+      [1, 2, 3].forEach(br => {
+        const txt = document.getElementById(`story-text-${br}`)?.value.trim() || '';
+        const img = window.tempStoryImages?.[br] || '';
+        if (txt || img) {
+          storySlides.push({ text: txt, image: img });
+        }
+      });
       const digitalUrl = document.getElementById('event-digital-url')?.value.trim() || '';
       const digitalUrl2 = document.getElementById('event-digital-url-2')?.value.trim() || '';
       const pdfMaxQty = parseInt(document.getElementById('event-pdf-max-qty')?.value || '2', 10);
@@ -8293,6 +8678,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         category,
         activityType: activityType,
         subCategory: subCategory,
+        videoUrl: videoUrl,
+        storySlides: storySlides,
         digitalUrl: digitalUrl,
         digitalUrl2: digitalUrl2,
         pdfMaxQty: pdfMaxQty,
