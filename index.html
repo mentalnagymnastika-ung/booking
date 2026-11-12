@@ -912,7 +912,10 @@
             @Booker<br><span class="text-xs tracking-wider">ISKORIŠĆENA KARTA</span>
           </div>
         </div>
-        <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg tracking-wider inline-block" id="ticket-id-badge">...</span>
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg tracking-wider inline-block" id="ticket-id-badge">...</span>
+          <span id="ticket-payment-status-pill" class="text-[11px] font-black px-2.5 py-1 rounded-lg border"></span>
+        </div>
         <h4 class="text-base sm:text-lg font-bold text-slate-900 leading-tight" id="ticket-event-title">...</h4>
         
         <div class="border-t border-dashed border-slate-200 pt-3 text-sm space-y-1.5 text-slate-600">
@@ -4801,10 +4804,40 @@ window.azurirajPrikazCeneRezervacije();
       const jeOtkazanaKarta = booking.status === 'otkazano';
       const jeNevazecaKarta = jeIskoriscenaKarta || jeOtkazanaKarta;
 
+      const uplataOverenaProvera = booking.isPaid || booking.paymentType === 'clanarina_pokriveno' || (booking.totalPrice || 0) === 0;
+
       const mainHeadingEl = document.getElementById('modal-ticket-main-heading');
       if (mainHeadingEl) {
-        mainHeadingEl.innerText = jeOtkazanaKarta ? 'Karta je otkazana' : (jeIskoriscenaKarta ? 'Karta je iskorišćena' : 'Karta Rezervisana!');
-        mainHeadingEl.className = jeNevazecaKarta ? 'text-xl font-black text-slate-500 line-through pt-1' : 'text-xl font-black text-slate-900 pt-1';
+        if (jeOtkazanaKarta) {
+          mainHeadingEl.innerText = 'Karta je otkazana';
+          mainHeadingEl.className = 'text-xl font-black text-slate-500 line-through pt-1';
+        } else if (jeIskoriscenaKarta) {
+          mainHeadingEl.innerText = 'Karta je iskorišćena';
+          mainHeadingEl.className = 'text-xl font-black text-slate-500 line-through pt-1';
+        } else if (uplataOverenaProvera) {
+          mainHeadingEl.innerText = '✅ Karta je aktivna i potvrđena';
+          mainHeadingEl.className = 'text-lg sm:text-xl font-black text-emerald-700 pt-1';
+        } else {
+          mainHeadingEl.innerText = '⏳ Čeka potvrdu uplate';
+          mainHeadingEl.className = 'text-lg sm:text-xl font-black text-amber-700 pt-1';
+        }
+      }
+
+      const statusPillEl = document.getElementById('ticket-payment-status-pill');
+      if (statusPillEl) {
+        if (jeOtkazanaKarta) {
+          statusPillEl.innerText = '✕ OTKAZANO';
+          statusPillEl.className = 'text-[10px] font-black px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200';
+        } else if (jeIskoriscenaKarta) {
+          statusPillEl.innerText = '✓ ISKORIŠĆENO';
+          statusPillEl.className = 'text-[10px] font-black px-2.5 py-1 rounded-lg bg-slate-200 text-slate-600 border border-slate-300';
+        } else if (uplataOverenaProvera) {
+          statusPillEl.innerText = '✓ AKTIVNA I POTVRĐENA';
+          statusPillEl.className = 'text-[10px] font-black px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs';
+        } else {
+          statusPillEl.innerText = '⏳ ČEKA UPLATU (1h)';
+          statusPillEl.className = 'text-[10px] font-black px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-300 animate-pulse';
+        }
       }
 
       const stampEl = document.getElementById('ticket-used-stamp');
@@ -4880,8 +4913,14 @@ window.azurirajPrikazCeneRezervacije();
 
       if (totalPrice > 0) {
         if (priceContainer) priceContainer.classList.remove('hidden');
-        if (priceAmountEl) priceAmountEl.innerText = `${totalPrice} RSD`;
-        if (paymentSwitch) paymentSwitch.classList.remove('hidden');
+        if (priceAmountEl) {
+          priceAmountEl.innerText = uplataOverenaProvera ? `${totalPrice} RSD (POTVRĐENO ✓)` : `${totalPrice} RSD (ČEKA UPLATU)`;
+          priceAmountEl.className = uplataOverenaProvera ? "text-xs sm:text-sm font-black text-emerald-700" : "text-xs sm:text-sm font-black text-amber-700";
+        }
+        if (paymentSwitch) {
+          if (uplataOverenaProvera) paymentSwitch.classList.add('hidden');
+          else paymentSwitch.classList.remove('hidden');
+        }
 
         let svrhaTekst = `Kotizacija za obuku: ${booking.eventTitle}`;
         if (booking.paymentType === 'donacija') {
@@ -7037,11 +7076,18 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
                     Preostala još 1 karta
                   </div>
                 `;
-              } else if (infoVreme.odbrojavanje) {
+              } else {
                 pecatStatusaHtml = `
-                  <span class="${infoVreme.bojaKlase} px-3 py-1 rounded-xl border-2 font-black text-xs flex items-center gap-1 shadow-xs">
-                    <span>⏱️</span> ${infoVreme.odbrojavanje}
-                  </span>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="bg-emerald-100 border-2 border-emerald-400 text-emerald-900 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider shadow-xs flex items-center gap-1">
+                      <span>✓</span> AKTIVNA I POTVRĐENA
+                    </span>
+                    ${infoVreme.odbrojavanje ? `
+                      <span class="${infoVreme.bojaKlase} px-2.5 py-1 rounded-xl border-2 font-black text-xs flex items-center gap-1 shadow-xs">
+                        <span>⏱️</span> ${infoVreme.odbrojavanje}
+                      </span>
+                    ` : ''}
+                  </div>
                 `;
               }
 
