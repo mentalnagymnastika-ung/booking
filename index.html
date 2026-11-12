@@ -383,6 +383,9 @@
             <button onclick="window.preuzmiIzvestaj('mesecni')" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl transition border border-slate-200">
               📅 Mesečni izveštaj
             </button>
+            <button type="button" onclick="window.otvoriModalBekapa()" class="px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-black rounded-xl transition border border-amber-200 flex items-center gap-1.5 shadow-xs">
+              <span>💾</span> Bekap oglasa
+            </button>
             <button id="btn-create-event" class="px-5 py-3 bg-indigo-600 text-white text-xs sm:text-sm font-black rounded-xl shadow-md">➕ Novi događaj</button>
           </div>
         </div>
@@ -1244,6 +1247,94 @@
          <div class="text-base text-slate-500 font-bold w-full sm:w-auto text-center">Zauzeto mesta: <span id="attendees-total-count" class="text-slate-900 font-black text-lg ml-1">0</span></div>
          <button onclick="document.getElementById('modal-attendees').classList.add('hidden')" class="w-full sm:w-auto px-8 py-3.5 bg-slate-900 hover:bg-black text-white text-base font-black rounded-xl transition shadow-lg">Zatvori spisak</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Bekap i selektivno vraćanje događaja (oglasa) sa računara -->
+  <div id="modal-events-backup" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl p-5 sm:p-6 shadow-2xl space-y-4 relative max-h-[92vh] flex flex-col fade-in">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center font-black text-lg">💾</span>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-slate-900">Arhiviranje i vraćanje oglasa (Bekap)</h3>
+            <p class="text-xs text-slate-500 font-semibold">Čuvajte oglase sa slikama na svom računaru kako baza uvek bila čista i brza</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-events-backup').classList.add('hidden')" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-base font-black border border-slate-200">✕</button>
+      </div>
+
+      <!-- Prekidač između Izvoza (na računar) i Uvoza (sa računara) -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl shrink-0">
+        <button type="button" id="tab-btn-backup-export" onclick="window.prebaciTabBekapa('export')" class="py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white text-indigo-700 shadow-xs transition">
+          ⬇️ 1. Sačuvaj na računar (Očisti bazu)
+        </button>
+        <button type="button" id="tab-btn-backup-import" onclick="window.prebaciTabBekapa('import')" class="py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition">
+          ⬆️ 2. Vrati oglase sa računara
+        </button>
+      </div>
+
+      <!-- 1. PRIKAZ: IZVOZ I ČIŠĆENJE BAZE -->
+      <div id="backup-view-export" class="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="window.oznaciOglaseZaBekap('istekli')" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-black rounded-lg transition">
+              ⏱️ Označi samo završene/zamrznute
+            </button>
+            <button type="button" onclick="window.oznaciOglaseZaBekap('svi')" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-lg border border-slate-200 transition">
+              Označi sve
+            </button>
+            <button type="button" onclick="window.oznaciOglaseZaBekap('nijedan')" class="px-2.5 py-1.5 text-slate-500 hover:text-slate-800 font-bold">
+              Poništi
+            </button>
+          </div>
+          <span id="backup-export-count" class="font-black text-indigo-700">Izabrano: 0</span>
+        </div>
+
+        <div id="backup-export-list" class="space-y-2 max-h-64 overflow-y-auto no-scrollbar border border-slate-200 rounded-2xl p-3 bg-white"></div>
+
+        <label class="flex items-start gap-3 p-3.5 bg-rose-50/70 border-2 border-rose-200 rounded-2xl cursor-pointer select-none">
+          <input type="checkbox" id="backup-delete-after-export" class="w-5 h-5 mt-0.5 rounded border-rose-300 text-rose-600 focus:ring-rose-500 cursor-pointer shrink-0" />
+          <div class="text-xs">
+            <span class="font-black text-rose-950 block">Obriši izabrane oglase iz aktivne baze odmah nakon preuzimanja na računar</span>
+            <span class="text-rose-800 font-medium mt-0.5 block">Preporučeno za završene događaje: fajl vam ostaje bezbedno na računaru, a aplikacija se oslobađa starih slika.</span>
+          </div>
+        </label>
+
+        <button type="button" onclick="window.izvrsiPreuzimanjeBekapa()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm sm:text-base font-black shadow-lg transition flex items-center justify-center gap-2">
+          <span>💾</span> Preuzmi izabrane oglase na računar (.JSON)
+        </button>
+      </div>
+
+      <!-- 2. PRIKAZ: SELEKTIVNO VRAĆANJE SA RAČUNARA -->
+      <div id="backup-view-import" class="hidden flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
+        <div class="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-2xl p-5 text-center space-y-2">
+          <p class="text-xs sm:text-sm font-black text-indigo-950">Izaberite bekap fajl sa svog računara (.json)</p>
+          <p class="text-xs text-slate-500">Nakon izbora fajla, prikazaće vam se spisak pa ćete moći da štiklirate samo one oglase koje želite da vratite.</p>
+          <input type="file" id="backup-file-input" accept=".json" onchange="window.ucitajBekapFajlSaRacunara(event)" class="hidden" />
+          <button type="button" onclick="document.getElementById('backup-file-input').click()" class="px-6 py-3 bg-white hover:bg-indigo-50 text-indigo-700 border-2 border-indigo-200 rounded-xl text-xs sm:text-sm font-black shadow-sm transition inline-flex items-center gap-2 mt-1">
+            <span>📂</span> Pronađi fajl na računaru
+          </button>
+        </div>
+
+        <div id="backup-import-selection-area" class="hidden space-y-3">
+          <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl text-xs">
+            <span class="font-black text-emerald-950">Štiklirajte oglase koje želite da vratite u aplikaciju:</span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.oznaciSveZaUvozBekapa(true)" class="underline font-black text-emerald-800">Sve</button>
+              <span>·</span>
+              <button type="button" onclick="window.oznaciSveZaUvozBekapa(false)" class="underline font-bold text-slate-600">Ništa</button>
+            </div>
+          </div>
+
+          <div id="backup-import-list" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar border border-slate-200 rounded-2xl p-3 bg-white"></div>
+
+          <button type="button" onclick="window.potvrdiVracanjeIzabranihOglasa()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-sm sm:text-base font-black shadow-lg transition flex items-center justify-center gap-2">
+            <span>✓</span> Vrati označene oglase u @Booker
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -7604,7 +7695,236 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       }
     }
 
+     // --- SISTEM ZA BEKAP I SELEKTIVNO VRAĆANJE OGLASA ---
+    window.ucitaniOglasiIzFajla = [];
 
+    window.otvoriModalBekapa = function() {
+      const modal = document.getElementById('modal-events-backup');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      window.prebaciTabBekapa('export');
+    };
+
+    window.prebaciTabBekapa = function(tab) {
+      const viewExp = document.getElementById('backup-view-export');
+      const viewImp = document.getElementById('backup-view-import');
+      const btnExp = document.getElementById('tab-btn-backup-export');
+      const btnImp = document.getElementById('tab-btn-backup-import');
+
+      if (tab === 'export') {
+        if (viewExp) viewExp.classList.remove('hidden');
+        if (viewImp) viewImp.classList.add('hidden');
+        if (btnExp) btnExp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white text-indigo-700 shadow-xs transition";
+        if (btnImp) btnImp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition";
+        window.iscrtajListuZaIzvozBekapa();
+      } else {
+        if (viewExp) viewExp.classList.add('hidden');
+        if (viewImp) viewImp.classList.remove('hidden');
+        if (btnImp) btnImp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white text-indigo-700 shadow-xs transition";
+        if (btnExp) btnExp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition";
+      }
+    };
+
+    window.iscrtajListuZaIzvozBekapa = function() {
+      const listEl = document.getElementById('backup-export-list');
+      if (!listEl) return;
+
+      if (!state.events || state.events.length === 0) {
+        listEl.innerHTML = `<p class="text-center text-slate-400 font-bold text-xs py-6">Trenutno nema oglasa u bazi.</p>`;
+        window.osveziBrojacIzvozaBekapa();
+        return;
+      }
+
+      listEl.innerHTML = state.events.map(ev => {
+        const info = typeof formatirajTerminOdbrojavanje === 'function'
+          ? formatirajTerminOdbrojavanje(ev.startDate || ev.date, ev.endDate)
+          : { jeIsteklo: false, danDatum: ev.startDate || '' };
+
+        const jeZavrsenIliZamrznut = info.jeIsteklo || ev.isFrozen || !ev.isActive;
+        const statusOznaka = ev.isFrozen
+          ? '<span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-black text-[10px]">❄️ Zamrznuto</span>'
+          : (info.jeIsteklo
+              ? '<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-black text-[10px]">⏱️ Završeno</span>'
+              : '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-black text-[10px]">🟢 Aktivno</span>');
+
+        const imaSliku = ev.image && ev.image.length > 100;
+
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer select-none transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <input type="checkbox" value="${ev.id}" data-expired="${jeZavrsenIliZamrznut ? '1' : '0'}" onchange="window.osveziBrojacIzvozaBekapa()" class="backup-export-cb w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0" ${jeZavrsenIliZamrznut ? 'checked' : ''} />
+              <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-black text-slate-900 truncate">${ev.title}</p>
+                <p class="text-[11px] text-slate-500 font-semibold flex items-center gap-2 mt-0.5">
+                  <span>📅 ${info.danDatum || ev.startDate || 'Bez datuma'}</span>
+                  ${imaSliku ? '<span class="text-indigo-600 font-bold">🖼️ Sa slikom</span>' : ''}
+                </p>
+              </div>
+            </div>
+            <div class="shrink-0 ml-2">${statusOznaka}</div>
+          </label>
+        `;
+      }).join('');
+
+      window.osveziBrojacIzvozaBekapa();
+    };
+
+    window.osveziBrojacIzvozaBekapa = function() {
+      const oznaceni = document.querySelectorAll('.backup-export-cb:checked').length;
+      const countEl = document.getElementById('backup-export-count');
+      if (countEl) countEl.innerText = `Izabrano: ${oznaceni}`;
+    };
+
+    window.oznaciOglaseZaBekap = function(rezim) {
+      document.querySelectorAll('.backup-export-cb').forEach(cb => {
+        if (rezim === 'svi') cb.checked = true;
+        else if (rezim === 'nijedan') cb.checked = false;
+        else if (rezim === 'istekli') cb.checked = cb.getAttribute('data-expired') === '1';
+      });
+      window.osveziBrojacIzvozaBekapa();
+    };
+
+    window.izvrsiPreuzimanjeBekapa = async function() {
+      const cekiraniIdjevi = Array.from(document.querySelectorAll('.backup-export-cb:checked')).map(cb => cb.value);
+      if (cekiraniIdjevi.length === 0) {
+        showNotification("Označite bar jedan oglas koji želite da sačuvate na računar", "warning");
+        return;
+      }
+
+      const idSet = new Set(cekiraniIdjevi);
+      const oglasiZaBekap = state.events.filter(e => idSet.has(e.id));
+
+      const paketBekapa = {
+        app: "@Booker",
+        exportedAt: new Date().toISOString(),
+        count: oglasiZaBekap.length,
+        events: oglasiZaBekap
+      };
+
+      const jsonTekst = JSON.stringify(paketBekapa, null, 2);
+      const blob = new Blob([jsonTekst], { type: 'application/json;charset=utf-8;' });
+      const link = document.createElement('a');
+      const datumStr = new Date().toISOString().slice(0, 10);
+      link.href = URL.createObjectURL(blob);
+      link.download = `Booker_Bekap_Oglasa_${datumStr}_(${oglasiZaBekap.length}).json`;
+      link.click();
+
+      const obrisiNakonIzvoza = document.getElementById('backup-delete-after-export')?.checked === true;
+      if (obrisiNakonIzvoza) {
+        const potvrda = confirm(`Fajl sa ${oglasiZaBekap.length} oglasa je preuzet na Vaš računar.\n\nDa li potvrđujete da se ti oglasi sada OBRIŠU iz aktivne baze kako bi se oslobodila memorija?`);
+        if (potvrda) {
+          state.events = state.events.filter(e => !idSet.has(e.id));
+          safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
+
+          if (state.isOnline && firebaseActive) {
+            for (const evId of cekiraniIdjevi) {
+              try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', evId));
+              } catch (err) {
+                console.error("Greška pri brisanju arhiviranog oglasa:", err);
+              }
+            }
+          }
+          showNotification(`Sačuvano na računar i očišćeno ${oglasiZaBekap.length} oglasa iz baze!`, "success");
+          window.iscrtajListuZaIzvozBekapa();
+          renderUI();
+          return;
+        }
+      }
+
+      showNotification(`Uspešno preuzeto ${oglasiZaBekap.length} oglasa na računar!`, "success");
+    };
+
+    window.ucitajBekapFajlSaRacunara = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsirano = JSON.parse(evt.target.result);
+          const lista = Array.isArray(parsirano) ? parsirano : (parsirano.events || []);
+
+          if (!Array.isArray(lista) || lista.length === 0) {
+            showNotification("U izabranom fajlu nisu pronađeni oglasi", "warning");
+            return;
+          }
+
+          window.ucitaniOglasiIzFajla = lista;
+          const area = document.getElementById('backup-import-selection-area');
+          const listContainer = document.getElementById('backup-import-list');
+          if (area) area.classList.remove('hidden');
+
+          const postojeciIdjevi = new Set((state.events || []).map(x => x.id));
+
+          if (listContainer) {
+            listContainer.innerHTML = lista.map((ev, idx) => {
+              const vecUBazi = postojeciIdjevi.has(ev.id);
+              return `
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer select-none transition">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <input type="checkbox" value="${idx}" class="backup-import-cb w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0" ${!vecUBazi ? 'checked' : ''} />
+                    <div class="min-w-0">
+                      <p class="text-xs sm:text-sm font-black text-slate-900 truncate">${ev.title || 'Bez naziva'}</p>
+                      <p class="text-[11px] text-slate-500 font-semibold mt-0.5">
+                        📍 ${ev.location || 'N/A'} | 📅 ${ev.startDate || ev.date || 'N/A'} | 💰 ${ev.price || 0} RSD
+                      </p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-black px-2 py-0.5 rounded shrink-0 ${vecUBazi ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                    ${vecUBazi ? 'Već je u bazi' : 'Spremno za vraćanje'}
+                  </span>
+                </label>
+              `;
+            }).join('');
+          }
+
+          showNotification(`Učitano ${lista.length} oglasa iz fajla. Označite koje želite da vratite.`, "info");
+        } catch (err) {
+          showNotification("Neispravan format bekap fajla", "warning");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    window.oznaciSveZaUvozBekapa = function(stanje) {
+      document.querySelectorAll('.backup-import-cb').forEach(cb => cb.checked = stanje);
+    };
+
+    window.potvrdiVracanjeIzabranihOglasa = async function() {
+      const cekiraniIndeksi = Array.from(document.querySelectorAll('.backup-import-cb:checked')).map(cb => parseInt(cb.value, 10));
+      if (cekiraniIndeksi.length === 0) {
+        showNotification("Označite bar jedan oglas koji želite da vratite u aplikaciju", "warning");
+        return;
+      }
+
+      let vracenoBrojac = 0;
+      for (const idx of cekiraniIndeksi) {
+        const oglas = window.ucitaniOglasiIzFajla[idx];
+        if (!oglas || !oglas.id) continue;
+
+        const postojiIdx = state.events.findIndex(e => e.id === oglas.id);
+        if (postojiIdx > -1) {
+          state.events[postojiIdx] = { ...oglas };
+        } else {
+          state.events.unshift({ ...oglas });
+        }
+        vracenoBrojac++;
+
+        if (state.isOnline && firebaseActive) {
+          try {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', oglas.id), oglas);
+          } catch (err) {
+            console.error("Greška pri vraćanju oglasa na Firebase:", err);
+          }
+        }
+      }
+
+      safeStorage.setItem('edubooker_events', JSON.stringify(state.events));
+      document.getElementById('modal-events-backup').classList.add('hidden');
+      showNotification(`Uspešno vraćeno ${vracenoBrojac} oglasa u @Booker!`, "success");
+      renderUI();
+    };
 
     window.preuzmiIzvestaj = function(period) {
       const sveRezervacije = [
