@@ -6381,7 +6381,7 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
           }
 
           // SLUČAJ A: Korisnik je PRIMALAC POKLONA (otvorio poslati link -> 1. PDF je zaključan, 2. PDF se čita)
-          if (jePrimalacPoklona) {
+          if (jePrimalacPoklona || safeStorage.getItem(`primljen_poklon_${booking.id}`) === '1') {
             if (btnPdf1) {
               btnPdf1.disabled = true;
               btnPdf1.className = "relative h-44 rounded-3xl border-2 border-slate-200 bg-slate-100 p-4 flex flex-col items-center justify-center text-center text-slate-400 opacity-60 cursor-not-allowed";
@@ -6398,10 +6398,21 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
               btnPdf2.innerHTML = `
                 <span class="text-4xl sm:text-5xl mb-1.5 leading-none">🎁</span>
                 <span class="text-2xl sm:text-3xl font-black tracking-tight leading-none">OTVORI<br>POKLON</span>
-                <span class="absolute bottom-3 right-3.5 text-2xl font-black text-lime-600 leading-none">✓</span>
+                <span class="absolute bottom-3 right-3.5 text-2xl font-black ${jePreuzet2 ? 'text-lime-600' : 'text-slate-300'} leading-none">✓</span>
               `;
               btnPdf2.onclick = () => {
+                // TEK SADA (kada prijatelj zaista klikne da otvori PDF svesku) šaljemo u bazu da je poklon OTVOREN!
                 safeStorage.setItem(kljucPreuzeto2, '1');
+                booking.giftOpened = true;
+                booking.giftShared = true;
+                safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+                if (state.isOnline && firebaseActive) {
+                  setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', booking.id), {
+                    giftOpened: true,
+                    giftShared: true
+                  }, { merge: true }).catch(() => {});
+                }
+                osveziIzgledPdfKocki();
                 pokreniCitacSveske(urlDrugeSveske, `${booking.eventTitle} (Poklon sveska)`);
               };
             }
@@ -6432,23 +6443,21 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
               btnPdf2.innerHTML = `<span class="text-4xl mb-2 grayscale opacity-40">🎁</span><span class="text-2xl font-bold">pdf</span>`;
               btnPdf2.onclick = null;
             } else if (poklonJePoslat || poklonJeOtvoren) {
-              // Poklon je već poslat nekome -> kod vlasnika je precrtan, ali sa malom opcijom da kopira link opet ako prijatelju nije stigla poruka
               btnPdf2.disabled = false;
               btnPdf2.className = "relative h-44 rounded-3xl border-2 border-dashed border-slate-300 bg-slate-100/90 p-3 flex flex-col items-center justify-center text-center text-slate-500 transition cursor-pointer";
               btnPdf2.innerHTML = `
                 <span class="text-3xl mb-1 grayscale opacity-60">🎁</span>
                 <span class="text-2xl font-black text-slate-400 line-through leading-none">pdf</span>
                 <span class="mt-2 px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${poklonJeOtvoren ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">
-                  ${poklonJeOtvoren ? '✓ Poklon otvoren' : '↗ Podijeljeno'}
+                  ${poklonJeOtvoren ? '✓ Poklon otvoren' : '↗ Podeljeno'}
                 </span>
               `;
               btnPdf2.onclick = () => {
-                if (confirm("Ovaj poklon PDF je već podijeljen. Želite li ponovo da kopirate/pošaljete link istom prijatelju?")) {
+                if (confirm("Ovaj poklon PDF je već podeljen. Želite li ponovo da kopirate/pošaljete link istom prijatelju?")) {
                   posaljiPoklonPdfPrijatelju();
                 }
               };
             } else {
-              // Poklon još nije podijeljen -> klik pokreće slanje prijatelju
               btnPdf2.disabled = false;
               btnPdf2.className = "relative h-44 rounded-3xl border-2 border-amber-400 bg-amber-50/30 hover:bg-amber-50 active:scale-95 p-4 flex flex-col items-center justify-center text-center text-slate-950 shadow-sm transition cursor-pointer";
               btnPdf2.innerHTML = `
@@ -6485,7 +6494,6 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
           }
           if (launchBtnEl) launchBtnEl.classList.add('hidden');
         } else if (!jeAktivnaPlacenaKarta) {
-          // 1. NIJE PLAĆENO (Siva karta koja čeka uplatu)
           if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
           if (topFlagEl) {
             topFlagEl.classList.remove('hidden');
@@ -6497,7 +6505,6 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
           if (subEl) subEl.innerText = "Pristupni vaučer postaje vidljiv odmah nakon potvrde uplate";
           if (launchBtnEl) launchBtnEl.classList.add('hidden');
         } else if (jePreranoZaStazu) {
-          // 2. PLAĆENO JE, ALI ČEKA DATUM STAZE (Slika 1: Jasno zeleno "KARTA JE VALIDNA — Hvala na uplati!")
           if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
           if (topFlagEl) {
             topFlagEl.classList.remove('hidden');
@@ -6515,7 +6522,6 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
           }
           if (launchBtnEl) launchBtnEl.classList.add('hidden');
         } else {
-          // 3. PLAĆENO JE I DANAS JE DAN ODRŽAVANJA -> Klizač je aktivan, vaučer je otključan
           if (topFlagEl) topFlagEl.classList.add('hidden');
           if (sliderWrapEl) sliderWrapEl.classList.remove('hidden');
           if (nonQrEl) nonQrEl.className = "w-full bg-emerald-50/40 border-2 border-emerald-300 rounded-3xl p-5 text-center space-y-2 shadow-inner";
@@ -6576,30 +6582,64 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
       document.getElementById('modal-ticket').classList.remove('hidden');
     };
 
-    // Automatsko prepoznavanje kada prijatelj otvori link za Poklon PDF (?gift_ticket=BK-...)
-    setTimeout(() => {
+    // Automatsko prepoznavanje kada prijatelj otvori link za Poklon PDF (?gift_ticket=BK-...) sa servera
+    (function proveriPoklonLinkSaServera() {
       const urlParamsGift = new URLSearchParams(window.location.search);
-      const giftTicketId = urlParamsGift.get('gift_ticket');
-      if (giftTicketId) {
-        const pokusajOtvaranjaPoklona = setInterval(() => {
-          const pronadjenaKarta = state.bookings.find(b => b.id === giftTicketId);
-          if (pronadjenaKarta) {
-            clearInterval(pokusajOtvaranjaPoklona);
-            window.aktivanRezimPrimaocaPoklona = giftTicketId;
-            pronadjenaKarta.giftOpened = true;
-            pronadjenaKarta.giftShared = true;
-            if (state.isOnline && firebaseActive) {
-              setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', giftTicketId), {
-                giftOpened: true,
-                giftShared: true
-              }, { merge: true }).catch(() => {});
-            }
-            window.openTicketModal(pronadjenaKarta);
-          }
-        }, 500);
-        setTimeout(() => clearInterval(pokusajOtvaranjaPoklona), 8000);
+      const giftTicketId = urlParamsGift.get('gift_ticket') ? urlParamsGift.get('gift_ticket').trim() : '';
+      if (!giftTicketId) return;
+
+      // Odmah pamtimo na uređaju primaoca da je ovo primljen poklon i ubacujemo ga u "Vaše rezervisane karte"
+      window.aktivanRezimPrimaocaPoklona = giftTicketId;
+      safeStorage.setItem(`primljen_poklon_${giftTicketId}`, '1');
+      let mojeKarte = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+      if (!mojeKarte.includes(giftTicketId)) {
+        mojeKarte.push(giftTicketId);
+        safeStorage.setItem('my_user_tickets', JSON.stringify(mojeKarte));
       }
-    }, 600);
+
+      let poklonModalVecOtvoren = false;
+      const otvoriPoklonKartuPrimaocu = (kartaObj) => {
+        if (poklonModalVecOtvoren || !kartaObj) return;
+        poklonModalVecOtvoren = true;
+
+        // Ako karta još nije u lokalnom state.bookings na ovom uređaju, dodajemo je
+        if (!state.bookings.some(b => b.id === kartaObj.id)) {
+          state.bookings.unshift(kartaObj);
+          safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        }
+
+        if (typeof renderUI === 'function') renderUI();
+        setTimeout(() => {
+          window.aktivanRezimPrimaocaPoklona = giftTicketId;
+          window.openTicketModal(kartaObj);
+        }, 250);
+      };
+
+      // 1. Pokušavamo u petlji čim Firebase učita state.bookings ili direktno povlačimo dokument sa servera
+      let brojPokusaja = 0;
+      const tajmerPoklona = setInterval(async () => {
+        brojPokusaja++;
+        const lokalnoPronadjena = state.bookings.find(b => b.id === giftTicketId);
+        if (lokalnoPronadjena) {
+          clearInterval(tajmerPoklona);
+          otvoriPoklonKartuPrimaocu(lokalnoPronadjena);
+          return;
+        }
+
+        // Ako posle 1.5 sekunde još nije u nizu, čitamo je direktno iz Firebase baze po ID-ju karte
+        if (brojPokusaja === 3 && state.isOnline && firebaseActive && typeof getDoc === 'function') {
+          try {
+            const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', giftTicketId));
+            if (docSnap.exists()) {
+              clearInterval(tajmerPoklona);
+              otvoriPoklonKartuPrimaocu(docSnap.data());
+            }
+          } catch (e) {}
+        }
+
+        if (brojPokusaja > 25) clearInterval(tajmerPoklona);
+      }, 400);
+    })();
 
   
 
