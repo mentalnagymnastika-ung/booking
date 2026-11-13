@@ -6206,7 +6206,7 @@ function startRealtimeSync() {
       const jeAktivnaPlacenaKarta = placenoProvera && !jeMrtvaKarta;
       const prepoznatTipKarte = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
       const jePdfKarta = prepoznatTipKarte === 'digitalni_resurs';
-      const jePrimalacPoklona = window.aktivanRezimPrimaocaPoklona === booking.id;
+      const jePrimalacPoklona = window.aktivanRezimPrimaocaPoklona === booking.id || safeStorage.getItem(`primljen_poklon_${booking.id}`) === '1';
 
       // 1. Gasimo stare duple naslove
       if (document.getElementById('modal-ticket-main-heading')) {
@@ -6216,11 +6216,14 @@ function startRealtimeSync() {
         document.getElementById('ticket-payment-status-pill').className = 'hidden';
       }
 
-const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.trim();
-      if (document.getElementById('ticket-user-name')) {
-        document.getElementById('ticket-user-name').innerHTML = jePrimalacPoklona
-          ? `<span class="text-amber-700 font-black">🎁 Poklonila: ${punoImeVlasnika}</span>`
-          : punoImeVlasnika;
+      const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.trim();
+      const userNameSpan = document.getElementById('ticket-user-name');
+      if (userNameSpan) {
+        if (jePrimalacPoklona) {
+          userNameSpan.parentElement.innerHTML = `<span class="text-amber-700 font-black">🎁 Poklonila: <span id="ticket-user-name">${punoImeVlasnika}</span></span>`;
+        } else {
+          userNameSpan.parentElement.innerHTML = `za: <span id="ticket-user-name" class="font-black text-slate-950">${punoImeVlasnika}</span>`;
+        }
       }
 
       // 2. Pečat "ISKORIŠĆENA KARTA" i vizuelno umrtvljivanje cele karte kada je iskorišćena ili otkazana
@@ -6295,13 +6298,12 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
         citacModal.classList.remove('hidden');
       };
 
-      // Pomoćna funkcija kojom vlasnik šalje 2. PDF (Poklon) prijatelju i zaključava ga kod sebe
+      // Pomoćna funkcija kojom vlasnik šalje 2. PDF (Poklon) prijatelju uz uputstvo za "Vaše karte" u donjem desnom uglu
       const posaljiPoklonPdfPrijatelju = async () => {
         const osnovniUrl = window.location.origin + window.location.pathname;
         const poklonLink = `${osnovniUrl}?gift_ticket=${encodeURIComponent(booking.id)}`;
-        const porukaPoklona = `🎁 ${punoImeVlasnika} vam poklanja digitalnu svesku "${booking.eventTitle}"!\n\nKliknite na link ispod da otvorite svoju poklon kartu i svesku:\n${poklonLink}`;
+        const porukaPoklona = `🎁 ${punoImeVlasnika} vam šalje na poklon digitalnu svesku "${booking.eventTitle}" za vašu decu!\n\nDa biste je uspešno otvorili u programu, kliknite na link ispod (a svakog narednog puta svesku možete pronaći klikom na dugme za Vaše karte 🎟️ u donjem desnom ćošku ekrana):\n${poklonLink}`;
 
-        // Bilježimo da je poklon poslat (kod vlasnika se 2. PDF precrtava kao PODIJELJENO)
         booking.giftShared = true;
         safeStorage.setItem(`poklon_poslat_${booking.id}`, '1');
         safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
@@ -6313,17 +6315,16 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
           try {
             await navigator.share({
               title: `🎁 Poklon sveska: ${booking.eventTitle}`,
-              text: porukaPoklona,
-              url: poklonLink
+              text: porukaPoklona
             });
             showNotification("Poklon sveska je prosleđena!", "success");
           } catch (e) {}
         } else {
           try {
             await navigator.clipboard.writeText(porukaPoklona);
-            showNotification("Link za poklon svesku je kopiran! Pošaljite ga prijatelju (Viber / WhatsApp / Email).", "success");
+            showNotification("Poruka sa poklon-linkom je kopirana! Nalepite je prijatelju u Viber, WhatsApp ili Email.", "success");
           } catch (e) {
-            prompt("Kopirajte ovaj link i pošaljite ga osobi kojoj poklanjate svesku:", poklonLink);
+            prompt("Kopirajte ovu poruku i pošaljite je osobi kojoj poklanjate svesku:", porukaPoklona);
           }
         }
         window.openTicketModal(booking);
@@ -6539,7 +6540,17 @@ const punoImeVlasnika = `${booking.firstName || ''} ${booking.lastName || ''}`.t
         }
       }
 
-      // Bojenje donjih dugmadi (Preuzmi, Pošalji, KOD bedž i okvir kante)
+      // Sakrivanje ili prikaz donjih dugmadi (za PDF sveske ove 2 ikonice uopšte nisu potrebne jer se sve radi preko gornje 2 kocke)
+      const redDonjihIkonica = btnDownloadSmall ? btnDownloadSmall.parentElement : null;
+      if (redDonjihIkonica) {
+        if (jePdfKarta) {
+          redDonjihIkonica.classList.add('hidden');
+        } else {
+          redDonjihIkonica.classList.remove('hidden');
+        }
+      }
+
+      // Bojenje donjih dugmadi, KOD bedža i okvira kante
       if (jeAktivnaPlacenaKarta) {
         if (btnDownloadSmall) {
           btnDownloadSmall.disabled = false;
