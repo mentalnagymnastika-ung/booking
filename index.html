@@ -4597,23 +4597,25 @@ function startRealtimeSync() {
       }
 
       const punoImeZaProveru = `${unetoIme} ${unetoPrezime}`.toLowerCase().trim();
-
-      const mojiSacuvaniIdjevi = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
       const jeDigitalniResurs = event.activityType === 'digitalni_resurs';
 
-      // Provera duplikata: za PDF sveske ne dozvoljavamo ponovno preuzimanje čak ni kada je status 'iskorišćena'
+      // Provera duplikata po osobi (članski broj, ime i prezime, imejl ili telefon), bez blokiranja samog uređaja
       const postojecaRezervacija = state.bookings.find(b => {
         if (b.eventId !== event.id) return false;
         if (b.status === 'otkazano') return false;
         if (!jeDigitalniResurs && b.status === 'iskorišćena') return false;
 
-        const istiUredjajZaPdf = jeDigitalniResurs && mojiSacuvaniIdjevi.includes(b.id);
-        const istiClan = clanskiBroj && b.memberCode && b.memberCode.toUpperCase().trim() === clanskiBroj;
+        // Ako korisnik kuca članski broj, proveravamo samo da li taj članski broj već ima kartu
+        if (isMemberCovered && clanskiBroj) {
+          return b.memberCode && b.memberCode.toUpperCase().trim() === clanskiBroj;
+        }
+
+        // Ako se prijavljuje novi član (preko + Učlani me), proveravamo da li isto ime ili isti imejl već imaju kartu
         const istoIme = punoImeZaProveru && b.firstName && `${b.firstName} ${b.lastName || ''}`.toLowerCase().trim() === punoImeZaProveru;
         const istiEmail = emailValue && emailValue.includes('@') && b.email && b.email.toLowerCase().trim() === emailValue;
         const istiTelefon = phoneValue && phoneValue.length >= 6 && b.phone && b.phone.replace(/[^0-9]/g, '').includes(phoneValue);
 
-        return istiUredjajZaPdf || istiClan || istoIme || istiEmail || istiTelefon;
+        return istoIme || istiEmail || istiTelefon;
       });
 
       if (postojecaRezervacija) {
