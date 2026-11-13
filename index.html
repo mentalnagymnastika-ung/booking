@@ -521,6 +521,9 @@
                   <p class="text-xs text-slate-500 mt-0.5">Automatsko praćenje aktivnosti i dolazaka po grupama i odeljenjima</p>
                 </div>
                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+                  <button type="button" onclick="window.otvoriModalDuplikataClanova()" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-black text-xs rounded-xl transition border border-amber-200 flex items-center gap-1.5 shadow-sm whitespace-nowrap" title="Pronađi i spoji duple kontakte">
+                    <span>🔍</span> Duplikati
+                  </button>
                   <button type="button" onclick="window.otvoriModalUvozaPartnera()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-xs rounded-xl transition border border-indigo-200 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
                     <span>📥</span> Uvezi bazu partnera
                   </button>
@@ -550,6 +553,9 @@
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" id="btn-bulk-send-emails" onclick="window.masovnoPosaljiKarticeNaEmail()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl transition shadow-sm border border-emerald-400/30 flex items-center gap-1.5">
                   <span>✉️</span> Pošalji kartice na Email
+                </button>
+                <button type="button" onclick="window.masovnoPromeniStatusClanarine()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                  <span>🔄</span> Status članarine
                 </button>
                 <button type="button" onclick="window.masovnoPromeniGrupu()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-xl transition shadow-sm border border-indigo-400/30 flex items-center gap-1.5">
                   <span>🏷️</span> Promeni odeljenje / partnera
@@ -1195,6 +1201,33 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Provera i spajanje duplih članova (kao Google Contacts) -->
+  <div id="modal-duplicate-members" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl p-5 sm:p-6 shadow-2xl space-y-4 relative max-h-[90vh] flex flex-col fade-in">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center font-black text-lg">🔍</span>
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-slate-900">Provera duplikata u bazi članova</h3>
+            <p class="text-xs text-slate-500 font-semibold">Pronađeni kontakti sa istim imenom, telefonom ili imejl adresom</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-duplicate-members').classList.add('hidden')" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-base font-black border border-slate-200">✕</button>
+      </div>
+
+      <div id="duplicate-members-list" class="flex-1 overflow-y-auto no-scrollbar space-y-3.5 pr-1"></div>
+
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-between shrink-0">
+        <button type="button" onclick="window.resetujIgnorisaneDuplikate()" class="text-xs font-bold text-slate-400 hover:text-indigo-600 underline">
+          Prikaži i ranije zadržane parove
+        </button>
+        <button type="button" onclick="document.getElementById('modal-duplicate-members').classList.add('hidden')" class="px-6 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-black transition">
+          Zatvori pregled
+        </button>
       </div>
     </div>
   </div>
@@ -2074,11 +2107,7 @@
       activeViewingTicket: null,
       editingEventId: null,
       activeMembership: null,
-      membersList: [
-        { card: "MG-101", firstName: "Lidija", lastName: "Brzak", phone: "0601234567", email: "lidija@example.com" },
-        { card: "MG-102", firstName: "Andrea", lastName: "Brzak", phone: "0607654321", email: "andrea@example.com" },
-        { card: "MG-103", firstName: "Goran", lastName: "Brzak", phone: "0609998887", email: "goran@example.com" }
-      ]
+      membersList: []
     };
 
     function safeAddEventListener(id, event, callback) {
@@ -6439,11 +6468,32 @@ let prevlacenjeStartX = 0;
 
         if (!fullName && !email) continue;
 
-        // Provera da li član već postoji po emailu
-        const postojeciIndex = (state.membersList || []).findIndex(m => email && m.email && m.email.toLowerCase().trim() === email.toLowerCase().trim());
+        // Provera poklapanja po imenu, telefonu ili imejlu pri uvozu tabele
+        const cistTelUvoz = (phone || '').replace(/[^0-9]/g, '');
+        const cistEmailUvoz = (email || '').toLowerCase().trim();
+        const cistoPunoImeUvoz = (fullName || '').toLowerCase().trim();
 
+        const postojeciIndex = (state.membersList || []).findIndex(m => {
+          const istoIme = cistoPunoImeUvoz && `${m.firstName || ''} ${m.lastName || ''}`.toLowerCase().trim() === cistoPunoImeUvoz;
+          const istiTel = cistTelUvoz.length >= 6 && m.phone && m.phone.replace(/[^0-9]/g, '') === cistTelUvoz;
+          const istiEmail = cistEmailUvoz.includes('@') && m.email && m.email.toLowerCase().trim() === cistEmailUvoz;
+          return istoIme || istiTel || istiEmail;
+        });
+
+        let kreirajKaoNovog = true;
         if (postojeciIndex > -1) {
-          // Ažuriramo postojeće podatke i grupu
+          const postojeciClan = state.membersList[postojeciIndex];
+          const odlukaNovog = confirm(
+            `⚠️ Poklapanje pri uvozu za: "${fullName}"\n` +
+            `U bazi već postoji: ${postojeciClan.firstName} ${postojeciClan.lastName} (Kartica: ${postojeciClan.card}, Tel: ${postojeciClan.phone || 'N/A'}, Email: ${postojeciClan.email || 'N/A'}).\n\n` +
+            `• Kliknite "OK" ako želite da dodelite NOVU karticu (npr. drugo dete iz iste porodice).\n` +
+            `• Kliknite "Cancel" ako je to ista osoba (samo će se ažurirati grupa/podaci bez pravljenja duplikata).`
+          );
+          kreirajKaoNovog = odlukaNovog;
+        }
+
+        if (postojeciIndex > -1 && !kreirajKaoNovog) {
+          // Ažuriramo postojeće podatke i grupu bez pravljenja duplikata
           state.membersList[postojeciIndex].group = group || state.membersList[postojeciIndex].group || '';
           if (phone && !state.membersList[postojeciIndex].phone) {
             state.membersList[postojeciIndex].phone = phone;
@@ -6611,11 +6661,30 @@ let prevlacenjeStartX = 0;
       const za30Dana = new Date(sada.getTime() + (30 * 24 * 60 * 60 * 1000));
       const formatirajDatum = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}.`;
 
-      const pronadjen = (state.membersList || []).find(m => 
+      const punoImeRezervacije = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase().trim();
+      const cistTelRez = (b.phone && b.phone !== 'Nije traženo' && b.phone !== 'Nije uneto') ? b.phone.replace(/[^0-9]/g, '') : '';
+      const cistEmailRez = (b.email && b.email !== 'Nije uneto') ? b.email.toLowerCase().trim() : '';
+
+      let pronadjen = (state.membersList || []).find(m => 
         (b.memberCode && String(m.card).toUpperCase() === String(b.memberCode).toUpperCase()) ||
-        (b.phone && b.phone !== 'Nije traženo' && m.phone && m.phone.replace(/[^0-9]/g, '') === b.phone.replace(/[^0-9]/g, '')) ||
-        (b.email && b.email !== 'Nije uneto' && m.email && m.email.toLowerCase().trim() === b.email.toLowerCase().trim())
+        (cistTelRez.length >= 6 && m.phone && m.phone.replace(/[^0-9]/g, '') === cistTelRez) ||
+        (cistEmailRez.includes('@') && m.email && m.email.toLowerCase().trim() === cistEmailRez) ||
+        (punoImeRezervacije && `${m.firstName || ''} ${m.lastName || ''}`.toLowerCase().trim() === punoImeRezervacije)
       );
+
+      // Ako polaznik nije uneo članski broj, a našli smo poklapanje po imenu/telefonu/mejlu, pitamo admina šta želi
+      if (pronadjen && !b.memberCode) {
+        const koristiPostojecu = confirm(
+          `⚠️ PRONAĐEN ČLAN SA ISTIM PODACIMA:\n\n` +
+          `Prijava glasi na: ${b.firstName} ${b.lastName} (Tel: ${b.phone || 'N/A'}, Email: ${b.email || 'N/A'})\n` +
+          `U bazi već postoji: ${pronadjen.firstName} ${pronadjen.lastName} (Kartica: ${pronadjen.card})\n\n` +
+          `• Kliknite "OK" da produžite postojeću karticu (${pronadjen.card}).\n` +
+          `• Kliknite "Cancel" ako je ovo drugo dete/novi član i želite da mu izdate NOVU karticu.`
+        );
+        if (!koristiPostojecu) {
+          pronadjen = null;
+        }
+      }
 
       b.paidAt = sada.toISOString();
 
@@ -8960,10 +9029,41 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         group = groupSelect.value.trim();
       }
 
-      const postoji = (state.membersList || []).some(m => m.card.toUpperCase() === card);
-      if (postoji) {
-        showNotification("Članska kartica sa ovim brojem već postoji!", "warning");
+      const postojiKartica = (state.membersList || []).some(m => String(m.card).toUpperCase() === card);
+      if (postojiKartica) {
+        showNotification("Članska kartica sa ovim brojem već postoji! Unesite drugi broj kartice.", "warning");
         return;
+      }
+
+      // Provera poklapanja po imenu, telefonu ili imejl adresi (zbog više dece u porodici ili slučajnog duplikata)
+      const cistTelNovi = phone.replace(/[^0-9]/g, '');
+      const cistEmailNovi = email.toLowerCase().trim();
+      const punoImeNovi = `${firstName} ${lastName}`.toLowerCase().trim();
+
+      const poklapanja = (state.membersList || []).filter(m => {
+        const istoIme = punoImeNovi && `${m.firstName || ''} ${m.lastName || ''}`.toLowerCase().trim() === punoImeNovi;
+        const istiTel = cistTelNovi.length >= 6 && m.phone && m.phone.replace(/[^0-9]/g, '') === cistTelNovi;
+        const istiEmail = cistEmailNovi.includes('@') && m.email && m.email.toLowerCase().trim() === cistEmailNovi;
+        return istoIme || istiTel || istiEmail;
+      });
+
+      if (poklapanja.length > 0) {
+        const opisPoklapanja = poklapanja.map(m => {
+          const razlozi = [];
+          if (`${m.firstName || ''} ${m.lastName || ''}`.toLowerCase().trim() === punoImeNovi) razlozi.push("isto ime");
+          if (cistTelNovi.length >= 6 && m.phone && m.phone.replace(/[^0-9]/g, '') === cistTelNovi) razlozi.push(`isti telefon: ${m.phone}`);
+          if (cistEmailNovi.includes('@') && m.email && m.email.toLowerCase().trim() === cistEmailNovi) razlozi.push(`isti email: ${m.email}`);
+          return `• ${m.firstName} ${m.lastName} (Kartica: ${m.card}) — [${razlozi.join(', ')}]`;
+        }).join('\n');
+
+        const dozvoliUpis = confirm(
+          `⚠️ PAŽNJA — PRONAĐENO POKLAPANJE U BAZI:\n\n` +
+          `${opisPoklapanja}\n\n` +
+          `Da li ipak želite da upišete "${firstName} ${lastName}" kao NOVOG člana (npr. drugo dete u porodici)?\n` +
+          `• Kliknite "OK" za upis novog člana.\n` +
+          `• Kliknite "Cancel" da odustanete.`
+        );
+        if (!dozvoliUpis) return;
       }
 
       const sad = new Date();
@@ -9115,6 +9215,253 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
 
       showNotification(`Podaci za karticu ${cardCode} su uspešno ažurirani!`, "success");
       renderUI();
+    };
+
+    // 1. Masovna promena statusa članarine za sve štiklirane članove odjednom
+    window.masovnoPromeniStatusClanarine = async function() {
+      const brojOznacenih = window.oznaceniClanoviSet.size;
+      if (brojOznacenih === 0) return;
+
+      const izbor = prompt(
+        `Masovna promena statusa članarine za ${brojOznacenih} označenih članova:\n\n` +
+        `Unesite broj opcije:\n` +
+        `1 = Aktiviraj / Produži svima na 30 dana (od danas)\n` +
+        `2 = Aktiviraj svima do kraja školske godine (31.08.)\n` +
+        `3 = Označi svima da je članarina ISTEKLA\n` +
+        `4 = Upiši ručno datum važenja za sve izabrane (npr. 31.12.2026.)`,
+        "1"
+      );
+
+      if (!izbor) return;
+      const opcija = izbor.trim();
+      if (!['1', '2', '3', '4'].includes(opcija)) return;
+
+      const sad = new Date();
+      const formatirajD = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}.`;
+
+      let rucniDatum = '';
+      if (opcija === '4') {
+        rucniDatum = prompt("Unesite datum do kada važi članarina za sve izabrane (DD.MM.GGGG.):", "31.12.2026.");
+        if (!rucniDatum || !rucniDatum.trim()) return;
+        rucniDatum = rucniDatum.trim();
+      }
+
+      for (const m of state.membersList) {
+        if (!window.oznaceniClanoviSet.has(m.card)) continue;
+
+        if (opcija === '1') {
+          const za30 = new Date(sad.getTime() + (30 * 24 * 60 * 60 * 1000));
+          m.lastPaymentDate = sad.toISOString();
+          m.validUntil = formatirajD(za30);
+          m.forceExpired = false;
+        } else if (opcija === '2') {
+          const god = sad.getMonth() >= 8 ? sad.getFullYear() + 1 : sad.getFullYear();
+          m.lastPaymentDate = sad.toISOString();
+          m.validUntil = `31.08.${god}.`;
+          m.forceExpired = false;
+        } else if (opcija === '3') {
+          m.forceExpired = true;
+        } else if (opcija === '4') {
+          m.validUntil = rucniDatum;
+          m.forceExpired = false;
+        }
+
+        if (state.isOnline && firebaseActive) {
+          setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.card)), m).catch(() => {});
+        }
+      }
+
+      safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+      showNotification(`Status članarine je uspešno ažuriran za ${brojOznacenih} članova!`, "success");
+      window.ponistiIzborClanova();
+      renderUI();
+    };
+
+    // 2. Sistem za pronalaženje i spajanje duplikata (po uzoru na Google Contacts)
+    window.otvoriModalDuplikataClanova = function() {
+      const modal = document.getElementById('modal-duplicate-members');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      window.iscrtajDuplikateClanova();
+    };
+
+    window.iscrtajDuplikateClanova = function() {
+      const container = document.getElementById('duplicate-members-list');
+      if (!container) return;
+
+      const ignorisaniParovi = new Set(JSON.parse(safeStorage.getItem('edubooker_ignored_duplicates') || '[]'));
+      const lista = state.membersList || [];
+      const parovi = [];
+      const vecUpareniKljuc = new Set();
+
+      for (let i = 0; i < lista.length; i++) {
+        for (let j = i + 1; j < lista.length; j++) {
+          const a = lista[i];
+          const b = lista[j];
+          if (!a || !b) continue;
+
+          const parKljuc = [String(a.card).toUpperCase(), String(b.card).toUpperCase()].sort().join('__');
+          if (ignorisaniParovi.has(parKljuc) || vecUpareniKljuc.has(parKljuc)) continue;
+
+          const imeA = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase().trim();
+          const imeB = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase().trim();
+          const telA = (a.phone || '').replace(/[^0-9]/g, '');
+          const telB = (b.phone || '').replace(/[^0-9]/g, '');
+          const mailA = (a.email || '').toLowerCase().trim();
+          const mailB = (b.email || '').toLowerCase().trim();
+
+          const razlozi = [];
+          if (imeA && imeB && imeA === imeB) razlozi.push('Isto ime i prezime');
+          if (telA.length >= 6 && telB.length >= 6 && telA === telB) razlozi.push(`Isti telefon (${a.phone})`);
+          if (mailA.includes('@') && mailB.includes('@') && mailA === mailB) razlozi.push(`Isti email (${a.email})`);
+
+          if (razlozi.length > 0) {
+            vecUpareniKljuc.add(parKljuc);
+            parovi.push({ a, b, parKljuc, razlozi });
+          }
+        }
+      }
+
+      if (parovi.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2">
+            <div class="text-3xl">✅</div>
+            <p class="text-sm font-black text-emerald-950">Baza je čista! Nema pronađenih duplikata.</p>
+            <p class="text-xs text-emerald-800">Svi kontakti u evidenciji su jedinstveni ili su označeni kao različiti članovi porodice.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = parovi.map(p => `
+        <div class="bg-slate-50 border-2 border-amber-200 rounded-2xl p-4 space-y-3 shadow-xs">
+          <div class="flex items-center justify-between border-b border-amber-200/70 pb-2">
+            <span class="text-xs font-black text-amber-950 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">
+              ⚠️ Poklapanje: ${p.razlozi.join(' • ')}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <!-- Kartica 1 -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">${p.a.card}</span>
+                  <span class="text-[10px] font-bold text-slate-400">1. zapis</span>
+                </div>
+                <p class="font-black text-slate-900 text-sm mt-1">${p.a.firstName} ${p.a.lastName}</p>
+                <p class="text-slate-600 font-semibold">📞 ${p.a.phone || 'Nema telefona'}</p>
+                <p class="text-slate-500 truncate">✉️ ${p.a.email || 'Nema emaila'}</p>
+                <p class="text-[11px] font-bold text-indigo-700 mt-1">🏷️ ${p.a.group || 'Bez grupe'}</p>
+              </div>
+              <button type="button" onclick="window.ukloniJedanIzDuplikata('${p.a.card}')" class="mt-2 w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[11px] border border-rose-200 transition">
+                🗑️ Obriši samo ${p.a.card}
+              </button>
+            </div>
+
+            <!-- Kartica 2 -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">${p.b.card}</span>
+                  <span class="text-[10px] font-bold text-slate-400">2. zapis</span>
+                </div>
+                <p class="font-black text-slate-900 text-sm mt-1">${p.b.firstName} ${p.b.lastName}</p>
+                <p class="text-slate-600 font-semibold">📞 ${p.b.phone || 'Nema telefona'}</p>
+                <p class="text-slate-500 truncate">✉️ ${p.b.email || 'Nema emaila'}</p>
+                <p class="text-[11px] font-bold text-indigo-700 mt-1">🏷️ ${p.b.group || 'Bez grupe'}</p>
+              </div>
+              <button type="button" onclick="window.ukloniJedanIzDuplikata('${p.b.card}')" class="mt-2 w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg font-bold text-[11px] border border-rose-200 transition">
+                🗑️ Obriši samo ${p.b.card}
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap sm:flex-nowrap gap-2 pt-1">
+            <button type="button" onclick="window.spojiDvaClana('${p.a.card}', '${p.b.card}')" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5">
+              <span>🔗</span> Spoji u jednog (zadrži ${p.a.card})
+            </button>
+            <button type="button" onclick="window.spojiDvaClana('${p.b.card}', '${p.a.card}')" class="flex-1 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5">
+              <span>🔗</span> Spoji u jednog (zadrži ${p.b.card})
+            </button>
+            <button type="button" onclick="window.zadrziObaDuplikata('${p.parKljuc}')" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl text-xs font-black transition">
+              ✓ Zadrži oba (porodica)
+            </button>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.spojiDvaClana = async function(glavnaKarticaId, sporednaKarticaId) {
+      const glavni = (state.membersList || []).find(m => String(m.card) === String(glavnaKarticaId));
+      const sporedni = (state.membersList || []).find(m => String(m.card) === String(sporednaKarticaId));
+      if (!glavni || !sporedni) return;
+
+      // Dopunjavamo glavnu karticu svim podacima koji joj eventualno nedostaju sa druge kartice
+      if (!glavni.phone && sporedni.phone) glavni.phone = sporedni.phone;
+      if (!glavni.email && sporedni.email) glavni.email = sporedni.email;
+      if (!glavni.group && sporedni.group) glavni.group = sporedni.group;
+      if (!glavni.validUntil && sporedni.validUntil) glavni.validUntil = sporedni.validUntil;
+      if (!glavni.lastPaymentDate && sporedni.lastPaymentDate) glavni.lastPaymentDate = sporedni.lastPaymentDate;
+
+      // Prebacujemo sve rezervacije sa sporedne kartice na glavnu
+      state.bookings.forEach(b => {
+        if (b.memberCode && String(b.memberCode).toUpperCase() === String(sporednaKarticaId).toUpperCase()) {
+          b.memberCode = glavni.card;
+          if (state.isOnline && firebaseActive) {
+            updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id), { memberCode: glavni.card }).catch(() => {});
+          }
+        }
+      });
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      // Brišemo sporednu (duplu) karticu
+      state.membersList = state.membersList.filter(m => String(m.card) !== String(sporednaKarticaId));
+      safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(glavni.card)), glavni);
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(sporednaKarticaId)));
+        } catch (e) {
+          console.warn("Greška pri spajanju članova na Firebase:", e);
+        }
+      }
+
+      showNotification(`Kartice su spojene u ${glavni.card} (${glavni.firstName} ${glavni.lastName})!`, "success");
+      window.iscrtajDuplikateClanova();
+      renderUI();
+    };
+
+    window.ukloniJedanIzDuplikata = async function(cardCode) {
+      if (!confirm(`Želite li da obrišete karticu ${cardCode}?`)) return;
+      state.membersList = state.membersList.filter(m => String(m.card) !== String(cardCode));
+      safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(cardCode)));
+        } catch (e) {}
+      }
+
+      showNotification(`Kartica ${cardCode} je obrisana`, "info");
+      window.iscrtajDuplikateClanova();
+      renderUI();
+    };
+
+    window.zadrziObaDuplikata = function(parKljuc) {
+      const ignorisani = JSON.parse(safeStorage.getItem('edubooker_ignored_duplicates') || '[]');
+      if (!ignorisani.includes(parKljuc)) {
+        ignorisani.push(parKljuc);
+        safeStorage.setItem('edubooker_ignored_duplicates', JSON.stringify(ignorisani));
+      }
+      showNotification("Oba kontakta su zadržana kao zasebni članovi porodice", "success");
+      window.iscrtajDuplikateClanova();
+    };
+
+    window.resetujIgnorisaneDuplikate = function() {
+      safeStorage.setItem('edubooker_ignored_duplicates', '[]');
+      window.iscrtajDuplikateClanova();
     };
 
     window.masovnoPromeniGrupu = async function() {
