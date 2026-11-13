@@ -4555,12 +4555,155 @@ function startRealtimeSync() {
       document.getElementById('modal-booking').classList.remove('hidden');
     };
 
-    safeAddEventListener('form-submit-booking', 'submit', async (e) => {
+safeAddEventListener('form-submit-booking', 'submit', async (e) => {
       e.preventDefault();
       const event = state.selectedEventForBooking || state.events.find(x => x.id === state.selectedEventId);
       if (!event) return;
 
-      const isMemberCovered = !!state.activeMembership;
+      const regularFieldsEl = document.getElementById('regular-user-fields');
+      const jeOtvorenModalZaUclanjenje = regularFieldsEl && !regularFieldsEl.classList.contains('hidden');
+
+      const tipPonudeObracun = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+      const jeSamoZaClanove = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
+      const jeModelClanarine = event.paymentType === 'clanarina' || jeSamoZaClanove || tipPonudeObracun === 'digitalni_resurs';
+
+      const isMemberCovered = !!state.activeMembership && !jeOtvorenModalZaUclanjenje;
+
+      // Ako je program "Samo za članove" (PDF ili staza), a korisnik je na Pogledu 1 i NIJE uneo članski broj:
+      if (jeModelClanarine && !jeOtvorenModalZaUclanjenje && !isMemberCovered) {
+        const unetKodPolje = document.getElementById('booking-member-code');
+        if (unetKodPolje && unetKodPolje.value.trim() !== '') {
+          // Ako je ukucao broj, a nije kliknuo na zelenu kvačicu, automatski pokrećemo proveru broja
+          document.getElementById('btn-apply-membership')?.click();
+          if (!state.activeMembership) return;
+        } else {
+          showNotification("Unesite vaš članski broj i kliknite na kvačicu ✓, ili kliknite na + za učlanjenje.", "warning");
+          return;
+        }
+      }
+
+      const aktivniClan = !!state.activeMembership && !jeOtvorenModalZaUclanjenje;
+
+      // =========================================================================
+      // TOK 1: ČISTO UČLANJENJE (Korisnik je kliknuo na "+" Učlani me kod članskog programa)
+      // Ne skidamo mesto sa PDF sveske/staze, već kreiramo čistu Uplatnicu za Članarinu (850 din)!
+      // =========================================================================
+      if (jeOtvorenModalZaUclanjenje && jeModelClanarine) {
+        const fNameEl = document.getElementById('booking-firstname');
+        const lNameEl = document.getElementById('booking-lastname');
+        const emailEl = document.getElementById('booking-email');
+        const phoneEl = document.getElementById('booking-phone');
+        const addressEl = document.getElementById('booking-address');
+
+        const uIme = fNameEl ? fNameEl.value.trim() : '';
+        const uPrezime = lNameEl ? lNameEl.value.trim() : '';
+        const uEmail = emailEl ? emailEl.value.trim().toLowerCase() : '';
+        const uTelefon = phoneEl && phoneEl.value.trim() ? phoneEl.value.trim() : 'Nije traženo';
+        const uAdresa = addressEl && addressEl.value.trim() ? addressEl.value.trim() : 'Novi Sad';
+
+        if (!uIme || !uPrezime) {
+          showNotification("Molimo unesite ime i prezime polaznika", "warning");
+          return;
+        }
+        if (!uEmail || !uEmail.includes('@')) {
+          showNotification("Molimo unesite ispravnu email adresu za dostavu članske kartice", "warning");
+          return;
+        }
+
+        // Provera da li ova osoba već ima kreiran zahtev za učlanjenje koji čeka uplatu
+        const postojeceUclanjenje = state.bookings.find(b =>
+          b.activityType === 'uclanjenje' &&
+          b.status !== 'otkazano' &&
+          ((b.email && b.email.toLowerCase().trim() === uEmail) ||
+           (`${b.firstName} ${b.lastName || ''}`.toLowerCase().trim() === `${uIme} ${uPrezime}`.toLowerCase()))
+        );
+
+        if (postojeceUclanjenje) {
+          showNotification(`Već imate kreiranu prijavu za članarinu (${postojeceUclanjenje.id})!`, "info");
+          document.getElementById('modal-booking').classList.add('hidden');
+          window.openTicketModal(postojeceUclanjenje);
+          return;
+        }
+
+        const sadaDatum = new Date();
+        const danSada = String(sadaDatum.getDate()).padStart(2, '0');
+        const mesecSada = String(sadaDatum.getMonth() + 1).padStart(2, '0');
+        const nasumicneCifre = Math.floor(100000 + Math.random() * 900000);
+        const kratkiNasumicni = Math.floor(100 + Math.random() * 900);
+
+        const uclanjenjeId = `BK-${nasumicneCifre}`;
+        const noviClanskiBroj = `${danSada}${mesecSada}${kratkiNasumicni}`;
+        const pozivZaClanarinu = `${danSada}${mesecSada}${nasumicneCifre}`;
+
+        const novaClanarinaKarta = {
+          id: uclanjenjeId,
+          eventId: 'UCLANJENJE_PODMLATKA',
+          eventTitle: 'Članarina podmlatka (pridruženi član)',
+          eventLocation: 'Udruženje Mentalna Gimnastika',
+          eventDate: new Date().toISOString().split('T')[0],
+          selectedDate: new Date().toISOString().split('T')[0],
+          eventTime: '',
+          ticketsCount: 1,
+          pricePerTicket: 850,
+          totalPrice: 850,
+          originalPrice: 850,
+          paymentReference: pozivZaClanarinu,
+          paymentType: 'clanarina',
+          memberCode: noviClanskiBroj,
+          bankAccount: event.bankAccount || '160-0000000000000-00',
+          recipientName: event.recipientName || 'Udruženje Mentalna Gimnastika',
+          instructorPhone: event.instructorPhone || '',
+          instructorEmail: event.instructorEmail || '',
+          activityType: 'uclanjenje',
+          packageType: 1,
+          isPaid: false,
+          scannedCount: 0,
+          firstName: uIme,
+          lastName: uPrezime,
+          email: uEmail,
+          phone: uTelefon,
+          address: uAdresa,
+          school: 'Pridruženi član',
+          className: 'Članarina podmlatka',
+          memberRole: 'Pridruženi član',
+          note: `Učlanjenje pokrenuto sa: ${event.title}`,
+          timestamp: new Date().toISOString(),
+          status: 'aktivna'
+        };
+
+        state.bookings = [novaClanarinaKarta, ...state.bookings];
+        safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+        if (!myTickets.includes(novaClanarinaKarta.id)) {
+          myTickets.push(novaClanarinaKarta.id);
+          safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+        }
+
+        if (state.isOnline && firebaseActive) {
+          try {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', novaClanarinaKarta.id), novaClanarinaKarta);
+            showNotification("Prijava za članarinu je kreirana! Nakon uplate dobijate aktivan članski broj.", "success");
+          } catch (err) {
+            state.syncQueue.push(novaClanarinaKarta);
+            safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
+          }
+        } else {
+          state.syncQueue.push(novaClanarinaKarta);
+          safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
+          updateSyncBanner();
+        }
+
+        posaljiUDnevniPresek('NOVA_REZERVACIJA', novaClanarinaKarta);
+        document.getElementById('modal-booking').classList.add('hidden');
+        document.getElementById('form-submit-booking').reset();
+        renderUI();
+        openTicketModal(novaClanarinaKarta);
+        return;
+      }
+
+      // =========================================================================
+      // TOK 2: REDOVNA REZERVACIJA AKTIVNOSTI (Član sa karticom ILI komercijalna usluga/pregled/kurs)
+      // =========================================================================
       const qtyInput = document.querySelector('input[name="booking-quantity"]:checked');
       const qty = qtyInput ? parseInt(qtyInput.value) : 1;
 
@@ -4568,7 +4711,7 @@ function startRealtimeSync() {
       let phoneValue = '';
       let addressValue = '';
 
-      if (isMemberCovered) {
+      if (aktivniClan) {
         emailValue = (state.activeMembership.email || '').toLowerCase().trim();
         phoneValue = (state.activeMembership.phone || '').replace(/[^0-9]/g, '');
         addressValue = 'redovan clan';
@@ -4582,11 +4725,11 @@ function startRealtimeSync() {
         addressValue = addressEl && addressEl.value ? addressEl.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
       }
 
-      const clanskiBroj = isMemberCovered ? (state.activeMembership.card || '').toUpperCase().trim() : '';
+      const clanskiBroj = aktivniClan ? (state.activeMembership.card || '').toUpperCase().trim() : '';
 
       let unetoIme = '';
       let unetoPrezime = '';
-      if (isMemberCovered) {
+      if (aktivniClan) {
         unetoIme = (state.activeMembership.firstName || '').trim();
         unetoPrezime = (state.activeMembership.lastName || '').trim();
       } else {
@@ -4599,18 +4742,15 @@ function startRealtimeSync() {
       const punoImeZaProveru = `${unetoIme} ${unetoPrezime}`.toLowerCase().trim();
       const jeDigitalniResurs = event.activityType === 'digitalni_resurs';
 
-      // Provera duplikata po osobi (članski broj, ime i prezime, imejl ili telefon), bez blokiranja samog uređaja
       const postojecaRezervacija = state.bookings.find(b => {
         if (b.eventId !== event.id) return false;
         if (b.status === 'otkazano') return false;
         if (!jeDigitalniResurs && b.status === 'iskorišćena') return false;
 
-        // Ako korisnik kuca članski broj, proveravamo samo da li taj članski broj već ima kartu
-        if (isMemberCovered && clanskiBroj) {
+        if (aktivniClan && clanskiBroj) {
           return b.memberCode && b.memberCode.toUpperCase().trim() === clanskiBroj;
         }
 
-        // Ako se prijavljuje novi član (preko + Učlani me), proveravamo da li isto ime ili isti imejl već imaju kartu
         const istoIme = punoImeZaProveru && b.firstName && `${b.firstName} ${b.lastName || ''}`.toLowerCase().trim() === punoImeZaProveru;
         const istiEmail = emailValue && emailValue.includes('@') && b.email && b.email.toLowerCase().trim() === emailValue;
         const istiTelefon = phoneValue && phoneValue.length >= 6 && b.phone && b.phone.replace(/[^0-9]/g, '').includes(phoneValue);
@@ -4620,9 +4760,8 @@ function startRealtimeSync() {
 
       if (postojecaRezervacija) {
         showNotification(`Već imate aktivnu kartu ${postojecaRezervacija.id} za ovaj program!`, "warning");
-        // Automatski nudimo otvaranje te karte radi pregleda ili čišćenja
         setTimeout(() => {
-          if (confirm(`Želite li da otvorite postojeću kartu ${postojecaRezervacija.id} kako biste je poništili ili obrisali iz baze?`)) {
+          if (confirm(`Želite li da otvorite postojeću kartu ${postojecaRezervacija.id}?`)) {
             document.getElementById('modal-booking').classList.add('hidden');
             window.viewTicket(postojecaRezervacija.id);
           }
@@ -4637,11 +4776,6 @@ function startRealtimeSync() {
       const mesecDogadjaja = event.startDate ? String(new Date(event.startDate).getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
       const cistPozivNaBroj = `${brojDogadjaja}${mesecDogadjaja}${nasumicneCifre}`;
 
-      const reqName = event.formFields?.name !== false;
-      const reqEmail = event.formFields?.email !== false;
-      const reqPhone = event.formFields?.phone !== false;
-      const reqAddress = event.formFields?.address !== false;
-
       const dateChoiceInput = document.getElementById('booking-selected-date');
       const jeVisednevniProgram = event.startDate && event.endDate && event.startDate !== event.endDate;
       let tacanDatumTermina = event.startDate || event.date;
@@ -4650,7 +4784,6 @@ function startRealtimeSync() {
         tacanDatumTermina = dateChoiceInput.value;
       }
 
-      // Provera izabranog vremena (ako događaj nema satnicu, ostaje prazno bez lažnih 10:00h)
       const wrapperTime = document.getElementById('wrapper-booking-time-choice');
       const hiddenTimeInput = document.getElementById('booking-selected-time');
       const koristiSatnicuDogadjaj = event.useTimeSchedule !== false && !!(event.time && event.time.trim() !== '');
@@ -4658,7 +4791,6 @@ function startRealtimeSync() {
         ? ((hiddenTimeInput && hiddenTimeInput.value) ? hiddenTimeInput.value.trim() : (event.time || '')) 
         : '';
 
-      // Ako je uključen izbor satnice (ili je Usluga/Pregled), zakazivanje mora imati izabran vremenski termin
       if ((wrapperTime && !wrapperTime.classList.contains('hidden')) || event.activityType === 'individualno') {
         if (!hiddenTimeInput?.value) {
           showNotification("Molimo izaberite slobodno vreme termina", "warning");
@@ -4670,7 +4802,6 @@ function startRealtimeSync() {
         }
       }
 
-      // Za Usluge i Preglede proveravamo da li su svi izabrani vremenski termini slobodni
       if (event.activityType === 'individualno') {
         const terminiZaProveru = (window.izabraniTerminiNiz && window.izabraniTerminiNiz.length > 0)
           ? window.izabraniTerminiNiz
@@ -4697,21 +4828,15 @@ function startRealtimeSync() {
       const jePromo1plus1 = event.hasPromo1plus1 === true;
       const obracunskiBroj = (jePromo1plus1 && qty === 2) ? 1 : qty;
 
-      const tipPonudeObracun = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
-      const jeSamoZaClanove = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
-      const jeModelClanarine = event.paymentType === 'clanarina' || jeSamoZaClanove || tipPonudeObracun === 'digitalni_resurs';
-
       const sirovaRedovna = Number(event.price || 0);
       const sirovaClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') 
         ? Number(event.memberPrice) 
         : (jeSamoZaClanove ? 0 : sirovaRedovna);
 
-      // Ako je program u režimu Članarine podmlatka (za članove 0 din, učlanjenje je standardnih 850 din)
       const clanskaCena = jeModelClanarine ? 0 : sirovaClanska;
       const redovnaCena = jeModelClanarine ? 850 : ((sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna);
 
-      // Člansku cenu ostvaruje samo član kome je članarina aktivna (u okviru 30 dana od uplate)
-      const imaAktivnuClanarinu = isMemberCovered && state.activeMembership.isMembershipActive === true;
+      const imaAktivnuClanarinu = aktivniClan && state.activeMembership.isMembershipActive === true;
       const pricePerTicket = imaAktivnuClanarinu ? clanskaCena : redovnaCena;
       const jeDigitalni = event.activityType === 'digitalni_resurs';
       const doplataZaDrugi = (jeDigitalni && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined)
@@ -4744,17 +4869,17 @@ function startRealtimeSync() {
       const linkUstanova = urlParametri.get('ustanova') ? decodeURIComponent(urlParametri.get('ustanova')).trim() : '';
       const linkRazred = urlParametri.get('razred') ? decodeURIComponent(urlParametri.get('razred')).trim() : '';
 
-      const finalSchool = isMemberCovered 
+      const finalSchool = aktivniClan 
         ? (state.activeMembership.group || 'Član udruženja') 
         : (linkUstanova || 'Bez ustanove');
 
-      const finalClass = isMemberCovered 
+      const finalClass = aktivniClan 
         ? 'Članska evidencija' 
         : (linkRazred || 'Nije navedeno');
 
-      const clanskiStatus = isMemberCovered ? 'Redovan član' : 'Pridruženi član';
+      const clanskiStatus = aktivniClan ? 'Redovan član' : 'Korisnik usluge';
 
-      if (isMemberCovered) {
+      if (aktivniClan) {
         finalFirstName = state.activeMembership.firstName;
         finalLastName = state.activeMembership.lastName;
         finalEmail = state.activeMembership.email || 'Članska evidencija';
@@ -4777,7 +4902,7 @@ function startRealtimeSync() {
         const moraAdresa = stAddress === 'required' || stAddress === true;
 
         if (moraIme && (!fNameEl?.value.trim() || !lNameEl?.value.trim())) {
-          showNotification("Molimo unesite ime i prezime polaznika", "warning");
+          showNotification("Molimo unesite ime i prezime", "warning");
           return;
         }
         if (moraEmail && !emailValue) {
@@ -4800,7 +4925,6 @@ function startRealtimeSync() {
         finalAddress = addressEl && addressEl.value.trim() ? addressEl.value.trim() : 'Nije uneto';
       }
 
-      // Računamo koliko je trenutno slobodnih sveski u fondu kako bi i +1 gratis sveska skinula zeleno mesto
       const aktivneRezDogadjaja = state.bookings.filter(b => b.eventId === event.id && b.status !== 'otkazano');
       const zauzetoTrenutno = aktivneRezDogadjaja.reduce((s, b) => s + (b.ticketsCount || 1), 0);
       const slobodnoTrenutno = Math.max(0, event.totalSeats - zauzetoTrenutno);
@@ -4820,8 +4944,8 @@ function startRealtimeSync() {
         originalPrice: (event.price || 0) * qty,
         paymentReference: cistPozivNaBroj,
         paymentType: (imaAktivnuClanarinu && totalPrice === 0) ? 'clanarina_pokriveno' : (event.paymentType || 'kotizacija'),
-        memberCode: isMemberCovered ? state.activeMembership.card : '',
-        membershipVisitNumber: isMemberCovered ? (state.activeMembership.usageCount + 1) : null,
+        memberCode: aktivniClan ? state.activeMembership.card : '',
+        membershipVisitNumber: aktivniClan ? (state.activeMembership.usageCount + 1) : null,
         bankAccount: event.bankAccount || '',
         recipientName: event.recipientName || '',
         instructorPhone: event.instructorPhone || '',
@@ -4847,13 +4971,12 @@ function startRealtimeSync() {
         school: finalSchool,
         className: finalClass,
         memberRole: clanskiStatus,
-        note: document.getElementById('booking-note').value.trim(),
+        note: document.getElementById('booking-note') ? document.getElementById('booking-note').value.trim() : '',
         googleVerified: state.googleUser ? true : false,
         timestamp: new Date().toISOString(),
         status: 'aktivna'
       };
 
-      // Ako je Usluga / Pregled sa 2 izabrana vremenska termina, pravimo 2 odvojene pozivnice (sve duplo)
       const listaKreiranihRezervacija = [];
       if (jeUsluga && qty === 2 && window.izabraniTerminiNiz && window.izabraniTerminiNiz.length === 2) {
         const vreme1 = window.izabraniTerminiNiz[0];
@@ -4910,13 +5033,11 @@ function startRealtimeSync() {
           for (const pojedinacnaRez of listaKreiranihRezervacija) {
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', pojedinacnaRez.id), pojedinacnaRez);
           }
-          
-          // Provera da li je datum staze već stigao (ne otključavamo stazu u Zdravoj Potrazi pre zakazanog dana!)
+
           const danasIso = new Date().toISOString().split('T')[0];
           const datumStazeIso = (newBooking.selectedDate || newBooking.eventDate || '').split('T')[0];
           const stazaJeDanasIliRanije = !datumStazeIso || datumStazeIso <= danasIso;
 
-          // Vaučer u bazu staza šaljemo odmah SAMO ako je karta plaćena I datum igre je stigao
           if (zdravaDb && newBooking.isPaid && stazaJeDanasIliRanije && (newBooking.trailCode || event.category === 'umg')) {
             const brojUredjaja = newBooking.packageType || 1;
             const tipModela = newBooking.voucherType || 'sati';
@@ -6331,12 +6452,134 @@ function startRealtimeSync() {
         }
         window.openTicketModal(booking);
       };
+const jeKartaUclanjenja = prepoznatTipKarte === 'uclanjenje' || booking.eventId === 'UCLANJENJE_PODMLATKA';
 
-      if (jePdfKarta) {
+      if (jeKartaUclanjenja) {
+        // =========================================================================
+        // POSEBAN PRIKAZ ZA UČLANJENJE: Čista uplatnica (dok nije plaćeno) ILI Članska kartica (kada je plaćeno)
+        // =========================================================================
+        if (pdfDualBox) pdfDualBox.classList.add('hidden');
+        document.getElementById('ticket-online-action-wrapper')?.classList.add('hidden');
+        document.getElementById('ticket-gift-container')?.classList.add('hidden');
+        document.getElementById('ticket-qr-canvas')?.classList.add('hidden');
+        document.getElementById('payment-switch-container')?.classList.add('hidden');
+        if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
+
+        const titleElUcl = document.getElementById('ticket-event-title');
+        const ipsWrapperEl = document.getElementById('ips-qr-wrapper');
+        const nonQrEl = document.getElementById('ticket-non-qr-wrapper');
+        const badgeTypeEl = document.getElementById('ticket-badge-type-label');
+        const codeEl = document.getElementById('ticket-badge-main-code');
+        const subEl = document.getElementById('ticket-badge-subtext');
+
+        if (!jeAktivnaPlacenaKarta) {
+          // Dok čeka uplatu: Naslov je "Uplata članarine", prikazuje se SAMO čista IPS uplatnica bez ikakvih PDF kocki i tabova
+          if (titleElUcl) titleElUcl.innerText = 'Uplata članarine';
+          if (topFlagEl) {
+            topFlagEl.classList.remove('hidden');
+            topFlagEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-100 border-2 border-amber-300 text-amber-900 font-black text-xs tracking-wide uppercase";
+            topFlagEl.innerHTML = `<span>⏳</span> <span>Čeka uplatu članarine</span>`;
+          }
+          if (nonQrEl) nonQrEl.classList.add('hidden');
+          if (ipsWrapperEl) {
+            ipsWrapperEl.classList.remove('hidden');
+            ipsWrapperEl.classList.add('flex');
+          }
+          const purposeEl = document.getElementById('manual-pay-purpose');
+          if (purposeEl) {
+            purposeEl.innerText = `Članarina podmlatka (pridruženi član) - ${punoImeVlasnika}`;
+          }
+        } else {
+          // Članarina je PLAĆENA: Prikazujemo aktivnu Člansku karticu sa brojem i automatski je upisujemo u bazu članova!
+          const dKreiranja = booking.timestamp ? new Date(booking.timestamp) : new Date();
+          const dDan = String(dKreiranja.getDate()).padStart(2, '0');
+          const dMesec = String(dKreiranja.getMonth() + 1).padStart(2, '0');
+          const izdatiBroj = (!booking.memberCode || booking.memberCode.startsWith('MG-'))
+            ? `${dDan}${dMesec}${booking.id.replace(/\D/g, '').slice(-3)}`
+            : booking.memberCode;
+
+          if (titleElUcl) titleElUcl.innerText = 'Članska kartica (Pridruženi član)';
+          if (ipsWrapperEl) {
+            ipsWrapperEl.classList.add('hidden');
+            ipsWrapperEl.classList.remove('flex');
+          }
+          if (topFlagEl) {
+            topFlagEl.classList.remove('hidden');
+            topFlagEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-600 border-2 border-emerald-700 text-white font-black text-xs tracking-wide uppercase shadow-sm";
+            topFlagEl.innerHTML = `<span>✓</span> <span>Aktivna članarina (30 dana)</span>`;
+          }
+          if (nonQrEl) {
+            nonQrEl.classList.remove('hidden');
+            nonQrEl.className = "w-full bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-400 rounded-3xl p-5 text-center space-y-2 shadow-sm";
+          }
+          if (badgeTypeEl) {
+            badgeTypeEl.className = "text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-white border border-emerald-300 px-3 py-1 rounded-xl inline-block";
+            badgeTypeEl.innerText = "VAŠ ČLANSKI BROJ";
+          }
+          if (codeEl) {
+            codeEl.className = "text-3xl sm:text-4xl font-mono font-black text-emerald-950 tracking-wider select-all";
+            codeEl.innerText = izdatiBroj;
+          }
+          if (subEl) {
+            subEl.className = "text-xs font-bold text-emerald-800 pt-1";
+            subEl.innerText = "Sa ovim brojem besplatno (0 din) preuzimate sve članske sveske i staze narednih 30 dana!";
+          }
+
+          // Automatski dodajemo člana u lokalnu bazu članova ako već nije tu
+          if (Array.isArray(state.membersDatabase) && !state.membersDatabase.some(m => (m.card || '').toUpperCase() === izdatiBroj.toUpperCase())) {
+            state.membersDatabase.push({
+              card: izdatiBroj,
+              firstName: booking.firstName,
+              lastName: booking.lastName,
+              email: booking.email,
+              phone: booking.phone,
+              group: 'Pridruženi član',
+              paymentDate: booking.paidAt || new Date().toISOString().split('T')[0],
+              isMembershipActive: true
+            });
+            safeStorage.setItem('edubooker_members_db', JSON.stringify(state.membersDatabase));
+          }
+
+          // Automatski šaljemo člansku karticu sa brojem na email čim je uplata potvrđena (samo jednom)
+          if (!booking.membershipEmailSent && booking.email && booking.email.includes('@')) {
+            booking.membershipEmailSent = true;
+            booking.memberCode = izdatiBroj;
+            safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+            if (state.isOnline && firebaseActive) {
+              setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', booking.id), {
+                membershipEmailSent: true,
+                memberCode: izdatiBroj
+              }, { merge: true }).catch(() => {});
+            }
+            if (typeof posaljiUDnevniPresek === 'function') {
+              const dSada = new Date();
+              const dZa30 = new Date(dSada.getTime() + 30 * 24 * 60 * 60 * 1000);
+              const fmtD = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}.`;
+              posaljiUDnevniPresek('AKTIVIRANA_CLANSKA_KARTICA', {
+                ...booking,
+                tipAkcije: 'POSALJI_CLANSKE_KARTICE',
+                action: 'AKTIVIRANA_CLANSKA_KARTICA',
+                memberCode: izdatiBroj,
+                clanovi: [{
+                  card: izdatiBroj,
+                  firstName: booking.firstName || '',
+                  lastName: booking.lastName || '',
+                  email: booking.email || '',
+                  phone: booking.phone || 'Članska evidencija',
+                  group: 'Pridruženi član',
+                  joinedDate: fmtD(dSada),
+                  validUntil: fmtD(dZa30)
+                }]
+              });
+            }
+          }
+        }
+      } else if (jePdfKarta) {
         document.getElementById('ticket-online-action-wrapper')?.classList.add('hidden');
         document.getElementById('ticket-gift-container')?.classList.add('hidden');
         document.getElementById('ticket-qr-canvas')?.classList.add('hidden');
         document.getElementById('ticket-non-qr-wrapper')?.classList.add('hidden');
+        document.getElementById('payment-switch-container')?.classList.add('hidden');
         if (pdfDualBox) pdfDualBox.classList.remove('hidden');
 
         if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
@@ -6383,7 +6626,6 @@ function startRealtimeSync() {
             return;
           }
 
-          // SLUČAJ A: Korisnik je PRIMALAC POKLONA (otvorio poslati link -> 1. PDF je zaključan, 2. PDF se čita)
           if (jePrimalacPoklona || safeStorage.getItem(`primljen_poklon_${booking.id}`) === '1') {
             if (btnPdf1) {
               btnPdf1.disabled = true;
@@ -6404,7 +6646,6 @@ function startRealtimeSync() {
                 <span class="absolute bottom-3 right-3.5 text-2xl font-black ${jePreuzet2 ? 'text-lime-600' : 'text-slate-300'} leading-none">✓</span>
               `;
               btnPdf2.onclick = () => {
-                // TEK SADA (kada prijatelj zaista klikne da otvori PDF svesku) šaljemo u bazu da je poklon OTVOREN!
                 safeStorage.setItem(kljucPreuzeto2, '1');
                 booking.giftOpened = true;
                 booking.giftShared = true;
@@ -6422,7 +6663,6 @@ function startRealtimeSync() {
             return;
           }
 
-          // SLUČAJ B: VLASNIK KARTE (Lidija Brzak) -> 1. PDF otvara čitač, 2. PDF šalje poklon prijatelju i gasi se
           if (btnPdf1) {
             btnPdf1.disabled = false;
             btnPdf1.className = jePreuzet1
@@ -6516,7 +6756,7 @@ function startRealtimeSync() {
             topFlagEl.className = "flex-1 py-2 px-3 rounded-2xl bg-emerald-600 border-2 border-emerald-700 text-white font-black text-xs text-center leading-snug shadow-md";
             topFlagEl.innerHTML = jePrekoClanskeKarte
               ? `✅ KARTA JE VALIDNA<br><span class="text-[11px] font-bold text-emerald-100">Aktivirajte kartu ${lepDatumStaze}</span>`
-              : `✅ KARTA VALIDNA — Hvala!<br><span class="text-[11px] font-bold text-emerald-100">Aktivirajte kartu ${lepDatumStaze}</span>`;
+              : `✅ KARTA VALIDNA — Hvala na uplati!<br><span class="text-[11px] font-bold text-emerald-100">Aktivirajte kartu ${lepDatumStaze}</span>`;
           }
           if (nonQrEl) nonQrEl.className = "w-full bg-emerald-50/70 border-2 border-emerald-400 rounded-3xl p-5 text-center space-y-2 shadow-sm";
           if (codeEl) {
@@ -6551,9 +6791,8 @@ function startRealtimeSync() {
       // Sakrivanje ili prikaz donjih dugmadi (za PDF sveske ove 2 ikonice uopšte nisu potrebne jer se sve radi preko gornje 2 kocke)
       const redDonjihIkonica = btnDownloadSmall ? btnDownloadSmall.parentElement : null;
       if (redDonjihIkonica) {
-        if (jePdfKarta) {
-          redDonjihIkonica.classList.add('hidden');
-        } else {
+          if (jePdfKarta || jeKartaUclanjenja) { redDonjihIkonica.classList.add('hidden'); 
+          } else {
           redDonjihIkonica.classList.remove('hidden');
         }
       }
