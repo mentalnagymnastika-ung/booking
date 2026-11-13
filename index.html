@@ -823,7 +823,7 @@
 
           </div>
 
-          <!-- Glavno dugme akcije (PREUZMI / PRIJAVI SE) -->
+          <!-- Glavno dugme akcije (aktivno kad ponuda traje, zaključano kad je zatvorena) -->
           <div class="space-y-2.5 pt-1 shrink-0">
              <button id="btn-info-book" type="button" class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-lg transition flex items-center justify-between cursor-pointer active:scale-[0.99]">
                 <svg class="w-7 h-7 text-white/90 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -3710,8 +3710,8 @@ function startRealtimeSync() {
           : '';
 
         infoPriceBox.innerHTML = `
-          <!-- GORNJA POLOVINA (50%): Belo dugme dizajnirano kao mala članska kartica -->
-          <button type="button" ${mozePrijava ? `onclick="window.otvoriPrijavuClanaIzDetalja('${event.id}')"` : 'disabled'} class="h-full w-full bg-white border-2 border-slate-200 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-md relative overflow-hidden transition ${mozePrijava ? 'hover:bg-slate-50 active:scale-95 hover:border-emerald-400 cursor-pointer group' : 'opacity-65 cursor-not-allowed'}">
+          <!-- GORNJA POLOVINA (50%): Informativna bela članska kartica (bez ulaza u zakazivanje) -->
+          <div class="h-full w-full bg-white border-2 border-slate-200 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden select-none">
             <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
             <div class="flex items-center justify-center gap-1.5 text-slate-700 mb-0.5">
               <svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -3723,13 +3723,13 @@ function startRealtimeSync() {
               ${clanskaCena === 0 ? '0 din' : `${clanskaCena} din`}
             </span>
             ${dodatniTag}
-          </button>
+          </div>
 
-          <!-- DONJA POLOVINA (50%): Puno ljubičasto dugme u 2 reda za učlanjenje / cenu usluge -->
-          <button type="button" ${mozePrijava ? `onclick="window.otvoriUclanjenjeIzDetalja('${event.id}')"` : 'disabled'} class="h-full w-full rounded-2xl p-2.5 flex flex-col items-center justify-center text-center transition border-2 ${mozePrijava ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 border-indigo-500 shadow-lg shadow-indigo-200 cursor-pointer' : 'bg-slate-300 border-slate-300 text-slate-500 cursor-not-allowed'}">
-            <span class="block text-xs font-extrabold ${mozePrijava ? 'text-indigo-100' : 'text-slate-500'} uppercase tracking-wider">${oznakaDruge}</span>
-            <span class="block text-xl sm:text-2xl font-black ${mozePrijava ? 'text-white' : 'text-slate-600'} leading-tight mt-0.5">${redovnaCena} din</span>
-          </button>
+          <!-- DONJA POLOVINA (50%): Informativni ljubičasti boks za učlanjenje / cenu usluge -->
+          <div class="h-full w-full bg-indigo-600 border-2 border-indigo-500 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-md select-none">
+            <span class="block text-xs font-extrabold text-indigo-100 uppercase tracking-wider">${oznakaDruge}</span>
+            <span class="block text-xl sm:text-2xl font-black text-white leading-tight mt-0.5">${redovnaCena} din</span>
+          </div>
         `;
       }
       
@@ -3745,27 +3745,29 @@ function startRealtimeSync() {
       }
 
       const btnBook = document.getElementById('btn-info-book');
-      const akcijaTekst = prepoznatTip === 'digitalni_resurs' ? 'PREUZMI' : (prepoznatTip === 'individualno' ? 'ZAKAŽI' : 'PRIJAVI SE');
-      const srceIkonaHtml = `
-        <svg class="w-7 h-7 text-white/90 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-        </svg>
-      `;
+      if (btnBook) {
+        const akcijaTekst = prepoznatTip === 'digitalni_resurs' ? 'PREUZMI' : (prepoznatTip === 'individualno' ? 'ZAKAŽI' : 'PRIJAVI SE');
+        const srceIkonaHtml = `
+          <svg class="w-7 h-7 text-white/90 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        `;
 
-      if (!mozePrijava) {
-        const razlogZatvoreno = (!event.isActive || infoVreme.jeIsteklo) ? "ZATVORENO" : "POPUNJENO";
-        btnBook.disabled = true;
-        btnBook.className = "w-full py-4 px-6 bg-slate-300 text-slate-500 rounded-2xl shadow-sm cursor-not-allowed flex items-center justify-between";
-        btnBook.innerHTML = `${srceIkonaHtml}<span class="text-lg sm:text-xl font-black tracking-wide uppercase">${razlogZatvoreno}</span>`;
-        btnBook.onclick = null;
-      } else {
-        btnBook.disabled = false;
-        btnBook.className = "w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-lg transition flex items-center justify-between cursor-pointer active:scale-[0.99]";
-        btnBook.innerHTML = `${srceIkonaHtml}<span class="text-lg sm:text-xl font-black tracking-wide uppercase">${akcijaTekst}</span>`;
-        btnBook.onclick = () => {
-          document.getElementById('modal-info').classList.add('hidden');
-          window.openBookingModal(eventId);
-        };
+        if (!mozePrijava) {
+          const razlogZatvoreno = (!event.isActive || infoVreme.jeIsteklo) ? "ZATVORENO" : "POPUNJENO";
+          btnBook.disabled = true;
+          btnBook.className = "w-full py-4 px-6 bg-slate-300 text-slate-500 rounded-2xl shadow-sm cursor-not-allowed flex items-center justify-between";
+          btnBook.innerHTML = `${srceIkonaHtml}<span class="text-lg sm:text-xl font-black tracking-wide uppercase">${razlogZatvoreno}</span>`;
+          btnBook.onclick = null;
+        } else {
+          btnBook.disabled = false;
+          btnBook.className = "w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-lg transition flex items-center justify-between cursor-pointer active:scale-[0.99]";
+          btnBook.innerHTML = `${srceIkonaHtml}<span class="text-lg sm:text-xl font-black tracking-wide uppercase">${akcijaTekst}</span>`;
+          btnBook.onclick = () => {
+            document.getElementById('modal-info').classList.add('hidden');
+            window.openBookingModal(eventId);
+          };
+        }
       }
       
       document.getElementById('modal-info').classList.remove('hidden');
