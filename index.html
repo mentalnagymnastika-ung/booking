@@ -842,165 +842,191 @@
     </div>
   </div>
 
-  <!-- Formular za prijavu i rezervaciju sa grafičkim prikazom mesta -->
-  <div id="modal-booking" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
-    <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh]">
-      <div class="p-5 border-b border-slate-100 shrink-0 text-center sm:text-left space-y-3">
-         <h3 id="modal-booking-title" class="text-2xl font-black text-slate-900 leading-tight truncate">...</h3>
-         
-         <div class="flex flex-wrap items-center justify-between gap-2">
-           <span id="modal-booking-seats" class="text-xs sm:text-sm font-black text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-             ...
-           </span>
-           <div class="flex items-center gap-3 text-xs font-bold text-slate-500">
-             <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-emerald-500 inline-block"></span> Slobodno</span>
-             <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-slate-400 inline-block"></span> Na čekanju (1h)</span>
-             <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-rose-500 inline-block"></span> Zauzeto</span>
-           </div>
-         </div>
-
-         <div id="modal-booking-seats-grid" class="flex flex-wrap gap-1.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl max-h-28 overflow-y-auto no-scrollbar">
-         </div>
-
-         <!-- Jasno istaknuta cijena programa -->
-         <div id="modal-booking-price-box" class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mt-2">
-           <div>
-             <p class="text-xs font-bold text-slate-500 uppercase tracking-wider" id="modal-booking-price-type">Kotizacija</p>
-             <p class="text-xs text-slate-600 font-semibold" id="modal-booking-price-calc">1 osoba</p>
-           </div>
-           <div class="text-right">
-             <span id="modal-booking-price-display" class="text-lg font-black text-slate-900">0 RSD</span>
-           </div>
-         </div>
-      </div>
+  <!-- Formular za prijavu i rezervaciju (Razdvojen pogled za člana i univerzalni modal za učlanjenje po oblasti) -->
+  <div id="modal-booking" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] overflow-hidden fade-in">
       
-      <div class="p-5 overflow-y-auto no-scrollbar space-y-5">
-          <form id="form-submit-booking" novalidate class="space-y-4">
-            <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-4 rounded-xl text-sm font-semibold hidden shadow-inner">
-              💡 Prijavljeni ste preko Google naloga, podaci su automatski popunjeni.
+      <form id="form-submit-booking" novalidate class="p-5 sm:p-6 overflow-y-auto no-scrollbar space-y-4">
+        
+        <!-- ========================================================= -->
+        <!-- POGLED 1: GLAVNI EKRAN ZA ČLANOVE I PREUZIMANJE / PRIJAVU -->
+        <!-- ========================================================= -->
+        <div id="booking-step-member-view" class="space-y-4">
+          
+          <!-- Zaglavlje sa naslovom, oznakom pristupa i X dugmetom -->
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h3 id="modal-booking-title" class="text-xl sm:text-2xl font-black text-slate-950 leading-tight truncate">...</h3>
+              <p id="modal-booking-access-subtitle" class="text-xs sm:text-sm font-black text-slate-800 mt-0.5">[Samo za članove]</p>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-black text-lg flex items-center justify-center shrink-0 transition cursor-pointer">✕</button>
+          </div>
+
+          <!-- 1. Boks za člansku karticu: Unos + [✓] + [+] (Učlani me) -->
+          <div id="membership-verification-box" class="bg-indigo-50/70 border-2 border-indigo-100 rounded-2xl p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-black text-indigo-950 uppercase tracking-wider">Broj članske kartice</label>
+              <button type="button" id="btn-toggle-non-member" class="text-xs font-black text-indigo-600 hover:text-indigo-800 underline cursor-pointer">Učlani me</button>
             </div>
 
-            <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm">
-               <div>
-                 <p id="booking-qty-question-text" class="text-base font-bold text-slate-700">Koliko mesta rezervišete?</p>
-                 <p id="booking-qty-subtext" class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1"><span>ℹ️</span> Maksimalno 2 po emailu</p>
-               </div>
-               <div class="flex gap-2">
-                 <label class="flex items-center gap-1 cursor-pointer bg-white px-3 py-2 border border-slate-200 rounded-xl shadow-sm">
-                    <input type="radio" name="booking-quantity" value="1" checked class="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
-                    <span class="text-base font-black text-slate-800">1</span>
-                 </label>
-                 <label id="label-qty-2" class="flex items-center gap-1 cursor-pointer bg-white px-3 py-2 border border-slate-200 rounded-xl shadow-sm">
-                    <input type="radio" name="booking-quantity" value="2" id="radio-qty-2" class="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
-                    <span class="text-base font-black text-slate-800">2</span>
-                 </label>
-               </div>
+            <div class="flex items-center gap-2" id="membership-input-row">
+              <input id="booking-member-code" type="text" placeholder="UNESITE BROJ" class="flex-1 min-w-0 bg-white border-2 border-indigo-200 rounded-2xl px-3.5 py-3 text-sm font-black text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 uppercase" />
+              
+              <!-- Ljubičasto dugme sa kvačicom (Potvrdi članski broj) -->
+              <button type="button" id="btn-apply-membership" title="Potvrdi članski broj" class="w-14 h-12 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-2xl flex items-center justify-center shadow-md transition shrink-0 cursor-pointer">
+                <svg class="w-7 h-7 stroke-[3.2] text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+
+              <!-- Dugme [+] koje otvara poseban univerzalni modal za učlanjenje -->
+              <button type="button" onclick="window.prebaciNaModalUclanjenja()" title="Učlani me (Novi član)" class="w-12 h-12 bg-white hover:bg-indigo-50 active:scale-95 text-indigo-600 border-2 border-indigo-200 rounded-2xl flex items-center justify-center shadow-xs transition shrink-0 cursor-pointer">
+                <svg class="w-7 h-7 stroke-[3.2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
             </div>
 
-            <!-- Oznaka za 1+1 promociju unutar same rezervacije -->
-            <div id="modal-booking-promo-banner" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-950 p-3.5 rounded-2xl items-center justify-between text-xs shadow-xs">
-              <div class="flex items-center gap-2.5">
-                <span class="text-xl">🎁</span>
-                <div>
-                  <span class="block text-[10px] uppercase font-black tracking-wider text-amber-700">Gratis promocija</span>
-                  <span id="modal-booking-promo-text" class="text-xs font-black text-amber-950">Gratis promocija 1+1</span>
-                </div>
+            <!-- Potvrđena članska kartica -->
+            <div id="membership-confirmed-card" class="hidden bg-white border-2 border-emerald-400 rounded-xl p-3 flex items-center justify-between shadow-xs">
+              <div>
+                <p class="text-xs sm:text-sm font-black text-emerald-800" id="membership-member-name">Član</p>
+                <p class="text-[11px] font-bold text-slate-500" id="membership-member-info">Kartica proverena</p>
               </div>
-              <span class="text-[10px] font-black bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-amber-800 shrink-0">1+1 Poklon</span>
+              <button type="button" id="btn-reset-membership" class="text-xs font-bold text-rose-600 hover:text-rose-800 px-2.5 py-1 bg-rose-50 rounded-lg border border-rose-200 cursor-pointer">Promeni</button>
             </div>
+          </div>
 
-            <!-- Izbor datuma termina (jasan prikaz bez nepotrebnog teksta) -->
-            <div id="wrapper-booking-date-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
-              <div class="flex items-center justify-between">
-                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite dan dolaska *</label>
-                <span class="text-[11px] font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-xs">Kalendar</span>
+          <!-- 2. Srednji red: Izbor 1 ili 2 (levo) + Gratis promocija 1+1 (desno) u istom redu -->
+          <div class="flex items-stretch justify-between gap-2.5">
+            <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center justify-between gap-2">
+              <div>
+                <p id="booking-qty-question-text" class="text-sm sm:text-base font-black text-slate-800 leading-tight">Želim da preuzmem</p>
+                <p id="booking-qty-subtext" class="text-[11px] font-bold text-slate-500 mt-0.5"></p>
               </div>
-              <input id="booking-selected-date" type="date" onclick="try { this.showPicker(); } catch(e) {}" onchange="window.azurirajPrikazTerminaSatnice()" class="w-full bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-xl px-4 py-3 text-sm font-black text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer transition shadow-xs" />
-            </div>
-
-            <!-- Izbor termina i satnice (za preglede, radionice i individualne konsultacije) -->
-            <div id="wrapper-booking-time-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
-              <div class="flex items-center justify-between">
-                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite vreme termina *</label>
-                <span id="booking-time-status-label" class="text-[11px] font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 shadow-xs">Izaberite termin</span>
-              </div>
-              <div id="booking-time-slots-container" class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
-                <!-- Dugmad sa terminima se generišu automatski -->
-              </div>
-              <input type="hidden" id="booking-selected-time" value="" />
-            </div>
-
-            <!-- 1. Korak: Provera clanske kartice -->
-            <div id="membership-verification-box" class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Broj članske kartice</label>
-                <button type="button" id="btn-toggle-non-member" class="text-xs font-black text-indigo-600 hover:text-indigo-800 underline">Učlani me</button>
-              </div>
-              <div class="flex gap-2" id="membership-input-row">
-                <input id="booking-member-code" type="text" placeholder="Unesite broj kartice (npr. MG-101)..." class="flex-1 bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500 uppercase" />
-                <button type="button" id="btn-apply-membership" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition shadow-sm">Potvrdi</button>
-              </div>
-              <div id="membership-confirmed-card" class="hidden bg-white border-2 border-emerald-300 rounded-xl p-3 flex items-center justify-between shadow-sm">
-                <div>
-                  <p class="text-xs font-black text-emerald-800" id="membership-member-name">Član</p>
-                  <p class="text-[11px] font-bold text-slate-500" id="membership-member-info">Kartica proverena</p>
-                </div>
-                <button type="button" id="btn-reset-membership" class="text-xs font-bold text-rose-600 hover:text-rose-800 px-2 py-1 bg-rose-50 rounded-lg">Promeni</button>
+              <div class="flex flex-col gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input type="radio" name="booking-quantity" value="1" checked class="w-4 h-4 text-indigo-600 focus:ring-indigo-500" />
+                  <span class="text-sm font-black text-slate-900">1</span>
+                </label>
+                <label id="label-qty-2" class="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input type="radio" name="booking-quantity" value="2" id="radio-qty-2" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500" />
+                  <span class="text-sm font-black text-slate-900">2</span>
+                </label>
               </div>
             </div>
 
-            <!-- 2. Korak: Polja za prijavu novog polaznika (otvaraju se samo ako nema kartice) -->
-            <div id="regular-user-fields" class="hidden space-y-4 pt-1 border-t border-slate-100">
-              <div id="wrapper-booking-name" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-base font-bold text-slate-700 mb-1.5">Ime polaznika *</label>
-                  <input id="booking-firstname" type="text" placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-                </div>
-                <div>
-                  <label class="block text-base font-bold text-slate-700 mb-1.5">Prezime polaznika *</label>
-                  <input id="booking-lastname" type="text" placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-                </div>
-              </div>
-
-              <div id="wrapper-booking-email">
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Email za potvrdu *</label>
-                <input id="booking-email" type="email" placeholder="vas@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-              </div>
-
-              <div id="wrapper-booking-phone">
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Kontakt telefon *</label>
-                <input id="booking-phone" type="tel" placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-              </div>
-
-              <div id="wrapper-booking-address">
-                <label class="block text-base font-bold text-slate-700 mb-1.5">Adresa i Grad *</label>
-                <input id="booking-address" type="text" placeholder="Ulica, Grad" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
-              </div>
-            </div>
-
-            <!-- Automatska oznaka kada se otvori preko namenskog linka učitelja -->
-            <div id="teacher-link-banner" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl p-3.5 text-xs font-bold items-center justify-between">
+            <!-- Desno u istom redu: Gratis promocija 1+1 (kada je uključena za program) -->
+            <div id="modal-booking-promo-banner" class="hidden w-44 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 text-amber-950 p-2.5 rounded-2xl flex-col justify-center shrink-0 shadow-2xs">
               <div class="flex items-center gap-2">
-                <span class="text-lg">🏫</span>
-                <div>
-                  <span class="block text-[10px] uppercase font-black tracking-wider text-emerald-700">Prijavljujete se ispred ustanove</span>
-                  <span id="teacher-link-info" class="text-xs font-black text-emerald-950">OŠ / Odeljenje</span>
+                <span class="text-xl shrink-0">🎁</span>
+                <div class="min-w-0">
+                  <span class="block text-[9px] uppercase font-black tracking-wider text-amber-700 leading-none">Gratis promocija</span>
+                  <span id="modal-booking-promo-text" class="text-[11px] font-black text-amber-950 leading-tight block mt-0.5">Gratis promocija 1+1</span>
                 </div>
               </div>
-              <span class="text-[10px] font-black bg-white px-2 py-1 rounded-md border border-emerald-300 text-emerald-800">Pridruženi član</span>
             </div>
+          </div>
 
+          <!-- 3. Izbor datuma i vremena (Sakriveno za PDF sveske, automatski vidljivo za staze, radionice i preglede) -->
+          <div id="wrapper-booking-date-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite dan *</label>
+              <span class="text-[10px] font-black text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">Kalendar</span>
+            </div>
+            <input id="booking-selected-date" type="date" onclick="try { this.showPicker(); } catch(e) {}" onchange="window.azurirajPrikazTerminaSatnice()" class="w-full bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-xl px-3.5 py-2.5 text-sm font-black text-slate-800 focus:outline-none focus:border-indigo-500 cursor-pointer transition" />
+          </div>
+
+          <div id="wrapper-booking-time-choice" class="hidden bg-indigo-50/60 border border-indigo-100 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide">Izaberite termin *</label>
+              <span id="booking-time-status-label" class="text-[10px] font-black text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200">Satnica</span>
+            </div>
+            <div id="booking-time-slots-container" class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1"></div>
+            <input type="hidden" id="booking-selected-time" value="" />
+          </div>
+
+          <!-- 4. Vizuelni prikaz koliko je još ostalo za preuzimanje / slobodnih mesta -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span id="modal-booking-remaining-label" class="font-black text-slate-700">Preostalo za preuzimanje:</span>
+              <span id="modal-booking-seats" class="font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">...</span>
+            </div>
+            <div id="modal-booking-seats-grid" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto no-scrollbar"></div>
+          </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- POGLED 2: POSEBAN UNIVERZALAN MODAL ZA UČLANJENJE / PRIJAVU -->
+        <!-- ========================================================= -->
+        <div id="regular-user-fields" class="hidden space-y-4">
+          
+          <!-- Zaglavlje modala za učlanjenje prilagođeno oblasti -->
+          <div class="flex items-center justify-between gap-2 bg-slate-100 border border-slate-200 rounded-2xl px-3.5 py-2.5">
+            <span id="modal-booking-price-type" class="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wide">ČLANARINA PODMLATKA (PRIDRUŽENI ČLAN)</span>
+            <button type="button" onclick="window.vratiNaUnosClanskeKartice()" class="text-xs font-black text-indigo-600 hover:text-indigo-800 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shrink-0 cursor-pointer">
+              ← Imam broj
+            </button>
+          </div>
+
+          <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-3 rounded-xl text-xs font-semibold hidden">
+            💡 Podaci su automatski popunjeni sa vašeg Google naloga.
+          </div>
+
+          <!-- Ime i Prezime u istom redu -->
+          <div id="wrapper-booking-name" class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-base font-bold text-slate-700 mb-1.5">Dodatna napomena</label>
-              <textarea id="booking-note" rows="2" placeholder="Napišite napomenu ili školu i vrtić iz kojeg dolazite..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white transition resize-none"></textarea>
+              <label class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Ime polaznika *</label>
+              <input id="booking-firstname" type="text" placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
             </div>
+            <div>
+              <label class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Prezime polaznika *</label>
+              <input id="booking-lastname" type="text" placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+            </div>
+          </div>
 
-            <div class="pt-3 flex flex-col gap-3 border-t border-slate-100 mt-2">
-              <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black rounded-2xl shadow-lg transition">POTVRDI I REZERVIŠI</button>
-              <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 text-base font-bold rounded-2xl transition border border-slate-200">✖ Zatvori formu</button>
+          <!-- Email za potvrdu -->
+          <div id="wrapper-booking-email">
+            <label class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Email za potvrdu *</label>
+            <input id="booking-email" type="email" placeholder="vas@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+          </div>
+
+          <!-- Telefon i Adresa (prikazuju se samo ako delatnost/partner to zaista traži) -->
+          <div id="wrapper-booking-phone">
+            <label class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Kontakt telefon *</label>
+            <input id="booking-phone" type="tel" placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+          </div>
+
+          <div id="wrapper-booking-address">
+            <label class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Adresa i Grad *</label>
+            <input id="booking-address" type="text" placeholder="Ulica, Grad" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+          </div>
+
+          <!-- Centralni boks sa cenom učlanjenja / usluge (tačno iznad dugmeta POTVRDI kao na skici) -->
+          <div id="modal-booking-price-box" class="flex justify-center pt-1">
+            <div class="bg-slate-100 border-2 border-slate-200 rounded-2xl px-6 py-3 text-center shadow-2xs">
+              <span id="modal-booking-enrollment-pill" class="text-base sm:text-lg font-black text-slate-900">Učlanjenje: 850 din</span>
+              <span id="modal-booking-price-calc" class="hidden"></span>
+              <span id="modal-booking-price-display" class="hidden"></span>
             </div>
-          </form>
-      </div>
+          </div>
+
+        </div>
+
+        <!-- Skrivena polja radi očuvanja kompatibilnosti pri čuvanju u bazu -->
+        <div id="teacher-link-banner" class="hidden"><span id="teacher-link-info"></span></div>
+        <textarea id="booking-note" class="hidden"></textarea>
+
+        <!-- GLAVNO DUGME: POTVRDI -->
+        <div class="pt-1">
+          <button type="submit" class="w-full py-4 sm:py-4.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-xl sm:text-2xl font-black tracking-wide uppercase rounded-2xl shadow-lg transition cursor-pointer">
+            POTVRDI
+          </button>
+        </div>
+
+      </form>
     </div>
   </div>
 
@@ -3804,6 +3830,38 @@ function startRealtimeSync() {
       }
     };
 
+    // Prebacivanje na poseban univerzalni modal za učlanjenje / prijavu (Pogled 2 sa skice)
+    window.prebaciNaModalUclanjenja = function() {
+      const memberStep = document.getElementById('booking-step-member-view');
+      const regularFields = document.getElementById('regular-user-fields');
+      const confirmedCard = document.getElementById('membership-confirmed-card');
+      const inputRow = document.getElementById('membership-input-row');
+
+      state.activeMembership = null;
+      if (confirmedCard) confirmedCard.classList.add('hidden');
+      if (inputRow) inputRow.classList.remove('hidden');
+
+      if (memberStep) memberStep.classList.add('hidden');
+      if (regularFields) regularFields.classList.remove('hidden');
+
+      window.azurirajPrikazCeneRezervacije();
+      const fName = document.getElementById('booking-firstname');
+      if (fName) setTimeout(() => fName.focus(), 80);
+    };
+
+    // Povratak na glavni ekran za unos članskog broja (Pogled 1 sa skice)
+    window.vratiNaUnosClanskeKartice = function() {
+      const memberStep = document.getElementById('booking-step-member-view');
+      const regularFields = document.getElementById('regular-user-fields');
+
+      if (regularFields) regularFields.classList.add('hidden');
+      if (memberStep) memberStep.classList.remove('hidden');
+
+      window.azurirajPrikazCeneRezervacije();
+      const memberInput = document.getElementById('booking-member-code');
+      if (memberInput) setTimeout(() => memberInput.focus(), 80);
+    };
+
     window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
@@ -3826,6 +3884,7 @@ function startRealtimeSync() {
 
       window.zabeleziInterakciju(eventId);
       state.selectedEventId = eventId;
+      state.selectedEventForBooking = event;
 
 
       const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
@@ -4252,16 +4311,6 @@ function startRealtimeSync() {
 
           if (regularFields) regularFields.classList.add('hidden');
 
-          // Automatsko sakrivanje polja ustanove jer je član verifikovan
-          const scWrapper = document.getElementById('wrapper-booking-school-class');
-          const schoolWrapper = document.getElementById('wrapper-booking-school');
-          const schoolInput = document.getElementById('booking-school');
-          if (schoolWrapper) schoolWrapper.classList.add('hidden');
-          if (schoolInput) schoolInput.value = pronadjenClan.group || 'Član udruženja';
-          
-          const reqClass = event.formFields?.class === true;
-          if (!reqClass && scWrapper) scWrapper.classList.add('hidden');
-
           showNotification(`Član prepoznat: ${pronadjenClan.firstName} ${pronadjenClan.lastName}`, "success");
           window.azurirajPrikazCeneRezervacije();
         };
@@ -4275,23 +4324,6 @@ function startRealtimeSync() {
           if (inputRow) inputRow.classList.remove('hidden');
           if (confirmedCard) confirmedCard.classList.add('hidden');
           if (memberInput) memberInput.value = '';
-
-          // Vraćanje polja ustanove ako program to traži
-          const reqSchool = event.formFields?.school === true;
-          const reqClass = event.formFields?.class === true;
-          const scWrapper = document.getElementById('wrapper-booking-school-class');
-          const schoolWrapper = document.getElementById('wrapper-booking-school');
-          const schoolInput = document.getElementById('booking-school');
-          if (schoolWrapper) {
-            if (reqSchool) schoolWrapper.classList.remove('hidden');
-            else schoolWrapper.classList.add('hidden');
-          }
-          if (schoolInput) schoolInput.value = '';
-          if (scWrapper) {
-            if (reqSchool || reqClass) scWrapper.classList.remove('hidden');
-            else scWrapper.classList.add('hidden');
-          }
-
           window.azurirajPrikazCeneRezervacije();
         };
       }
@@ -4300,29 +4332,12 @@ function startRealtimeSync() {
       if (toggleNonMemberBtn) {
         toggleNonMemberBtn.onclick = () => {
           const isHidden = regularFields.classList.contains('hidden');
-          const reqSchool = event.formFields?.school === true;
-          const reqClass = event.formFields?.class === true;
-          const scWrapper = document.getElementById('wrapper-booking-school-class');
-          const schoolWrapper = document.getElementById('wrapper-booking-school');
-          const schoolInput = document.getElementById('booking-school');
-
           if (isHidden) {
             regularFields.classList.remove('hidden');
             toggleNonMemberBtn.innerText = "Već imam članski broj";
             state.activeMembership = null;
             if (confirmedCard) confirmedCard.classList.add('hidden');
             if (inputRow) inputRow.classList.remove('hidden');
-
-            // Vraćamo prikaz ustanove za posetioca bez kartice
-            if (schoolWrapper) {
-              if (reqSchool) schoolWrapper.classList.remove('hidden');
-              else schoolWrapper.classList.add('hidden');
-            }
-            if (schoolInput) schoolInput.value = '';
-            if (scWrapper) {
-              if (reqSchool || reqClass) scWrapper.classList.remove('hidden');
-              else scWrapper.classList.add('hidden');
-            }
           } else {
             regularFields.classList.add('hidden');
             toggleNonMemberBtn.innerText = "Učlani me";
@@ -4511,7 +4526,7 @@ window.azurirajPrikazCeneRezervacije();
 
     safeAddEventListener('form-submit-booking', 'submit', async (e) => {
       e.preventDefault();
-      const event = state.selectedEventForBooking;
+      const event = state.selectedEventForBooking || state.events.find(x => x.id === state.selectedEventId);
       if (!event) return;
 
       const isMemberCovered = !!state.activeMembership;
