@@ -3685,6 +3685,12 @@ function startRealtimeSync() {
       if (dtEl) dtEl.innerText = infoVreme.danDatum || '';
 
       const prepoznatTip = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+      const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
+      const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+      const remaining = Math.max(0, event.totalSeats - bookedCount);
+
+      // Jedinstvena provera: aktivno samo ako nije ručno ugašeno, nije prošao datum i ima slobodnih mesta
+      const mozePrijava = event.isActive && infoVreme.jeAktivno && !infoVreme.jeIsteklo && remaining > 0;
 
       const infoPriceBox = document.getElementById('modal-info-price-box');
       if (infoPriceBox) {
@@ -3705,7 +3711,7 @@ function startRealtimeSync() {
 
         infoPriceBox.innerHTML = `
           <!-- GORNJA POLOVINA (50%): Belo dugme dizajnirano kao mala članska kartica -->
-          <button type="button" onclick="window.otvoriPrijavuClanaIzDetalja('${event.id}')" class="h-full w-full bg-white hover:bg-slate-50 active:scale-95 border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-md relative overflow-hidden transition cursor-pointer group">
+          <button type="button" ${mozePrijava ? `onclick="window.otvoriPrijavuClanaIzDetalja('${event.id}')"` : 'disabled'} class="h-full w-full bg-white border-2 border-slate-200 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-md relative overflow-hidden transition ${mozePrijava ? 'hover:bg-slate-50 active:scale-95 hover:border-emerald-400 cursor-pointer group' : 'opacity-65 cursor-not-allowed'}">
             <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
             <div class="flex items-center justify-center gap-1.5 text-slate-700 mb-0.5">
               <svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -3719,10 +3725,10 @@ function startRealtimeSync() {
             ${dodatniTag}
           </button>
 
-          <!-- DONJA POLOVINA (50%): Puno ljubičasto dugme u 2 reda za učlanjenje -->
-          <button type="button" onclick="window.otvoriUclanjenjeIzDetalja('${event.id}')" class="h-full w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 border-2 border-indigo-500 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-lg shadow-indigo-200 transition cursor-pointer">
-            <span class="block text-xs font-extrabold text-indigo-100 uppercase tracking-wider">${oznakaDruge}</span>
-            <span class="block text-xl sm:text-2xl font-black text-white leading-tight mt-0.5">${redovnaCena} din</span>
+          <!-- DONJA POLOVINA (50%): Puno ljubičasto dugme u 2 reda za učlanjenje / cenu usluge -->
+          <button type="button" ${mozePrijava ? `onclick="window.otvoriUclanjenjeIzDetalja('${event.id}')"` : 'disabled'} class="h-full w-full rounded-2xl p-2.5 flex flex-col items-center justify-center text-center transition border-2 ${mozePrijava ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 border-indigo-500 shadow-lg shadow-indigo-200 cursor-pointer' : 'bg-slate-300 border-slate-300 text-slate-500 cursor-not-allowed'}">
+            <span class="block text-xs font-extrabold ${mozePrijava ? 'text-indigo-100' : 'text-slate-500'} uppercase tracking-wider">${oznakaDruge}</span>
+            <span class="block text-xl sm:text-2xl font-black ${mozePrijava ? 'text-white' : 'text-slate-600'} leading-tight mt-0.5">${redovnaCena} din</span>
           </button>
         `;
       }
@@ -3739,10 +3745,6 @@ function startRealtimeSync() {
       }
 
       const btnBook = document.getElementById('btn-info-book');
-      const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
-      const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
-      const remaining = Math.max(0, event.totalSeats - bookedCount);
-
       const akcijaTekst = prepoznatTip === 'digitalni_resurs' ? 'PREUZMI' : (prepoznatTip === 'individualno' ? 'ZAKAŽI' : 'PRIJAVI SE');
       const srceIkonaHtml = `
         <svg class="w-7 h-7 text-white/90 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -3750,10 +3752,11 @@ function startRealtimeSync() {
         </svg>
       `;
 
-      if (!event.isActive || remaining === 0) {
+      if (!mozePrijava) {
+        const razlogZatvoreno = (!event.isActive || infoVreme.jeIsteklo) ? "ZATVORENO" : "POPUNJENO";
         btnBook.disabled = true;
         btnBook.className = "w-full py-4 px-6 bg-slate-300 text-slate-500 rounded-2xl shadow-sm cursor-not-allowed flex items-center justify-between";
-        btnBook.innerHTML = `${srceIkonaHtml}<span class="text-lg sm:text-xl font-black tracking-wide uppercase">${!event.isActive ? "ZATVORENO" : "POPUNJENO"}</span>`;
+        btnBook.innerHTML = `${srceIkonaHtml}<span class="text-lg sm:text-xl font-black tracking-wide uppercase">${razlogZatvoreno}</span>`;
         btnBook.onclick = null;
       } else {
         btnBook.disabled = false;
@@ -3799,12 +3802,29 @@ function startRealtimeSync() {
       }
     };
 
-window.openBookingModal = function(eventId) {
+    window.openBookingModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
-      state.selectedEventForBooking = event;
+
+      const infoVremeProvera = typeof formatirajTerminOdbrojavanje === 'function'
+        ? formatirajTerminOdbrojavanje(event.startDate || event.date, event.endDate)
+        : { jeAktivno: true, jeIsteklo: false };
+      const aktivneRez = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
+      const zauzeto = aktivneRez.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
+      const slobodno = Math.max(0, event.totalSeats - zauzeto);
+
+      if (!event.isActive || infoVremeProvera.jeIsteklo || !infoVremeProvera.jeAktivno) {
+        showNotification("Prijave i zakazivanje za ovaj program su završeni.", "warning");
+        return;
+      }
+      if (slobodno <= 0) {
+        showNotification("Sva mesta za ovaj program su popunjena.", "warning");
+        return;
+      }
 
       window.zabeleziInterakciju(eventId);
+      state.selectedEventId = eventId;
+
 
       const eventBookings = state.bookings.filter(b => b.eventId === eventId && b.status !== 'otkazano');
       const bookedCount = eventBookings.reduce((sum, b) => sum + (b.ticketsCount || 1), 0);
@@ -7763,7 +7783,7 @@ window.promeniRezimBojaKalendara = function(rezim) {
               <div class="grid grid-cols-2 gap-3 my-1.5">
                 
                 <!-- 1. LEVA KOCKA: Stoni kalendar sa čistim bojama po izboru -->
-                <div onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="rounded-2xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 via-white to-slate-200 shadow-inner overflow-hidden flex flex-col cursor-pointer hover:border-indigo-400 transition">
+                <div onclick="event.stopPropagation(); ${jeAktivno ? `openBookingModal('${evt.id}')` : `openInfoModal('${evt.id}')`}" class="rounded-2xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 via-white to-slate-200 shadow-inner overflow-hidden flex flex-col cursor-pointer hover:border-indigo-400 transition">
                   <div style="background-color: ${bojeKal.header};" class="h-5 w-full flex items-center justify-around px-4 shadow-xs">
                     <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
                     <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
