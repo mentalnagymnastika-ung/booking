@@ -6506,16 +6506,22 @@ function startRealtimeSync() {
           if (subEl) subEl.innerText = "Pristupni vaučer postaje vidljiv odmah nakon potvrde uplate";
           if (launchBtnEl) launchBtnEl.classList.add('hidden');
         } else if (jePreranoZaStazu) {
+          const jePrekoClanskeKarte = Boolean(booking.memberCode && booking.memberCode.trim() !== '') || booking.paymentType === 'clanarina_pokriveno' || Number(booking.totalPrice || 0) === 0;
+
           if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
           if (topFlagEl) {
             topFlagEl.classList.remove('hidden');
             topFlagEl.className = "flex-1 py-2 px-3 rounded-2xl bg-emerald-600 border-2 border-emerald-700 text-white font-black text-xs text-center leading-snug shadow-md";
-            topFlagEl.innerHTML = `✅ KARTA VALIDNA — Hvala na uplati!<br><span class="text-[11px] font-bold text-emerald-100">Aktivirajte kartu ${lepDatumStaze}</span>`;
+            topFlagEl.innerHTML = jePrekoClanskeKarte
+              ? `✅ KARTA JE VALIDNA<br><span class="text-[11px] font-bold text-emerald-100">Aktivirajte kartu ${lepDatumStaze}</span>`
+              : `✅ KARTA VALIDNA — Hvala!<br><span class="text-[11px] font-bold text-emerald-100">Aktivirajte kartu ${lepDatumStaze}</span>`;
           }
           if (nonQrEl) nonQrEl.className = "w-full bg-emerald-50/70 border-2 border-emerald-400 rounded-3xl p-5 text-center space-y-2 shadow-sm";
           if (codeEl) {
-            codeEl.className = "text-2xl sm:text-3xl font-black text-emerald-800 tracking-wide";
-            codeEl.innerText = `✅ UPLAĆENO`;
+            codeEl.className = "text-xl sm:text-2xl font-black text-emerald-800 tracking-wide leading-tight";
+            codeEl.innerText = jePrekoClanskeKarte
+              ? `✅ OMOGUĆENO ZA ${lepDatumStaze}`
+              : `✅ UPLAĆENO`;
           }
           if (subEl) {
             subEl.className = "text-xs font-extrabold text-emerald-900 pt-1";
