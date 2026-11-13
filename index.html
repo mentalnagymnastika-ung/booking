@@ -2316,8 +2316,11 @@ const INITIAL_CATEGORIES = [
         return vremeNastanka > prePetnaestMinuta;
       });
       safeStorage.setItem('edubooker_sync_queue', JSON.stringify(state.syncQueue));
+      const LAZNE_KARTICE = new Set(['MG-101', 'MG-102', 'MG-103']);
       if (cachedMembers) {
-        state.membersList = JSON.parse(cachedMembers);
+        const parsirani = JSON.parse(cachedMembers);
+        state.membersList = parsirani.filter(m => m && !LAZNE_KARTICE.has(String(m.card).toUpperCase()));
+        safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
       }
       renderUI();
     }
@@ -2332,34 +2335,27 @@ function startRealtimeSync() {
       const scansRef = collection(db, 'artifacts', appId, 'public', 'data', 'scans');
 
       onSnapshot(membersRef, (snapshot) => {
+        const LAZNE_KARTICE = new Set(['MG-101', 'MG-102', 'MG-103']);
         const serverList = [];
         snapshot.forEach((docSnap) => {
-          serverList.push({ card: docSnap.id, ...docSnap.data() });
+          const idKartice = String(docSnap.id).toUpperCase();
+          const podaci = docSnap.data();
+          // Ako su na Firebase serveru ostale one 3 lažne example.com kartice, odmah ih brišemo sa servera
+          if (LAZNE_KARTICE.has(idKartice) && podaci.email && podaci.email.includes('@example.com')) {
+            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', docSnap.id)).catch(() => {});
+            return;
+          }
+          serverList.push({ card: docSnap.id, ...podaci });
         });
 
-        const mapaClanova = new Map();
-        
-        // Prvo ubacujemo lokalne clanove da se nijedan unos ne izgubi
-        (state.membersList || []).forEach(m => {
-          if (m && m.card) mapaClanova.set(String(m.card).toUpperCase(), m);
-        });
-
-        // Zatim dodajemo ili azuriramo podatke koji su stigli sa servera
-        serverList.forEach(m => {
-          if (m && m.card) mapaClanova.set(String(m.card).toUpperCase(), m);
-        });
-
-        state.membersList = Array.from(mapaClanova.values());
+        // Server je jedini izvor istine (kada se kartica obriše ili spoji, ostaje obrisana)
+        state.membersList = serverList;
         safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
 
-        // Osiguravamo da clanovi koji postoje lokalno a fale na serveru odmah odu na Firebase
-        const serverKartice = new Set(serverList.map(s => String(s.card).toUpperCase()));
-        state.membersList.forEach(m => {
-          if (m && m.card && !serverKartice.has(String(m.card).toUpperCase())) {
-            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(m.card)), m).catch(() => {});
-          }
-        });
-
+        const dupModal = document.getElementById('modal-duplicate-members');
+        if (dupModal && !dupModal.classList.contains('hidden') && typeof window.iscrtajDuplikateClanova === 'function') {
+          window.iscrtajDuplikateClanova();
+        }
         renderUI();
       }, (err) => {
         console.warn("Greška pri sinhronizaciji članova sa servera:", err);
@@ -9783,13 +9779,9 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
           serverMembers.push({ card: docSnap.id, ...docSnap.data() });
         });
 
-        if (serverMembers.length > 0) {
-          const mapa = new Map();
-          (state.membersList || []).forEach(m => { if (m && m.card) mapa.set(String(m.card).toUpperCase(), m); });
-          serverMembers.forEach(m => { if (m && m.card) mapa.set(String(m.card).toUpperCase(), m); });
-          state.membersList = Array.from(mapa.values());
-          safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
-        }
+        const LAZNE_KARTICE = new Set(['MG-101', 'MG-102', 'MG-103']);
+        state.membersList = serverMembers.filter(m => m && !LAZNE_KARTICE.has(String(m.card).toUpperCase()));
+        safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
 
         renderUI();
         ocistiIstekleRezervacije();
