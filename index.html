@@ -144,7 +144,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-6 lg:pb-0 relative">
+<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-28 lg:pb-8 relative">
 
   <div id="notification-toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[110] w-11/12 max-w-md fade-in">
     <div id="toast-bg" class="p-4 rounded-2xl shadow-xl flex items-center justify-between border-2 bg-emerald-50 border-emerald-200 text-emerald-800">
@@ -1499,27 +1499,41 @@
                <select id="event-activity-type" onchange="window.prilagodiFormuObuke(this.value)" class="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
                  <option value="radionica">1. Prisustvo na lokaciji (Radionica, predavanje)</option>
                  <option value="teren">2. Terenska staza (Samostalna avantura na otvorenom uz vaučer)</option>
-                 <option value="online">💻 3. Online susret / Edukacija na daljinu (Google Meet, Zoom, Webinar)</option>
-                 <option value="digitalni_resurs">📥 4. Digitalni resurs (PDF radna sveska, flipbook, video materijal)</option>
-                 <option value="individualno">🩺 5. Usluga / Pregled / Konsultacije (Zakazivanje termina)</option>
+                 <option value="online">3. Online susret / Edukacija na daljinu (Google Meet, Zoom, Webinar)</option>
+                 <option value="digitalni_resurs">4. Digitalni resurs (PDF radna sveska, flipbook, video materijal)</option>
+                 <option value="individualno">5. Usluga / Pregled / Konsultacije (Zakazivanje termina)</option>
                </select>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                 <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide mb-1.5">2. Kategorija aktivnosti *</label>
-                 <select id="event-sub-category" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500"></select>
+            <div class="space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                   <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide mb-1.5">2. Kategorija aktivnosti *</label>
+                   <select id="event-sub-category" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500"></select>
+                </div>
+                <div>
+                   <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide mb-1.5">Izgled kalendara</label>
+                   <select id="event-color-mode" onchange="window.promeniRezimBojaKalendara(this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                     <option value="auto" selected>Automatski</option>
+                     <option value="custom">Ručni izbor boja</option>
+                   </select>
+                </div>
               </div>
-              <div>
-                 <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide mb-1.5">🎨 Boja kalendara i kartice</label>
-                 <select id="event-color-theme" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
-                   <option value="auto" selected>✨ Automatski (raznoliko po vrsti)</option>
-                   <option value="indigo_yellow">🟣 Ljubičasta sa žutim slovima (Standard)</option>
-                   <option value=" pine_pink">🌲 Tamnozelena sa roza/belom (Novogodišnja)</option>
-                   <option value="emerald_gold">🌿 Smaragdno zelena sa zlatnim (Priroda)</option>
-                   <option value="rose_white">🌸 Roza-bordo sa belim slovima</option>
-                   <option value="ocean_amber">🌊 Kraljevsko plava sa žutim</option>
-                 </select>
+
+              <!-- Tri čista birača boja: Boja kalendara, Boja podloge datuma, Boja datuma -->
+              <div id="custom-calendar-colors-box" class="hidden grid grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Boja kalendara</label>
+                  <input type="color" id="event-cal-header-color" value="#e11d48" class="w-full h-10 rounded-lg cursor-pointer border border-slate-300 bg-white p-1" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Podloga datuma</label>
+                  <input type="color" id="event-cal-bg-color" value="#4f46e5" class="w-full h-10 rounded-lg cursor-pointer border border-slate-300 bg-white p-1" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Boja datuma</label>
+                  <input type="color" id="event-cal-text-color" value="#ffffff" class="w-full h-10 rounded-lg cursor-pointer border border-slate-300 bg-white p-1" />
+                </div>
               </div>
             </div>
 
@@ -3478,9 +3492,20 @@ function startRealtimeSync() {
         subSelect.innerHTML = KATEGORIJE_AKTIVNOSTI.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
         subSelect.value = ev.subCategory || 'aktivan_odmor';
       }
-      if (document.getElementById('event-color-theme')) {
-        document.getElementById('event-color-theme').value = (ev.colorTheme || 'auto').trim();
+      const rezimBoje = ev.colorMode || 'auto';
+      if (document.getElementById('event-color-mode')) {
+        document.getElementById('event-color-mode').value = rezimBoje;
       }
+      if (document.getElementById('event-cal-header-color')) {
+        document.getElementById('event-cal-header-color').value = ev.calHeaderColor || '#e11d48';
+      }
+      if (document.getElementById('event-cal-bg-color')) {
+        document.getElementById('event-cal-bg-color').value = ev.calBgColor || '#4f46e5';
+      }
+      if (document.getElementById('event-cal-text-color')) {
+        document.getElementById('event-cal-text-color').value = ev.calTextColor || '#ffffff';
+      }
+      window.promeniRezimBojaKalendara(rezimBoje);
       
       document.getElementById('modal-event').classList.remove('hidden');
     };
@@ -7681,41 +7706,30 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         return window.sessionShuffleOrder[a.id] - window.sessionShuffleOrder[b.id];
       });
 
-// Palete boja za kalendar (srednji datum je uvek BEO, gornji i donji su CRNI, a bedž sa rednim brojem je neutralno sivo-crni)
-      const TEME_BOJA_KARTICE = {
-        indigo_yellow: {
-          calTop: 'from-rose-600 to-red-600',
-          calMid: 'bg-indigo-600 border-indigo-700 text-white'
-        },
-        pine_pink: {
-          calTop: 'from-pink-600 to-rose-500',
-          calMid: 'bg-emerald-900 border-emerald-950 text-white'
-        },
-        emerald_gold: {
-          calTop: 'from-amber-500 to-orange-500',
-          calMid: 'bg-teal-800 border-teal-900 text-white'
-        },
-        rose_white: {
-          calTop: 'from-purple-700 to-indigo-800',
-          calMid: 'bg-rose-600 border-rose-700 text-white'
-        },
-        ocean_amber: {
-          calTop: 'from-rose-600 to-red-600',
-          calMid: 'bg-blue-800 border-blue-900 text-white'
+window.promeniRezimBojaKalendara = function(rezim) {
+        const box = document.getElementById('custom-calendar-colors-box');
+        if (!box) return;
+        if (rezim === 'custom') {
+          box.classList.remove('hidden');
+        } else {
+          box.classList.add('hidden');
         }
       };
 
-      const odrediTemuKartice = (ev) => {
-        const izabrana = (ev.colorTheme || 'auto').trim();
-        if (izabrana !== 'auto' && TEME_BOJA_KARTICE[izabrana]) {
-          return TEME_BOJA_KARTICE[izabrana];
+      const odrediBojeKalendara = (ev) => {
+        if (ev.colorMode === 'custom') {
+          return {
+            header: ev.calHeaderColor || '#e11d48',
+            bg: ev.calBgColor || '#4f46e5',
+            text: ev.calTextColor || '#ffffff'
+          };
         }
-        // Automatska raznolikost po vrsti aktivnosti ili podkategoriji
-        if (ev.activityType === 'teren' || ev.subCategory === 'aktivan_odmor') return TEME_BOJA_KARTICE.pine_pink;
-        if (ev.activityType === 'individualno' || ev.subCategory === 'medicinski_stit') return TEME_BOJA_KARTICE.ocean_amber;
-        if (ev.subCategory === 'socijalizacija') return TEME_BOJA_KARTICE.rose_white;
-        if (ev.subCategory === 'mentalni_razvoj') return TEME_BOJA_KARTICE.emerald_gold;
-        return TEME_BOJA_KARTICE.indigo_yellow;
+        // Podrazumevano (Automatski): čisto crveno zaglavlje kalendara, ljubičasta podloga datuma i bela slova
+        return {
+          header: '#e11d48',
+          bg: '#4f46e5',
+          text: '#ffffff'
+        };
       };
 
       const eventsGrid = document.getElementById('events-grid');
@@ -7727,13 +7741,13 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
 
           const infoVreme = formatirajTerminOdbrojavanje(evt.startDate || evt.date, evt.endDate);
           const triDatuma = generisiTriDatumaZaKocku(evt.startDate || evt.date, evt.endDate);
-          const tema = odrediTemuKartice(evt);
+          const bojeKal = odrediBojeKalendara(evt);
         
           // Aktivno ako smo u rasponu datuma, ima mesta i nije ručno zatvoreno preko admin panela
           const jeAktivno = evt.isActive && infoVreme.jeAktivno && remaining > 0;
           const jeOkrenutaKartica = window.okrenuteKarticeSet && window.okrenuteKarticeSet.has(evt.id);
 
-          // Srednji i donji blok (Veliki naslov + Neutralni sivo-crni broj + Crno/beli datumi + 50/50 donja kapsula)
+          // Srednji i donji blok (Veliki naslov + Neutralni sivo-crni broj + Čist kalendar + 50/50 donja kapsula)
           const unutrasnjostKarticeHtml = `
             <div class="relative z-20 bg-white border-t border-slate-200 px-4 pt-3 pb-3.5 flex-1 flex flex-col justify-between overflow-hidden">
               
@@ -7748,15 +7762,15 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
               <!-- CENTRALNI DEO: 2 velike kocke (Kalendar levo, Info Detaljnije desno) -->
               <div class="grid grid-cols-2 gap-3 my-1.5">
                 
-                <!-- 1. LEVA KOCKA: Stoni kalendar (gornji i donji datum CRNI, srednji datum BEO) -->
+                <!-- 1. LEVA KOCKA: Stoni kalendar sa čistim bojama po izboru -->
                 <div onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="rounded-2xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 via-white to-slate-200 shadow-inner overflow-hidden flex flex-col cursor-pointer hover:border-indigo-400 transition">
-                  <div class="h-5 bg-gradient-to-r ${tema.calTop} w-full flex items-center justify-around px-4 shadow-xs">
+                  <div style="background-color: ${bojeKal.header};" class="h-5 w-full flex items-center justify-around px-4 shadow-xs">
                     <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
                     <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
                   </div>
                   <div class="flex-1 py-1.5 px-2 flex flex-col items-center justify-center leading-none select-none">
                     <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.pre}</span>
-                    <div class="my-1 w-full ${tema.calMid} border font-black text-lg sm:text-xl py-1 rounded-xl text-center shadow-sm tracking-wide">
+                    <div style="background-color: ${bojeKal.bg}; color: ${bojeKal.text};" class="my-1 w-full font-black text-lg sm:text-xl py-1 rounded-xl text-center shadow-sm tracking-wide">
                       ${triDatuma.glavni}
                     </div>
                     <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.posle}</span>
@@ -9069,6 +9083,11 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       if (subSelect) {
         subSelect.innerHTML = KATEGORIJE_AKTIVNOSTI.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
       }
+      if (document.getElementById('event-color-mode')) document.getElementById('event-color-mode').value = 'auto';
+      if (document.getElementById('event-cal-header-color')) document.getElementById('event-cal-header-color').value = '#e11d48';
+      if (document.getElementById('event-cal-bg-color')) document.getElementById('event-cal-bg-color').value = '#4f46e5';
+      if (document.getElementById('event-cal-text-color')) document.getElementById('event-cal-text-color').value = '#ffffff';
+      window.promeniRezimBojaKalendara('auto');
       const preview = document.getElementById('event-image-preview');
       if (preview) preview.innerHTML = "🖼️";
       if (document.getElementById('event-video-url')) document.getElementById('event-video-url').value = '';
@@ -9156,7 +9175,10 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
 
       const activityType = document.getElementById('event-activity-type')?.value || 'radionica';
       const subCategory = document.getElementById('event-sub-category')?.value || 'aktivan_odmor';
-      const colorTheme = (document.getElementById('event-color-theme')?.value || 'auto').trim();
+      const colorMode = document.getElementById('event-color-mode')?.value || 'auto';
+      const calHeaderColor = document.getElementById('event-cal-header-color')?.value || '#e11d48';
+      const calBgColor = document.getElementById('event-cal-bg-color')?.value || '#4f46e5';
+      const calTextColor = document.getElementById('event-cal-text-color')?.value || '#ffffff';
       const videoUrl = document.getElementById('event-video-url')?.value.trim() || '';
       const storySlides = [];
       [1, 2, 3].forEach(br => {
@@ -9192,6 +9214,10 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         category,
         activityType: activityType,
         subCategory: subCategory,
+        colorMode: colorMode,
+        calHeaderColor: calHeaderColor,
+        calBgColor: calBgColor,
+        calTextColor: calTextColor,
         videoUrl: videoUrl,
         storySlides: storySlides,
         digitalUrl: digitalUrl,
