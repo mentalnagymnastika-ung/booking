@@ -144,7 +144,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-24 lg:pb-0 relative">
+<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-6 lg:pb-0 relative">
 
   <div id="notification-toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[110] w-11/12 max-w-md fade-in">
     <div id="toast-bg" class="p-4 rounded-2xl shadow-xl flex items-center justify-between border-2 bg-emerald-50 border-emerald-200 text-emerald-800">
@@ -2048,19 +2048,33 @@
     </div>
   </div>
 
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 flex items-center justify-around z-40 lg:hidden shadow-[0_-4px_25px_rgba(0,0,0,0.08)] pb-6 sm:pb-3">
-    <button id="nav-events-mobile" class="nav-btn-mobile text-indigo-600 flex flex-col items-center gap-1 w-full py-2.5">
-      <span class="text-2xl sm:text-3xl mb-0.5">📅</span>
-      <span id="nav-events-mobile-text" class="text-xs sm:text-sm font-black tracking-wide">Kalendar</span>
+  <!-- Plutajuća dugmad za mobilni/iPhone (Levo Kalendar, Desno Moje karte, providna pri skrolovanju) -->
+  <nav id="mobile-floating-nav" class="fixed bottom-5 inset-x-5 z-40 flex items-center justify-between lg:hidden pointer-events-none transition-opacity duration-300 opacity-100">
+    
+    <!-- 1. LEVI ĆOŠAK: Veliko plutajuće dugme za Kalendar (Ponude) -->
+    <button id="nav-events-mobile" type="button" title="Kalendar ponuda" class="nav-btn-mobile pointer-events-auto w-20 h-20 rounded-full bg-indigo-600 text-white border-4 border-white/90 shadow-[0_10px_30px_rgba(79,70,229,0.6)] flex items-center justify-center transition-all active:scale-90">
+      <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
     </button>
-    <button id="nav-my-tickets-mobile" class="nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 relative w-full py-2.5">
-      <span class="text-2xl sm:text-3xl mb-0.5" id="nav-my-tickets-mobile-icon">📋</span>
-      <span id="nav-my-tickets-mobile-text" class="text-xs sm:text-sm font-black tracking-wide">Moje karte</span>
-      <span id="badge-my-tickets-count" class="hidden absolute top-1 right-1/4 bg-rose-500 text-white text-[10px] sm:text-[11px] w-5 sm:w-6 h-5 sm:h-6 rounded-full flex items-center justify-center font-black shadow-md border-2 border-white">0</span>
+
+    <!-- Sredina (opciono Admin dugme samo kada je otključan Admin) -->
+    <button id="nav-admin-panel-mobile" type="button" title="Admin" class="hidden nav-btn-mobile pointer-events-auto w-16 h-16 rounded-full bg-slate-800/95 backdrop-blur-md text-slate-200 border-2 border-slate-500 shadow-[0_8px_25px_rgba(0,0,0,0.5)] flex items-center justify-center transition-all active:scale-90">
+      <span class="text-2xl">⚙️</span>
     </button>
-    <button id="nav-admin-panel-mobile" class="hidden nav-btn-mobile text-slate-400 flex flex-col items-center gap-1 w-full py-2.5">
-      <span class="text-2xl sm:text-3xl mb-0.5">⚙️</span>
-      <span class="text-xs sm:text-sm font-black tracking-wide">Admin</span>
+
+    <!-- 2. DESNI ĆOŠAK: Veliko plutajuće dugme za Moje karte -->
+    <button id="nav-my-tickets-mobile" type="button" title="Moje karte" class="nav-btn-mobile pointer-events-auto relative w-20 h-20 rounded-full bg-slate-800/95 backdrop-blur-md text-slate-200 border-4 border-slate-600 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90">
+      <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+        <path d="M13 5v2"></path>
+        <path d="M13 17v2"></path>
+        <path d="M13 11v2"></path>
+      </svg>
+      <span id="badge-my-tickets-count" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-black shadow-md border-2 border-white">0</span>
     </button>
   </nav>
 
@@ -8908,13 +8922,16 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       }
 
       document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
-        btn.classList.remove('text-indigo-600', 'scale-110');
-        btn.classList.add('text-slate-400');
+        const velicina = btn.id === 'nav-admin-panel-mobile' ? 'w-16 h-16' : 'w-20 h-20';
+        btn.className = `nav-btn-mobile pointer-events-auto relative ${velicina} rounded-full bg-slate-800/95 backdrop-blur-md text-slate-200 border-4 border-slate-600 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90`;
+        if (btn.id === 'nav-admin-panel-mobile' && !state.isAdminAuthenticated) {
+          btn.classList.add('hidden');
+        }
       });
       const activeMobile = document.getElementById(`nav-${tabId === 'admin' ? 'admin-panel' : tabId}-mobile`);
       if (activeMobile) {
-         activeMobile.classList.remove('text-slate-400');
-         activeMobile.classList.add('text-indigo-600', 'scale-110');
+        const velicinaAktivnog = activeMobile.id === 'nav-admin-panel-mobile' ? 'w-16 h-16' : 'w-20 h-20';
+        activeMobile.className = `nav-btn-mobile pointer-events-auto relative ${velicinaAktivnog} rounded-full bg-indigo-600 text-white border-4 border-white/90 shadow-[0_10px_30px_rgba(79,70,229,0.65)] flex items-center justify-center transition-all scale-105 active:scale-90`;
       }
       renderUI();
     };
@@ -9003,9 +9020,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         const adminLogoutBtn = document.getElementById('btn-admin-logout');
         if (adminLogoutBtn) adminLogoutBtn.classList.remove('hidden');
         
-        document.getElementById('nav-my-tickets-mobile-text').innerText = "Rezervacije";
-        document.getElementById('nav-my-tickets-mobile-icon').innerText = "🗂️";
-        document.getElementById('nav-my-tickets-desktop').innerText = "🗂️ Rezervacije";
+        const deskBtn = document.getElementById('nav-my-tickets-desktop');
+        if (deskBtn) deskBtn.innerText = "🗂️ Rezervacije";
         
         window.switchTab('admin');
         window.switchAdminSubTab('scanner');
@@ -9030,9 +9046,8 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       const adminLogoutBtn = document.getElementById('btn-admin-logout');
       if (adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
       
-      document.getElementById('nav-my-tickets-mobile-text').innerText = "Moje karte";
-      document.getElementById('nav-my-tickets-mobile-icon').innerText = "📋";
-      document.getElementById('nav-my-tickets-desktop').innerText = "📋 Moje karte";
+      const deskBtn = document.getElementById('nav-my-tickets-desktop');
+      if (deskBtn) deskBtn.innerText = "📋 Moje karte";
       
       showNotification("Sistem je bezbedno zaključan", "info");
     });
@@ -10173,6 +10188,21 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       ptrCurrentY = 0;
     });
 
+    // Automatska providnost plutajućih dugmića dok korisnik skroluje stranicu
+    let tajmerSkrolovanjaNav = null;
+    window.addEventListener('scroll', () => {
+      const flNav = document.getElementById('mobile-floating-nav');
+      if (!flNav) return;
+
+      flNav.classList.remove('opacity-100');
+      flNav.classList.add('opacity-15');
+
+      clearTimeout(tajmerSkrolovanjaNav);
+      tajmerSkrolovanjaNav = setTimeout(() => {
+        flNav.classList.remove('opacity-15');
+        flNav.classList.add('opacity-100');
+      }, 280);
+    }, { passive: true });
 
   </script>
 </body>
