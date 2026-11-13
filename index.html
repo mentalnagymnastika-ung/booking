@@ -1030,120 +1030,128 @@
     </div>
   </div>
 
-  <!-- Karta i NBS IPS uplatnica -->
-  <div id="modal-ticket" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-5 sm:p-6 shadow-2xl text-center space-y-4 relative max-h-[95vh] overflow-y-auto no-scrollbar">
-      <button id="btn-close-ticket-modal" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-lg font-black z-10 shadow-sm border border-slate-200">✕</button>
+<!-- Karta i NBS IPS uplatnica (Novi redizajn po skici) -->
+  <div id="modal-ticket" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-slate-200 rounded-3xl w-full max-w-sm p-4 sm:p-5 shadow-2xl relative max-h-[95vh] overflow-y-auto no-scrollbar fade-in">
       
-      <h3 id="modal-ticket-main-heading" class="text-xl font-black text-slate-900 pt-1">Karta Rezervisana!</h3>
-      
-      <div id="physical-ticket-card" class="border border-slate-200 rounded-3xl bg-white p-4 sm:p-5 text-left space-y-3.5 relative shadow-inner overflow-hidden">
-        <!-- Pečat preko cele karte kada je iskorišćena ili otkazana -->
+      <!-- GORNJI RED: Klizač za overu/status levo + Crveni X desno -->
+      <div class="flex items-center justify-between gap-3 mb-3">
+        
+        <!-- Klizač u vrhu (zamenjuje zastavicu sa skice) -->
+        <div id="ticket-slider-wrapper" class="flex-1">
+          <div id="ticket-slider-track" class="relative w-full h-11 bg-slate-100 rounded-2xl p-1 border-2 border-slate-200 overflow-hidden select-none flex items-center shadow-inner">
+            <div id="ticket-slider-fill" class="absolute left-0 top-0 bottom-0 bg-emerald-500/20 rounded-xl transition-all duration-75" style="width: 0px;"></div>
+            <div id="ticket-slider-label" class="w-full text-center text-[11px] font-black text-slate-500 tracking-wider pointer-events-none z-0 pl-8">
+              PREVUCITE ZA OVERU
+            </div>
+            <div id="ticket-slider-thumb" class="absolute left-1 top-1 bottom-1 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-md cursor-grab active:cursor-grabbing z-10 touch-none">
+              ❯❯
+            </div>
+          </div>
+        </div>
+
+        <!-- Statusna oznaka u vrhu kada klizač nije aktivan (npr. siva zastavica dok čeka uplatu ili zelena kad je aktivno za PDF) -->
+        <div id="ticket-top-flag-status" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-2xl border-2 font-black text-xs"></div>
+
+        <!-- Crveni X u gornjem desnom uglu -->
+        <button id="btn-close-ticket-modal" type="button" class="w-10 h-10 rounded-2xl bg-white hover:bg-rose-50 text-rose-600 border-2 border-rose-200 flex items-center justify-center text-xl font-black shadow-sm transition active:scale-95 shrink-0 cursor-pointer">
+          ✖
+        </button>
+      </div>
+
+      <h3 id="modal-ticket-main-heading" class="hidden"></h3>
+
+      <!-- GLAVNO TELO KARTE (koje se slika pri preuzimanju) -->
+      <div id="physical-ticket-card" class="border-2 border-slate-200 rounded-3xl bg-white p-4 text-left space-y-3 relative shadow-xs overflow-hidden">
+        
+        <!-- Pečat preko karte kada je iskorišćena ili otkazana -->
         <div id="ticket-used-stamp" class="hidden absolute inset-0 z-30 pointer-events-none flex items-center justify-center bg-slate-900/10 backdrop-blur-[1px]">
-          <div id="ticket-used-stamp-text" class="border-4 border-rose-600 bg-white/95 text-rose-600 px-5 py-2 rounded-2xl font-black text-lg sm:text-xl uppercase tracking-widest -rotate-12 shadow-2xl text-center leading-tight">
+          <div id="ticket-used-stamp-text" class="border-4 border-rose-600 bg-white/95 text-rose-600 px-5 py-2 rounded-2xl font-black text-lg uppercase tracking-widest -rotate-12 shadow-2xl text-center leading-tight">
             @Booker<br><span class="text-xs tracking-wider">ISKORIŠĆENA KARTA</span>
           </div>
         </div>
-        <div class="flex items-center justify-between gap-2 flex-wrap">
-          <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg tracking-wider inline-block" id="ticket-id-badge">...</span>
-          <span id="ticket-payment-status-pill" class="text-[11px] font-black px-2.5 py-1 rounded-lg border"></span>
-        </div>
-        <h4 class="text-base sm:text-lg font-bold text-slate-900 leading-tight" id="ticket-event-title">...</h4>
-        
-        <div class="border-t border-dashed border-slate-200 pt-3 text-sm space-y-1.5 text-slate-600">
-          <p><strong>Polaznik:</strong> <span id="ticket-user-name" class="text-slate-900 font-bold">...</span></p>
-          <p><strong>Email:</strong> <span id="ticket-user-email">...</span></p>
-          <p class="pt-0.5"><strong>Termin održavanja:</strong> <span id="ticket-datetime" class="font-black text-slate-900 text-sm block mt-0.5">...</span></p>
-          <p class="text-xs text-slate-500 pt-1"><strong>Vreme rezervacije:</strong> <span id="ticket-created-at" class="font-bold text-slate-700">...</span></p>
-        </div>
 
-        <div id="ticket-price-badge-container" class="hidden pt-1">
-          <div class="bg-indigo-50 border border-indigo-100 text-indigo-950 rounded-xl p-2.5 text-xs font-bold flex items-center justify-between">
-            <span id="ticket-price-label">Iznos:</span>
-            <span id="ticket-price-amount" class="text-sm font-black text-indigo-700">0 RSD</span>
+        <!-- Zaglavlje: "za: Ime Prezime" i Naslov programa -->
+        <div class="space-y-0.5">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-base sm:text-lg text-slate-700 font-semibold">
+              za: <span id="ticket-user-name" class="font-black text-slate-950">...</span>
+            </p>
+            <span id="ticket-payment-status-pill" class="hidden text-[10px] font-black px-2 py-0.5 rounded-md border"></span>
           </div>
+          <h4 class="text-xl sm:text-2xl font-black text-slate-950 leading-tight" id="ticket-event-title">...</h4>
         </div>
 
+        <!-- Prekidač za uplatnicu (vidljiv SAMO kada karta nije plaćena, da korisnik može da skenira IPS QR) -->
         <div id="payment-switch-container" class="hidden grid grid-cols-2 gap-2 pt-1">
-          <button type="button" id="btn-view-ticket-qr" class="py-2.5 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-sm transition">Ulaznica</button>
-          <button type="button" id="btn-view-ips-qr" class="py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center gap-1.5">
-            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-              <line x1="2" y1="10" x2="22" y2="10"></line>
-            </svg>
-            <span id="ips-button-text">Uplati (IPS)</span>
+          <button type="button" id="btn-view-ticket-qr" class="py-2 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-xs transition cursor-pointer">Prikaz karte</button>
+          <button type="button" id="btn-view-ips-qr" class="py-2 rounded-xl text-xs font-black bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition flex items-center justify-center gap-1 cursor-pointer">
+            <span>💳</span> <span id="ips-button-text">Uplati (IPS QR)</span>
           </button>
         </div>
 
-        <div class="flex flex-col items-center justify-center pt-2 pb-1 w-full">
-          <canvas id="ticket-qr-canvas" class="bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm mx-auto block"></canvas>
+        <!-- CENTRALNI DEO: 1. Dve velike PDF kocke (za Digitalni resurs) ILI 2. QR / Vaučer za ostale programe -->
+        <div class="flex flex-col items-center justify-center pt-1 w-full">
           
-          <!-- Prikaz koda i vaučera za staze, digitalne materijale i konsultacije -->
+          <!-- A) DVE VELIKE KOCKE ZA PDF SVESKE (po skici: levo "pdf 1.", desno poklon + "pdf") -->
+          <div id="ticket-pdf-dual-cards" class="hidden w-full space-y-3">
+            <div class="grid grid-cols-2 gap-3 w-full">
+              
+              <!-- LEVA KOCKA: pdf 1. -->
+              <button type="button" id="btn-card-pdf-1" class="relative h-44 rounded-3xl border-2 p-4 flex flex-col items-center justify-center text-center transition select-none">
+                <span class="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">pdf<br>1.</span>
+                <span id="icon-check-pdf-1" class="absolute bottom-3 right-3.5 text-2xl font-black leading-none">✓</span>
+              </button>
+
+              <!-- DESNA KOCKA: Poklon ikonica + pdf -->
+              <button type="button" id="btn-card-pdf-2" class="relative h-44 rounded-3xl border-2 p-4 flex flex-col items-center justify-center text-center transition select-none">
+                <span id="icon-gift-pdf-2" class="text-4xl sm:text-5xl mb-2 leading-none">🎁</span>
+                <span class="text-3xl sm:text-4xl font-bold tracking-tight leading-none">pdf</span>
+                <span id="icon-check-pdf-2" class="absolute bottom-3 right-3.5 text-2xl font-black leading-none">✓</span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- B) Standardni prikaz za radionice, staze i preglede (QR kod, Vaučer ili Meet link) -->
+          <canvas id="ticket-qr-canvas" class="bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-xs mx-auto block"></canvas>
+
           <div id="ticket-non-qr-wrapper" class="hidden w-full bg-slate-50 border-2 border-indigo-100 rounded-3xl p-5 text-center space-y-2 shadow-inner">
             <span id="ticket-badge-type-label" class="text-[11px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-xl inline-block">Vaučer</span>
             <p id="ticket-badge-main-code" class="text-3xl sm:text-4xl font-mono font-black text-slate-900 tracking-wider">BK-000000</p>
             <p id="ticket-badge-subtext" class="text-xs font-bold text-slate-500 pt-1">Aktivacioni pristupni podaci</p>
           </div>
 
-          <!-- Namenski blok za Online susrete (Meet) i PDF materijale -->
-          <div id="ticket-online-action-wrapper" class="hidden w-full bg-gradient-to-br from-indigo-50 to-sky-50 border-2 border-indigo-200 rounded-3xl p-5 text-center space-y-3 shadow-inner">
-            <div class="flex items-center justify-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span id="online-ticket-tag" class="text-xs font-black uppercase tracking-wider text-indigo-900">Google Meet susret</span>
-            </div>
-            
-            <p id="online-ticket-instruction" class="text-xs font-semibold text-slate-600 leading-relaxed px-2">
-              Vaš termin je rezervisan. Klikom na dugme ispod direktno ulazite u sobu za razgovor.
-            </p>
-
-            <a id="btn-open-online-link" href="#" target="_blank" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition">
+          <div id="ticket-online-action-wrapper" class="hidden w-full bg-gradient-to-br from-indigo-50 to-sky-50 border-2 border-indigo-200 rounded-3xl p-4 text-center space-y-2.5 shadow-inner">
+            <span id="online-ticket-tag" class="text-xs font-black uppercase tracking-wider text-indigo-900 block">Online pristup</span>
+            <p id="online-ticket-instruction" class="text-xs font-semibold text-slate-600 leading-relaxed"></p>
+            <a id="btn-open-online-link" href="#" target="_blank" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black shadow-md flex items-center justify-center gap-2 transition">
               <span id="online-btn-icon">🎥</span>
-              <span id="online-btn-text">ULAZAK NA GOOGLE MEET</span>
+              <span id="online-btn-text">OTVORI LINK</span>
             </a>
-
-            <button type="button" id="btn-copy-online-link" class="w-full py-2.5 bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
-              <span>📋</span> Kopiraj link za računar
+            <button type="button" id="btn-copy-online-link" class="w-full py-2 bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition">
+              📋 Kopiraj link za računar
             </button>
           </div>
 
-          <!-- 1+1 Gratis akcija: Poklon karta za drugu osobu -->
-          <div id="ticket-gift-container" class="hidden w-full bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-3.5 text-left space-y-2.5 shadow-sm">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="text-xl">🎁</span>
-                <div>
-                  <p class="text-xs font-black text-amber-950 uppercase tracking-wide">1+1 Gratis akcija</p>
-                  <p id="ticket-gift-subtitle" class="text-[11px] font-bold text-amber-800">Poklon sveska za još jednu osobu</p>
-                </div>
-              </div>
-              <span class="text-[10px] font-black bg-white text-amber-800 border border-amber-300 px-2 py-0.5 rounded-md uppercase">Besplatno</span>
-            </div>
-            <p id="ticket-gift-desc" class="text-[11px] text-amber-900 leading-snug">
-              Vaša rezervacija uključuje besplatan pristup za još jednu osobu. Prosledite joj link i istražujte zajedno!
-            </p>
-            <button type="button" id="btn-share-gift-ticket" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-xs font-black rounded-xl transition shadow-md flex items-center justify-center gap-2">
-              <span>🎁</span> Prosledi poklon kartu prijatelju
-            </button>
+          <div id="ticket-gift-container" class="hidden">
+            <p id="ticket-gift-subtitle"></p>
+            <p id="ticket-gift-desc"></p>
+            <button type="button" id="btn-share-gift-ticket"></button>
           </div>
 
-          <div id="ips-qr-wrapper" class="hidden flex-col items-center justify-center text-center space-y-3 w-full mx-auto">
-            <div id="unpaid-timer-warning" class="w-full bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-2.5 text-xs font-bold text-center">
-              ⏳ Rok za uplatu: <span id="unpaid-countdown" class="font-black text-rose-600">60 min</span> (mesto se čuva 1h)
+          <!-- NBS IPS Uplatnica (kada korisnik klikne na "Uplati IPS QR") -->
+          <div id="ips-qr-wrapper" class="hidden flex-col items-center justify-center text-center space-y-2.5 w-full mx-auto pt-2">
+            <div id="unpaid-timer-warning" class="w-full bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-2 text-xs font-bold text-center">
+              ⏳ Rok za uplatu: <span id="unpaid-countdown" class="font-black text-rose-600">60 min</span>
             </div>
-            <canvas id="ticket-ips-canvas" class="bg-white p-3 rounded-2xl border-2 border-slate-300 shadow-md mx-auto block"></canvas>
-            <p class="text-[11px] font-bold text-slate-500 text-center">Skenirajte m-banking aplikacijom (opcija IPS Skeniraj)</p>
-
-            <!-- Podaci za uplatu na šalteru ili preko e-bankinga -->
-            <div class="w-full text-left bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2 text-xs">
-              <div class="border-b border-slate-200 pb-1.5 flex items-center justify-between">
-                <span class="font-black text-slate-700 uppercase tracking-wider text-[10px]">Nalog za uplatu</span>
-                <span class="text-[10px] text-slate-400 font-bold">Šalter ili e-banking</span>
-              </div>
+            <canvas id="ticket-ips-canvas" class="bg-white p-2.5 rounded-2xl border-2 border-slate-300 shadow-sm mx-auto block"></canvas>
+            <div class="w-full text-left bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-1.5 text-xs">
               <div>
                 <span class="text-slate-400 block text-[10px] font-bold uppercase">Primalac</span>
                 <span id="manual-pay-recipient" class="font-bold text-slate-900 block leading-tight">...</span>
               </div>
-              <div class="grid grid-cols-2 gap-2 pt-1">
+              <div class="grid grid-cols-2 gap-2">
                 <div>
                   <span class="text-slate-400 block text-[10px] font-bold uppercase">Broj računa</span>
                   <span id="manual-pay-account" class="font-mono font-black text-slate-900 text-[11px] block select-all">...</span>
@@ -1153,73 +1161,81 @@
                   <span id="manual-pay-amount" class="font-black text-indigo-700 text-sm block">0 RSD</span>
                 </div>
               </div>
-              <div class="pt-1">
+              <div>
                 <span class="text-slate-400 block text-[10px] font-bold uppercase">Poziv na broj</span>
-                <span id="manual-pay-reference" class="font-mono font-black text-indigo-900 text-sm bg-indigo-50/70 border border-indigo-100 rounded-lg px-2 py-0.5 inline-block select-all">000000</span>
+                <span id="manual-pay-reference" class="font-mono font-black text-indigo-900 text-xs bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5 inline-block select-all">000000</span>
               </div>
-              <div class="pt-1">
+              <div>
                 <span class="text-slate-400 block text-[10px] font-bold uppercase">Svrha uplate</span>
                 <span id="manual-pay-purpose" class="font-semibold text-slate-700 block text-[11px] leading-snug">...</span>
               </div>
             </div>
-
-            <button type="button" id="btn-copy-payment-info" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition border border-slate-200 flex items-center justify-center gap-1.5">
-              <span>📋</span> Kopiraj sve podatke za e-banking
+            <button type="button" id="btn-copy-payment-info" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition border border-slate-200">
+              📋 Kopiraj podatke za uplatu
             </button>
           </div>
 
-          <!-- Direktna potvrda zakazanog termina (Viber i WhatsApp) -->
-          <div id="ticket-direct-confirm-wrapper" class="hidden w-full bg-slate-50 border border-indigo-100 rounded-2xl p-3.5 text-center space-y-2.5 mt-2">
-            <p class="text-[11px] font-black text-indigo-950 uppercase tracking-wide">Potvrda zakazanog termina</p>
-            <p class="text-xs text-slate-600 font-medium leading-snug">Pošaljite kratku poruku kako biste direktno potvrdili svoj dolazak:</p>
-            <div class="grid grid-cols-2 gap-2 pt-0.5">
-              <button type="button" id="btn-confirm-viber" class="py-2.5 px-3 bg-[#7360f2] hover:opacity-95 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5">
-                <span>💬</span> Viber potvrda
-              </button>
-              <button type="button" id="btn-confirm-whatsapp" class="py-2.5 px-3 bg-[#25D366] hover:opacity-95 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5">
-                <span>📱</span> WhatsApp
-              </button>
+          <!-- Viber / WhatsApp direktna potvrda (za preglede) -->
+          <div id="ticket-direct-confirm-wrapper" class="hidden w-full bg-slate-50 border border-indigo-100 rounded-2xl p-3 text-center space-y-2 mt-2">
+            <p class="text-[10px] font-black text-indigo-950 uppercase tracking-wide">Potvrda zakazanog termina</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="btn-confirm-viber" class="py-2 px-3 bg-[#7360f2] text-white rounded-xl text-xs font-black">💬 Viber</button>
+              <button type="button" id="btn-confirm-whatsapp" class="py-2 px-3 bg-[#25D366] text-white rounded-xl text-xs font-black">📱 WhatsApp</button>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Klizač za overu na licu mesta -->
-      <div id="ticket-slider-wrapper" class="w-full pt-1">
-        <div id="ticket-slider-track" class="relative w-full h-14 bg-slate-100 rounded-2xl p-1.5 border-2 border-slate-200 overflow-hidden select-none flex items-center shadow-inner">
-          <div id="ticket-slider-fill" class="absolute left-0 top-0 bottom-0 bg-emerald-500/20 rounded-2xl transition-all duration-75" style="width: 0px;"></div>
-          <div id="ticket-slider-label" class="w-full text-center text-xs font-black text-slate-500 tracking-wider pointer-events-none z-0">
-            👉 PREVUCITE ZA PONIŠTAVANJE
-          </div>
-          <div id="ticket-slider-thumb" class="absolute left-1.5 top-1.5 bottom-1.5 w-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-md cursor-grab active:cursor-grabbing z-10 touch-none">
-            ❯❯
-          </div>
-        </div>
-      </div>
-
-      <div id="ticket-cancel-container" class="w-full pt-1"></div>
-
-      <div class="flex flex-col gap-2.5 pt-1">
-        <a id="btn-launch-trail" href="#" target="_blank" class="hidden w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-base font-black shadow-lg text-center flex items-center justify-center gap-2 transition">
-          <span>🚀</span> POKRENI AVANTURU NA STAZI
-        </a>
-        <div class="grid grid-cols-2 gap-2.5">
-          <button id="btn-download-ticket-img" class="py-3 bg-emerald-600 hover:bg-emerald-700 transition text-white rounded-2xl font-black shadow-md flex items-center justify-center" title="Preuzmi sliku ulaznice">
+        <!-- DVA MANJA KOMPAKTNA DUGMETA ISPOD KOCKI: Preuzmi (zeleno/sivo) i Pošalji (ljubičasto/sivo) -->
+        <div class="flex items-center justify-around pt-1 pb-1">
+          <button type="button" id="btn-download-ticket-img" class="w-16 h-11 rounded-2xl font-black shadow-sm flex items-center justify-center transition cursor-pointer" title="Preuzmi kartu">
             <svg class="w-6 h-6 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3v13m0 0-4-4m4 4 4-4M4 20h16"/>
             </svg>
           </button>
-          <button id="btn-share-ticket" class="py-3 bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-2xl font-black shadow-md flex items-center justify-center" title="Podeli ili kopiraj podatke ulaznice">
+          <button type="button" id="btn-share-ticket" class="w-16 h-11 rounded-2xl font-black shadow-sm flex items-center justify-center transition cursor-pointer" title="Podeli kartu ili pošalji poklon">
             <svg class="w-6 h-6 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="m22 2-7 20-4-9-9-4Z"/>
               <path d="M22 2 11 13"/>
             </svg>
           </button>
         </div>
-        <button onclick="window.obrisiKartuTrajno()" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 mt-1">
-          🗑️ Obriši ovu kartu (testno čišćenje)
+
+        <!-- PODACI ISPOD DUGMADI: Email, Datum levo i KOD desno (tačno kao na skici) -->
+        <div class="border-t border-slate-100 pt-2.5 space-y-1.5 text-center">
+          <p class="text-xs text-slate-600 font-semibold truncate">
+            <strong>Email:</strong> <span id="ticket-user-email">...</span>
+          </p>
+          <div class="flex items-center justify-between gap-2 px-1 pt-0.5">
+            <span id="ticket-datetime" class="font-black text-slate-950 text-xs sm:text-sm">...</span>
+            <span id="ticket-id-badge" class="text-xs font-black px-2.5 py-1 rounded-lg tracking-wider">KOD: BK-000000</span>
+          </div>
+          <span id="ticket-created-at" class="hidden"></span>
+        </div>
+
+        <div id="ticket-price-badge-container" class="hidden">
+          <span id="ticket-price-label"></span>
+          <span id="ticket-price-amount"></span>
+        </div>
+      </div>
+
+      <!-- Dugme za pokretanje staze (samo ako je terenska staza i plaćeno) -->
+      <a id="btn-launch-trail" href="#" target="_blank" class="hidden w-full mt-2.5 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl text-sm font-black shadow-md text-center items-center justify-center gap-2 transition">
+        <span>🚀</span> POKRENI AVANTURU NA STAZI
+      </a>
+
+      <div id="ticket-cancel-container" class="w-full pt-1"></div>
+
+      <!-- DNO PROZORA: "Mentalna Gimnastika" na sredini i kanta za brisanje desno u krugu -->
+      <div class="flex items-center justify-between pt-3 px-2 mt-1">
+        <div class="w-11"></div>
+        <div class="text-center leading-tight select-none">
+          <p id="ticket-footer-partner-name" class="text-xs sm:text-sm font-bold text-slate-800">Mentalna<br>Gimnastika</p>
+        </div>
+        <button type="button" id="btn-trash-ticket-circle" onclick="window.obrisiKartuTrajno()" title="Obriši ovu kartu" class="w-11 h-11 rounded-full bg-slate-50 hover:bg-rose-50 border-2 border-slate-200 flex items-center justify-center text-xl shadow-xs transition active:scale-95 cursor-pointer">
+          🗑️
         </button>
       </div>
+
     </div>
   </div>
 
@@ -4316,7 +4332,7 @@ function startRealtimeSync() {
         };
       }
 
-      // Taster za promenu clana
+// Taster za promenu clana
       const btnResetMember = document.getElementById('btn-reset-membership');
       if (btnResetMember) {
         btnResetMember.onclick = () => {
@@ -4328,24 +4344,18 @@ function startRealtimeSync() {
         };
       }
 
-      // Prebacivanje na rucni unos ako posetilac nema clansku karticu
+      // Uvek krećemo od Pogleda 1 (unos članske kartice)
+      const memberStepEl = document.getElementById('booking-step-member-view');
+      if (memberStepEl) memberStepEl.classList.remove('hidden');
+      if (regularFields) regularFields.classList.add('hidden');
+
       if (toggleNonMemberBtn) {
         toggleNonMemberBtn.onclick = () => {
-          const isHidden = regularFields.classList.contains('hidden');
-          if (isHidden) {
-            regularFields.classList.remove('hidden');
-            toggleNonMemberBtn.innerText = "Već imam članski broj";
-            state.activeMembership = null;
-            if (confirmedCard) confirmedCard.classList.add('hidden');
-            if (inputRow) inputRow.classList.remove('hidden');
-          } else {
-            regularFields.classList.add('hidden');
-            toggleNonMemberBtn.innerText = "Učlani me";
-          }
-          window.azurirajPrikazCeneRezervacije();
+          window.prebaciNaModalUclanjenja();
         };
       }
-window.azurirajPrikazCeneRezervacije();
+
+      window.azurirajPrikazCeneRezervacije();
 
       document.querySelectorAll('input[name="booking-quantity"]').forEach(radio => {
         radio.onchange = () => {
@@ -4361,7 +4371,6 @@ window.azurirajPrikazCeneRezervacije();
         let seatsHTML = '';
         const sada = Date.now();
 
-        // Razdvajamo potvrdjena mesta od onih koja su na cekanju uplate do 60 min
         let placenaMesta = 0;
         let naCekanjuMesta = 0;
 
@@ -4380,15 +4389,12 @@ window.azurirajPrikazCeneRezervacije();
           }
         });
 
-        // 1. Crvena mesta (potvrdjena i placena)
         for (let i = 0; i < placenaMesta; i++) {
           seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-rose-500 shadow-sm shrink-0" title="Zauzeto i plaćeno mesto #${i + 1}"></span>`;
         }
-        // 2. Siva mesta (rezervisano, ceka se uplata do 1h)
         for (let i = 0; i < naCekanjuMesta; i++) {
           seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-slate-400 shadow-sm shrink-0 animate-pulse" title="Rezervisano, čeka se uplata (rok 60 min)"></span>`;
         }
-        // 3. Zelena mesta (potpuno slobodna)
         for (let i = 0; i < remaining; i++) {
           seatsHTML += `<span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md bg-emerald-500 shadow-sm shrink-0" title="Slobodno mesto"></span>`;
         }
@@ -4401,36 +4407,60 @@ window.azurirajPrikazCeneRezervacije();
       const qtyQuestionEl = document.getElementById('booking-qty-question-text');
       const qtySubtextEl = document.getElementById('booking-qty-subtext');
 
-      // Za PDF: opcija 2 je klikabilna SAMO ako je u adminu izabrano 2 I uneta cena za 2. svesku (makar 0).
-      // Ako je uključena samo 1 sveska + 1+1 Gratis promocija, opcija 2 je zaključana (dobija +1 poklon automatski).
-      const imaDefinisanuDruguSvesku = Number(event.pdfMaxQty) === 2 && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined && event.pdfSecondPrice !== '';
+      // Postavljanje podnaslova pristupa, oznake preostalih mesta i pilule cene u modalu za učlanjenje
+      const accessSubEl = document.getElementById('modal-booking-access-subtitle');
+      const remLabelEl = document.getElementById('modal-booking-remaining-label');
+      const pillEl = document.getElementById('modal-booking-enrollment-pill');
+      const samoClanoviFlag = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
 
+      if (accessSubEl) {
+        accessSubEl.innerText = samoClanoviFlag ? '[Samo za članove]' : (tipAkt === 'individualno' ? '[Zakazivanje termina]' : '[Otvoreno za sve]');
+      }
+      if (remLabelEl) {
+        remLabelEl.innerText = tipAkt === 'digitalni_resurs'
+          ? 'Preostalo za preuzimanje:'
+          : (tipAkt === 'individualno' ? 'Slobodnih termina:' : 'Slobodnih mesta:');
+      }
+      if (pillEl) {
+        const sRedovna = Number(event.price || 0);
+        const sClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') ? Number(event.memberPrice) : sRedovna;
+        const prikazanaCena = (sRedovna === 0 && sClanska > 0) ? sClanska : sRedovna;
+        const jeClanarinaModel = event.paymentType === 'clanarina' || tipAkt === 'teren' || tipAkt === 'digitalni_resurs' || !!event.trailCode;
+        const nazivZaPilulu = jeClanarinaModel ? 'Učlanjenje' : (tipAkt === 'individualno' ? 'Cena usluge' : 'Kotizacija');
+        pillEl.innerText = `${nazivZaPilulu}: ${prikazanaCena} din`;
+      }
+
+      // Za PDF sveske sakrivamo kalendar izbora dana dolaska
+      if (tipAkt === 'digitalni_resurs') {
+        const wDate = document.getElementById('wrapper-booking-date-choice');
+        if (wDate) wDate.classList.add('hidden');
+      }
+
+      const imaDefinisanuDruguSvesku = Number(event.pdfMaxQty) === 2 && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined && event.pdfSecondPrice !== '';
       const jeOrdinacija = event.subCategory === 'medicinski_stit' || event.category === 'medicinski_stit' || (event.title && event.title.toLowerCase().includes('pregled'));
       const maxTerminaUsluge = event.serviceMaxQty ? Number(event.serviceMaxQty) : 2;
       const rezimUsluge = event.servicePromoMode || (event.hasPromo1plus1 ? 'second_free' : 'standard');
 
       if (tipAkt === 'digitalni_resurs') {
-        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Želim da preuzmem:';
+        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Želim da preuzmem';
         if (imaDefinisanuDruguSvesku) {
           const tekstDrugi = Number(event.pdfSecondPrice) === 0 ? '2. sveska: 0 din' : `2. sveska: +${event.pdfSecondPrice} din`;
-          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>📖</span> ${tekstDrugi}`;
-        } else if (event.hasPromo1plus1) {
-          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 1 sveska + 1 poklon sveska gratis`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `${tekstDrugi}`;
         } else {
-          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>📖</span> 1 sveska po korisniku`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = '';
         }
       } else if (tipAkt === 'individualno') {
-        if (qtyQuestionEl) qtyQuestionEl.innerText = jeOrdinacija ? 'Zakazujem pregled (broj termina):' : 'Rezerviši uslugu (broj termina):';
+        if (qtyQuestionEl) qtyQuestionEl.innerText = jeOrdinacija ? 'Broj termina:' : 'Broj usluga:';
         if (rezimUsluge === 'first_free') {
-          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> 1. termin GRATIS, za 2 termina birate 2 vremena`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `1. termin GRATIS`;
         } else if (rezimUsluge === 'second_free' || event.hasPromo1plus1) {
-          if (qtySubtextEl) qtySubtextEl.innerHTML = `<span>🎁</span> DUGI termin GRATIS (birate 2 različita vremena)`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = `2. termin GRATIS`;
         } else {
-          if (qtySubtextEl) qtySubtextEl.innerHTML = maxTerminaUsluge === 2 ? `<span>🕒</span> Za 2 termina birate 2 različita vremena` : `<span>🕒</span> Zakazivanje 1 vremenskog termina`;
+          if (qtySubtextEl) qtySubtextEl.innerHTML = maxTerminaUsluge === 2 ? `Izbor 1 ili 2 termina` : `1 vremenski termin`;
         }
       } else {
-        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Koliko mesta rezervišete?';
-        if (qtySubtextEl) qtySubtextEl.innerHTML = '<span>ℹ️</span> Maksimalno 2 po emailu';
+        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Broj mesta:';
+        if (qtySubtextEl) qtySubtextEl.innerHTML = 'Maksimalno 2 po prijavi';
       }
 
       const zabraniDvaMesta = tipAkt === 'teren' || (tipAkt === 'digitalni_resurs' && !imaDefinisanuDruguSvesku) || (tipAkt === 'individualno' && maxTerminaUsluge < 2);
@@ -4450,10 +4480,11 @@ window.azurirajPrikazCeneRezervacije();
       const stPhone = event.formFields?.phone ?? 'required';
       const stAddress = event.formFields?.address ?? 'optional';
 
+      const jePdfSveska = tipAkt === 'digitalni_resurs';
       const reqName = stName !== false && stName !== 'hidden';
       const reqEmail = stEmail !== false && stEmail !== 'hidden';
-      const reqPhone = stPhone !== false && stPhone !== 'hidden';
-      const reqAddress = stAddress !== false && stAddress !== 'hidden';
+      const reqPhone = !jePdfSveska && stPhone !== false && stPhone !== 'hidden';
+      const reqAddress = !jePdfSveska && stAddress !== false && stAddress !== 'hidden';
 
       const nameWrapper = document.getElementById('wrapper-booking-name');
       if (nameWrapper) nameWrapper.style.display = reqName ? 'grid' : 'none';
@@ -4737,7 +4768,7 @@ window.azurirajPrikazCeneRezervacije();
 
         const moraIme = stName === 'required' || stName === true;
         const moraEmail = stEmail === 'required' || stEmail === true;
-        const moraTelefon = stPhone === 'required' || stPhone === true;
+        const moraTelefon = event.activityType !== 'digitalni_resurs' && (stPhone === 'required' || stPhone === true);
         const moraAdresa = stAddress === 'required' || stAddress === true;
 
         if (moraIme && (!fNameEl?.value.trim() || !lNameEl?.value.trim())) {
@@ -6159,8 +6190,200 @@ window.azurirajPrikazCeneRezervacije();
         }
       }
 
-          document.getElementById('modal-ticket').classList.remove('hidden');
+      // =========================================================================
+      // ČIŠĆENJE DUPLIH NATPISA I NOVI PRIKAZ PO SKICI
+      // =========================================================================
+      const placenoProvera = booking.isPaid === true || booking.paymentType === 'clanarina_pokriveno' || Number(booking.totalPrice || 0) === 0;
+      const jeAktivnaPlacenaKarta = placenoProvera && booking.status !== 'otkazano' && booking.status !== 'iskorišćena';
+      const prepoznatTipKarte = booking.activityType || (booking.trailCode ? 'teren' : (booking.digitalUrl ? 'digitalni_resurs' : 'radionica'));
+      const jePdfKarta = prepoznatTipKarte === 'digitalni_resurs';
+
+      // 1. Gasimo sve stare duple naslove i bedževe koje je gornji dio funkcije upalio
+      if (document.getElementById('modal-ticket-main-heading')) {
+        document.getElementById('modal-ticket-main-heading').className = 'hidden';
+      }
+      if (document.getElementById('ticket-payment-status-pill')) {
+        document.getElementById('ticket-payment-status-pill').className = 'hidden';
+      }
+      if (document.getElementById('ticket-user-name')) {
+        document.getElementById('ticket-user-name').innerText = `${booking.firstName || ''} ${booking.lastName || ''}`.trim();
+      }
+
+      const pdfDualBox = document.getElementById('ticket-pdf-dual-cards');
+      const btnPdf1 = document.getElementById('btn-card-pdf-1');
+      const btnPdf2 = document.getElementById('btn-card-pdf-2');
+      const checkPdf1 = document.getElementById('icon-check-pdf-1');
+      const checkPdf2 = document.getElementById('icon-check-pdf-2');
+      const giftIconPdf2 = document.getElementById('icon-gift-pdf-2');
+      const btnDownloadSmall = document.getElementById('btn-download-ticket-img');
+      const btnShareSmall = document.getElementById('btn-share-ticket');
+      const trashCircleBtn = document.getElementById('btn-trash-ticket-circle');
+      const topFlagEl = document.getElementById('ticket-top-flag-status');
+      const sliderWrapEl = document.getElementById('ticket-slider-wrapper');
+
+      const oldBottomPills = document.getElementById('pdf-bottom-pills-row');
+      if (oldBottomPills) oldBottomPills.classList.add('hidden');
+
+      if (jePdfKarta) {
+        document.getElementById('ticket-online-action-wrapper')?.classList.add('hidden');
+        document.getElementById('ticket-gift-container')?.classList.add('hidden');
+        document.getElementById('ticket-qr-canvas')?.classList.add('hidden');
+        document.getElementById('ticket-non-qr-wrapper')?.classList.add('hidden');
+        if (pdfDualBox) pdfDualBox.classList.remove('hidden');
+
+        // U vrhu pored X dugmeta: crvena podloga sa belim slovima (ili siva dok čeka uplatu)
+        if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
+        if (topFlagEl) {
+          topFlagEl.classList.remove('hidden');
+          if (jeAktivnaPlacenaKarta) {
+            topFlagEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-rose-600 border-2 border-rose-700 text-white font-black text-xs shadow-sm tracking-wide uppercase";
+            topFlagEl.innerHTML = `<span>✓</span> <span>Karta potvrđena</span>`;
+          } else {
+            topFlagEl.className = "inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-200 border-2 border-slate-300 text-slate-600 font-black text-xs tracking-wide uppercase";
+            topFlagEl.innerHTML = `<span>⏳</span> <span>Čeka potvrdu</span>`;
+          }
         }
+
+        const imaDruguSvesku = booking.hasPromo1plus1 || (booking.ticketsCount && booking.ticketsCount >= 2) || !!booking.digitalUrl2;
+        const urlPrveSveske = booking.digitalUrl || '';
+        const urlDrugeSveske = booking.digitalUrl2 || booking.digitalUrl || '';
+
+        // Proveravamo u memoriji koje su sveske već preuzete (otvorene)
+        const kljucPreuzeto1 = `preuzet_pdf1_${booking.id}`;
+        const kljucPreuzeto2 = `preuzet_pdf2_${booking.id}`;
+
+        const osveziIzgledPdfKocki = () => {
+          const jePreuzet1 = safeStorage.getItem(kljucPreuzeto1) === '1';
+          const jePreuzet2 = safeStorage.getItem(kljucPreuzeto2) === '1';
+
+          if (!jeAktivnaPlacenaKarta) {
+            // SIVO STANJE: Nije potvrđeno/plaćeno -> nema štikliranog znaka, ne može da se klikne
+            if (btnPdf1) {
+              btnPdf1.disabled = true;
+              btnPdf1.className = "relative h-44 rounded-3xl border-2 border-slate-300 bg-slate-50 p-4 flex flex-col items-center justify-center text-center text-slate-400 cursor-not-allowed";
+              btnPdf1.onclick = null;
+            }
+            if (checkPdf1) {
+              checkPdf1.className = "hidden";
+            }
+
+            if (btnPdf2) {
+              btnPdf2.disabled = true;
+              btnPdf2.className = "relative h-44 rounded-3xl border-2 border-slate-300 bg-slate-50 p-4 flex flex-col items-center justify-center text-center text-slate-400 cursor-not-allowed";
+              btnPdf2.onclick = null;
+            }
+            if (giftIconPdf2) giftIconPdf2.className = "text-4xl sm:text-5xl mb-2 leading-none grayscale opacity-50";
+            if (checkPdf2) {
+              checkPdf2.className = "hidden";
+            }
+            return;
+          }
+
+          // AKTIVNA KARTA — KOCKA 1 (pdf 1.)
+          if (btnPdf1) {
+            btnPdf1.disabled = false;
+            btnPdf1.className = jePreuzet1
+              ? "relative h-44 rounded-3xl border-2 border-lime-500 bg-lime-50/20 hover:bg-lime-50/40 active:scale-95 p-4 flex flex-col items-center justify-center text-center text-slate-950 shadow-sm transition cursor-pointer"
+              : "relative h-44 rounded-3xl border-2 border-slate-300 bg-white hover:border-indigo-400 active:scale-95 p-4 flex flex-col items-center justify-center text-center text-slate-950 shadow-sm transition cursor-pointer";
+            btnPdf1.onclick = () => {
+              safeStorage.setItem(kljucPreuzeto1, '1');
+              osveziIzgledPdfKocki();
+              window.otvoriZasticeniPdf(urlPrveSveske, `${booking.eventTitle} (PDF 1)`, booking.id, booking.pdfProtection, booking.pdfAllowPrint, booking.pdfAllowDownload, booking.pdfAllowShare);
+            };
+          }
+          if (checkPdf1) {
+            // Štiklirano zeleno ako je preuzeto, ili bledo sivo ako čeka preuzimanje
+            checkPdf1.className = jePreuzet1
+              ? "absolute bottom-3 right-3.5 text-2xl font-black text-lime-600 leading-none"
+              : "absolute bottom-3 right-3.5 text-2xl font-black text-slate-200 leading-none";
+          }
+
+          // AKTIVNA KARTA — KOCKA 2 (Poklon pdf)
+          if (btnPdf2) {
+            if (imaDruguSvesku) {
+              btnPdf2.disabled = false;
+              btnPdf2.className = jePreuzet2
+                ? "relative h-44 rounded-3xl border-2 border-lime-500 bg-lime-50/20 hover:bg-lime-50/40 active:scale-95 p-4 flex flex-col items-center justify-center text-center text-slate-950 shadow-sm transition cursor-pointer"
+                : "relative h-44 rounded-3xl border-2 border-slate-300 bg-white hover:border-amber-400 active:scale-95 p-4 flex flex-col items-center justify-center text-center text-slate-950 shadow-sm transition cursor-pointer";
+              btnPdf2.onclick = () => {
+                safeStorage.setItem(kljucPreuzeto2, '1');
+                osveziIzgledPdfKocki();
+                window.otvoriZasticeniPdf(urlDrugeSveske, `${booking.eventTitle} (Poklon PDF)`, booking.id, booking.pdfProtection, booking.pdfAllowPrint, booking.pdfAllowDownload, booking.pdfAllowShare);
+              };
+            } else {
+              btnPdf2.disabled = true;
+              btnPdf2.className = "relative h-44 rounded-3xl border-2 border-slate-200 bg-slate-50 p-4 flex flex-col items-center justify-center text-center text-slate-300 opacity-50 cursor-not-allowed";
+              btnPdf2.onclick = null;
+            }
+          }
+          if (giftIconPdf2) {
+            giftIconPdf2.className = imaDruguSvesku
+              ? "text-4xl sm:text-5xl mb-2 leading-none"
+              : "text-4xl sm:text-5xl mb-2 leading-none grayscale opacity-40";
+          }
+          if (checkPdf2) {
+            checkPdf2.className = !imaDruguSvesku
+              ? "hidden"
+              : (jePreuzet2
+                  ? "absolute bottom-3 right-3.5 text-2xl font-black text-lime-600 leading-none"
+                  : "absolute bottom-3 right-3.5 text-2xl font-black text-slate-200 leading-none");
+          }
+        };
+
+        osveziIzgledPdfKocki();
+      } else {
+        // Za staze, radionice i preglede: u vrhu pored X stoji Klizač (bez duplih naslova ispod)
+        if (pdfDualBox) pdfDualBox.classList.add('hidden');
+        if (topFlagEl) topFlagEl.classList.add('hidden');
+
+        const nonQrEl = document.getElementById('ticket-non-qr-wrapper');
+        if (!jeAktivnaPlacenaKarta && nonQrEl && !nonQrEl.classList.contains('hidden')) {
+          const codeEl = document.getElementById('ticket-badge-main-code');
+          const subEl = document.getElementById('ticket-badge-subtext');
+          if (codeEl) codeEl.innerText = "🔒 ZAKLJUČANO";
+          if (subEl) subEl.innerText = "Pristupni vaučer postaje vidljiv odmah nakon potvrde uplate";
+        }
+      }
+
+      // Bojenje donjih dugmadi (Preuzmi, Pošalji, KOD bedž i okvir kante)
+      if (jeAktivnaPlacenaKarta) {
+        if (btnDownloadSmall) {
+          btnDownloadSmall.disabled = false;
+          btnDownloadSmall.className = "w-16 h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-sm flex items-center justify-center transition cursor-pointer active:scale-95";
+        }
+        if (btnShareSmall) {
+          btnShareSmall.disabled = false;
+          btnShareSmall.className = "w-16 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-sm flex items-center justify-center transition cursor-pointer active:scale-95";
+        }
+        if (idBadgeEl) {
+          idBadgeEl.className = "text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg tracking-wider";
+          idBadgeEl.innerText = `KOD: ${booking.id}`;
+        }
+        if (trashCircleBtn) {
+          trashCircleBtn.className = "w-11 h-11 rounded-full bg-white hover:bg-rose-50 border-2 border-lime-400 flex items-center justify-center text-xl shadow-xs transition active:scale-95 cursor-pointer";
+        }
+      } else {
+        if (btnDownloadSmall) {
+          btnDownloadSmall.disabled = true;
+          btnDownloadSmall.className = "w-16 h-11 rounded-2xl bg-slate-500 text-white font-black flex items-center justify-center opacity-75 cursor-not-allowed";
+        }
+        if (btnShareSmall) {
+          btnShareSmall.disabled = true;
+          btnShareSmall.className = "w-16 h-11 rounded-2xl bg-slate-600 text-white font-black flex items-center justify-center opacity-75 cursor-not-allowed";
+        }
+        if (idBadgeEl) {
+          idBadgeEl.className = "text-xs font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg tracking-wider";
+          idBadgeEl.innerText = `KOD: ${booking.id}`;
+        }
+        if (trashCircleBtn) {
+          trashCircleBtn.className = "w-11 h-11 rounded-full bg-slate-50 hover:bg-rose-50 border-2 border-slate-200 flex items-center justify-center text-xl shadow-xs transition active:scale-95 cursor-pointer";
+        }
+      }
+
+      document.getElementById('modal-ticket').classList.remove('hidden');
+
+
+    };
 
     window.viewTicket = function(bookingId) {
       const b = state.bookings.find(bk => bk.id === bookingId);
