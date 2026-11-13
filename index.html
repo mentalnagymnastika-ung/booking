@@ -4424,8 +4424,8 @@ function startRealtimeSync() {
       if (pillEl) {
         const sRedovna = Number(event.price || 0);
         const sClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') ? Number(event.memberPrice) : sRedovna;
-        const prikazanaCena = (sRedovna === 0 && sClanska > 0) ? sClanska : sRedovna;
-        const jeClanarinaModel = event.paymentType === 'clanarina' || tipAkt === 'teren' || tipAkt === 'digitalni_resurs' || !!event.trailCode;
+        const jeClanarinaModel = event.paymentType === 'clanarina' || samoClanoviFlag || tipAkt === 'digitalni_resurs';
+        const prikazanaCena = jeClanarinaModel ? 850 : ((sRedovna === 0 && sClanska > 0) ? sClanska : sRedovna);
         const nazivZaPilulu = jeClanarinaModel ? 'Učlanjenje' : (tipAkt === 'individualno' ? 'Cena usluge' : 'Kotizacija');
         pillEl.innerText = `${nazivZaPilulu}: ${prikazanaCena} din`;
       }
@@ -4695,15 +4695,18 @@ function startRealtimeSync() {
       const jePromo1plus1 = event.hasPromo1plus1 === true;
       const obracunskiBroj = (jePromo1plus1 && qty === 2) ? 1 : qty;
 
+      const tipPonudeObracun = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
       const jeSamoZaClanove = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
+      const jeModelClanarine = event.paymentType === 'clanarina' || jeSamoZaClanove || tipPonudeObracun === 'digitalni_resurs';
+
       const sirovaRedovna = Number(event.price || 0);
       const sirovaClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') 
         ? Number(event.memberPrice) 
         : (jeSamoZaClanove ? 0 : sirovaRedovna);
-      const jeModelClanarine = event.paymentType === 'clanarina' || event.activityType === 'teren' || !!event.trailCode;
 
-      const redovnaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna;
-      const clanskaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? 0 : sirovaClanska;
+      // Ako je program u režimu Članarine podmlatka (za članove 0 din, učlanjenje je standardnih 850 din)
+      const clanskaCena = jeModelClanarine ? 0 : sirovaClanska;
+      const redovnaCena = jeModelClanarine ? 850 : ((sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna);
 
       // Člansku cenu ostvaruje samo član kome je članarina aktivna (u okviru 30 dana od uplate)
       const imaAktivnuClanarinu = isMemberCovered && state.activeMembership.isMembershipActive === true;
@@ -4906,9 +4909,14 @@ function startRealtimeSync() {
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', pojedinacnaRez.id), pojedinacnaRez);
           }
           
-          // Vaučer u bazu staza šaljemo odmah samo ako je karta već plaćena ili besplatna
-          if (zdravaDb && newBooking.isPaid && (newBooking.trailCode || event.category === 'umg')) {
-            const brojUredjaja = newBooking.packageType || 2;
+          // Provera da li je datum staze već stigao (ne otključavamo stazu u Zdravoj Potrazi pre zakazanog dana!)
+          const danasIso = new Date().toISOString().split('T')[0];
+          const datumStazeIso = (newBooking.selectedDate || newBooking.eventDate || '').split('T')[0];
+          const stazaJeDanasIliRanije = !datumStazeIso || datumStazeIso <= danasIso;
+
+          // Vaučer u bazu staza šaljemo odmah SAMO ako je karta plaćena I datum igre je stigao
+          if (zdravaDb && newBooking.isPaid && stazaJeDanasIliRanije && (newBooking.trailCode || event.category === 'umg')) {
+            const brojUredjaja = newBooking.packageType || 1;
             const tipModela = newBooking.voucherType || 'sati';
             const automatskiPin = String(Math.floor(1000 + Math.random() * 9000));
 
@@ -6279,6 +6287,44 @@ function startRealtimeSync() {
             return;
           }
 
+          // Pomoćna funkcija koja garantovano otvara svesku u citac.html prekrivaču preko celog ekrana
+          const pokreniCitacSveske = (sirovUrl, naslovSveske) => {
+            if (!sirovUrl || !sirovUrl.trim()) {
+              showNotification("Link do PDF sveske nije unet u podešavanjima ovog programa.", "warning");
+              return;
+            }
+            const parametri = new URLSearchParams({
+              pdf: sirovUrl.trim(),
+              title: naslovSveske || booking.eventTitle || 'Digitalno izdanje',
+              code: booking.id || '',
+              print: booking.pdfAllowPrint ? '1' : '0',
+              download: booking.pdfAllowDownload ? '1' : '0',
+              share: booking.pdfAllowShare ? '1' : '0'
+            });
+            const konacniUrlCitaca = `citac.html?${parametri.toString()}`;
+
+            // Proveravamo da li postoji modal čitača; ako smo ga obrisali iz HTML-a, kreiramo ga automatski
+            let citacModal = document.getElementById('edubooker-citac-fullscreen');
+            if (!citacModal) {
+              citacModal = document.createElement('div');
+              citacModal.id = 'edubooker-citac-fullscreen';
+              citacModal.className = 'fixed inset-0 z-[9999] bg-slate-950 flex flex-col';
+              citacModal.innerHTML = `
+                <div class="h-12 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between text-white shrink-0">
+                  <span id="edubooker-citac-title" class="text-xs sm:text-sm font-black truncate">Čitač</span>
+                  <button type="button" onclick="document.getElementById('edubooker-citac-fullscreen').classList.add('hidden'); document.getElementById('edubooker-citac-iframe').src='about:blank';" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black cursor-pointer">✕ Zatvori svesku</button>
+                </div>
+                <iframe id="edubooker-citac-iframe" src="about:blank" class="w-full flex-1 border-0 bg-slate-900" allowfullscreen></iframe>
+              `;
+              document.body.appendChild(citacModal);
+            }
+            const titleBar = document.getElementById('edubooker-citac-title');
+            const iframeEl = document.getElementById('edubooker-citac-iframe');
+            if (titleBar) titleBar.innerText = naslovSveske;
+            if (iframeEl) iframeEl.src = konacniUrlCitaca;
+            citacModal.classList.remove('hidden');
+          };
+
           // AKTIVNA KARTA — KOCKA 1 (pdf 1.)
           if (btnPdf1) {
             btnPdf1.disabled = false;
@@ -6288,11 +6334,10 @@ function startRealtimeSync() {
             btnPdf1.onclick = () => {
               safeStorage.setItem(kljucPreuzeto1, '1');
               osveziIzgledPdfKocki();
-              window.otvoriZasticeniPdf(urlPrveSveske, `${booking.eventTitle} (PDF 1)`, booking.id, booking.pdfProtection, booking.pdfAllowPrint, booking.pdfAllowDownload, booking.pdfAllowShare);
+              pokreniCitacSveske(urlPrveSveske, `${booking.eventTitle} (PDF 1)`);
             };
           }
           if (checkPdf1) {
-            // Štiklirano zeleno ako je preuzeto, ili bledo sivo ako čeka preuzimanje
             checkPdf1.className = jePreuzet1
               ? "absolute bottom-3 right-3.5 text-2xl font-black text-lime-600 leading-none"
               : "absolute bottom-3 right-3.5 text-2xl font-black text-slate-200 leading-none";
@@ -6308,7 +6353,7 @@ function startRealtimeSync() {
               btnPdf2.onclick = () => {
                 safeStorage.setItem(kljucPreuzeto2, '1');
                 osveziIzgledPdfKocki();
-                window.otvoriZasticeniPdf(urlDrugeSveske, `${booking.eventTitle} (Poklon PDF)`, booking.id, booking.pdfProtection, booking.pdfAllowPrint, booking.pdfAllowDownload, booking.pdfAllowShare);
+                pokreniCitacSveske(urlDrugeSveske, `${booking.eventTitle} (Poklon PDF)`);
               };
             } else {
               btnPdf2.disabled = true;
@@ -6337,15 +6382,41 @@ function startRealtimeSync() {
         if (topFlagEl) topFlagEl.classList.add('hidden');
 
         const nonQrEl = document.getElementById('ticket-non-qr-wrapper');
-        if (!jeAktivnaPlacenaKarta && nonQrEl && !nonQrEl.classList.contains('hidden')) {
-          const codeEl = document.getElementById('ticket-badge-main-code');
-          const subEl = document.getElementById('ticket-badge-subtext');
-          if (codeEl) codeEl.innerText = "🔒 ZAKLJUČANO";
+        const codeEl = document.getElementById('ticket-badge-main-code');
+        const subEl = document.getElementById('ticket-badge-subtext');
+        const launchBtnEl = document.getElementById('btn-launch-trail');
+
+        // Provera da li je datum terenske staze u budućnosti (npr. 30.11.2026.)
+        const danasIso = new Date().toISOString().split('T')[0];
+        const datumIgreIso = (booking.selectedDate || booking.eventDate || '').split('T')[0];
+        const jePreranoZaStazu = (prepoznatTipKarte === 'teren' || !!booking.trailCode) && datumIgreIso && datumIgreIso > danasIso;
+
+        if (!jeAktivnaPlacenaKarta) {
+          // 1. Nije plaćeno: sakrivamo BK kod i u gornjem boksu i u donjem malom bedžu
+          if (codeEl) codeEl.innerText = "🔒 ČEKA UPLATU";
           if (subEl) subEl.innerText = "Pristupni vaučer postaje vidljiv odmah nakon potvrde uplate";
+          if (launchBtnEl) launchBtnEl.classList.add('hidden');
+        } else if (jePreranoZaStazu) {
+          // 2. Plaćeno je (ili član), ali datum staze je tek u budućnosti (npr. 30.11.2026.)
+          const lepDatum = datumIgreIso.split('-').reverse().join('.') + '.';
+          if (codeEl) codeEl.innerText = `📅 ${lepDatum}`;
+          if (subEl) subEl.innerText = `Vaučer za stazu se automatski otključava na dan igre (${lepDatum})`;
+          if (launchBtnEl) launchBtnEl.classList.add('hidden');
+        } else if ((prepoznatTipKarte === 'teren' || !!booking.trailCode) && zdravaDb && state.isOnline) {
+          // 3. Karta je plaćena i danas je dan igre -> osiguravamo da je vaučer aktivan u bazi Zdrave Potrage
+          setDoc(doc(zdravaDb, "ambasadori", booking.id), {
+            aktivan: true,
+            naziv: `@Booker: ${booking.firstName} ${booking.lastName || ''}`.trim(),
+            stazaPoveznica: booking.trailCode || "DP01",
+            bonus: 50,
+            maxUredjaja: booking.packageType || 1,
+            trajanjeSati: 24,
+            tipOgranicenja: booking.voucherType || 'sati'
+          }, { merge: true }).catch(() => {});
         }
       }
 
-      // Bojenje donjih dugmadi (Preuzmi, Pošalji, KOD bedž i okvir kante)
+       // Bojenje donjih dugmadi (Preuzmi, Pošalji, KOD bedž i okvir kante)
       if (jeAktivnaPlacenaKarta) {
         if (btnDownloadSmall) {
           btnDownloadSmall.disabled = false;
@@ -6355,9 +6426,12 @@ function startRealtimeSync() {
           btnShareSmall.disabled = false;
           btnShareSmall.className = "w-16 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-sm flex items-center justify-center transition cursor-pointer active:scale-95";
         }
+        const danasIsoKod = new Date().toISOString().split('T')[0];
+        const datumStazeKod = (booking.selectedDate || booking.eventDate || '').split('T')[0];
+        const sakrijZbogDatuma = (prepoznatTipKarte === 'teren' || !!booking.trailCode) && datumStazeKod && datumStazeKod > danasIsoKod;
         if (idBadgeEl) {
           idBadgeEl.className = "text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg tracking-wider";
-          idBadgeEl.innerText = `KOD: ${booking.id}`;
+          idBadgeEl.innerText = sakrijZbogDatuma ? `AKTIVACIJA: ${datumStazeKod.split('-').reverse().join('.')}.` : `KOD: ${booking.id}`;
         }
         if (trashCircleBtn) {
           trashCircleBtn.className = "w-11 h-11 rounded-full bg-white hover:bg-rose-50 border-2 border-lime-400 flex items-center justify-center text-xl shadow-xs transition active:scale-95 cursor-pointer";
@@ -6372,8 +6446,8 @@ function startRealtimeSync() {
           btnShareSmall.className = "w-16 h-11 rounded-2xl bg-slate-600 text-white font-black flex items-center justify-center opacity-75 cursor-not-allowed";
         }
         if (idBadgeEl) {
-          idBadgeEl.className = "text-xs font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg tracking-wider";
-          idBadgeEl.innerText = `KOD: ${booking.id}`;
+          idBadgeEl.className = "text-xs font-black text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg tracking-wider";
+          idBadgeEl.innerText = `POZIV: ${booking.paymentReference || 'ČEKA UPLATU'}`;
         }
         if (trashCircleBtn) {
           trashCircleBtn.className = "w-11 h-11 rounded-full bg-slate-50 hover:bg-rose-50 border-2 border-slate-200 flex items-center justify-center text-xl shadow-xs transition active:scale-95 cursor-pointer";
@@ -6381,9 +6455,7 @@ function startRealtimeSync() {
       }
 
       document.getElementById('modal-ticket').classList.remove('hidden');
-
-
-    };
+    }; 
 
     window.viewTicket = function(bookingId) {
       const b = state.bookings.find(bk => bk.id === bookingId);
