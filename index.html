@@ -8765,7 +8765,13 @@ window.promeniRezimBojaKalendara = function(rezim) {
               let btnStyle = 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-100';
               let btnText = '🎫 Otvori svoju ulaznicu';
 
-              if (tipAktivnosti === 'teren') {
+              if (tipAktivnosti === 'uclanjenje' || b.eventId === 'UCLANJENJE_PODMLATKA') {
+                temaZaglavlja = 'bg-gradient-to-r from-indigo-700 via-indigo-900 to-slate-900 text-amber-300';
+                okvirKartice = 'border-2 border-indigo-300 bg-white shadow-md hover:shadow-xl';
+                oznakaTipa = '💳 Članska kartica udruženja';
+                btnStyle = 'bg-gradient-to-r from-indigo-700 via-indigo-900 to-slate-900 hover:from-indigo-800 hover:to-slate-950 text-amber-300 shadow-md shadow-indigo-100';
+                btnText = b.isPaid ? '💳 Otvori člansku karticu' : '💳 Otvori uplatnicu za članarinu';
+              } else if (tipAktivnosti === 'teren') {
                 temaZaglavlja = 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white';
                 okvirKartice = 'border-2 border-emerald-200 bg-white shadow-md hover:shadow-xl';
                 oznakaTipa = '🧭 Avantura na otvorenom';
@@ -8776,7 +8782,7 @@ window.promeniRezimBojaKalendara = function(rezim) {
                 okvirKartice = 'border-2 border-amber-200 bg-white shadow-md hover:shadow-xl';
                 oznakaTipa = '📖 Digitalna radna sveska';
                 btnStyle = 'bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-100';
-                btnText = '📖 Otvori radnu svesku / licencu';
+                btnText = '📖 Otvori radnu svesku';
               } else if (tipAktivnosti === 'individualno') {
                 temaZaglavlja = 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white';
                 okvirKartice = 'border-2 border-blue-200 bg-white shadow-md hover:shadow-xl';
