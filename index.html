@@ -6394,6 +6394,9 @@ safeAddEventListener('form-submit-booking', 'submit', async (e) => {
           pdf: sirovUrl.trim(),
           title: naslovSveske || booking.eventTitle || 'Digitalno izdanje',
           code: booking.id || '',
+          lic: booking.memberCode || booking.membershipNumber || booking.id || 'Aktivna licenca',
+          ime: punoImeVlasnika || `${booking.firstName || ''} ${booking.lastName || ''}`.trim() || booking.userName || booking.name || booking.fullName || booking.parentName || '',
+          email: booking.email || booking.userEmail || '',
           print: booking.pdfAllowPrint ? '1' : '0',
           download: booking.pdfAllowDownload ? '1' : '0',
           share: booking.pdfAllowShare ? '1' : '0'
