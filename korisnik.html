@@ -2202,11 +2202,16 @@
         const noviClanskiBroj = `${danSada}${mesecSada}${kratkiNasumicni}`;
         const pozivZaClanarinu = `${danSada}${mesecSada}${nasumicneCifre}`;
 
+        const urlParamsUcl = new URLSearchParams(window.location.search);
+        const uclUstanova = urlParamsUcl.get('ustanova') ? decodeURIComponent(urlParamsUcl.get('ustanova')).trim() : '';
+        const uclRazred = urlParamsUcl.get('razred') ? decodeURIComponent(urlParamsUcl.get('razred')).trim() : '';
+        const punaGrupaSkole = uclUstanova ? (uclRazred ? `${uclUstanova} • ${uclRazred}` : uclUstanova) : 'Pridruženi član';
+
         const novaClanarinaKarta = {
           id: uclanjenjeId,
           eventId: 'UCLANJENJE_PODMLATKA',
           eventTitle: 'Članarina podmlatka (pridruženi član)',
-          eventLocation: 'Udruženje Mentalna Gimnastika',
+          eventLocation: uclUstanova || 'Udruženje Mentalna Gimnastika',
           eventDate: new Date().toISOString().split('T')[0],
           selectedDate: new Date().toISOString().split('T')[0],
           eventTime: '',
@@ -2230,10 +2235,10 @@
           email: uEmail,
           phone: uTelefon,
           address: uAdresa,
-          school: 'Pridruženi član',
-          className: 'Članarina podmlatka',
+          school: punaGrupaSkole,
+          className: uclRazred || 'Članarina podmlatka',
           memberRole: 'Pridruženi član',
-          note: `Učlanjenje pokrenuto sa: ${event.title}`,
+          note: uclUstanova ? `Školski link: ${punaGrupaSkole} (${event.title})` : `Učlanjenje pokrenuto sa: ${event.title}`,
           timestamp: new Date().toISOString(),
           status: 'aktivna'
         };
