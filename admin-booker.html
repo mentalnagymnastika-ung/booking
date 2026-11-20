@@ -2305,6 +2305,194 @@
     document.getElementById('btn-close-event-modal').addEventListener('click', () => document.getElementById('modal-event').classList.add('hidden'));
     document.getElementById('btn-cancel-event').addEventListener('click', () => document.getElementById('modal-event').classList.add('hidden'));
 
+    // --- UVOZ BAZE PARTNERA I PROVERA DUPLIKATA ---
+    window.uvozPrivremeniRedovi = [];
+
+    window.otvoriModalUvozaPartnera = function() {
+      const ta = document.getElementById('import-raw-textarea');
+      if (ta) ta.value = '';
+      document.getElementById('import-step-mapping')?.classList.add('hidden');
+      document.getElementById('modal-import-partner')?.classList.remove('hidden');
+    };
+
+    window.analizirajZalepljenePodatke = function() {
+      const siroviTekst = (document.getElementById('import-raw-textarea')?.value || '').trim();
+      if (!siroviTekst) {
+        showNotification("Nalepite podatke iz tabele pre analize", "warning");
+        return;
+      }
+      const linije = siroviTekst.split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (linije.length === 0) return;
+
+      const razdvojnik = linije[0].includes('\t') ? '\t' : (linije[0].includes(';') ? ';' : ',');
+      window.uvozPrivremeniRedovi = linije.map(l => l.split(razdvojnik).map(celija => celija.trim().replace(/^["']|["']$/g, '')));
+
+      const brojKolona = Math.max(...window.uvozPrivremeniRedovi.map(r => r.length));
+      const thead = document.getElementById('import-table-head');
+      if (!thead) return;
+
+      const prviRedTekst = window.uvozPrivremeniRedovi[0].join(' ').toLowerCase();
+      const imaZaglavlje = prviRedTekst.includes('ime') || prviRedTekst.includes('email') || prviRedTekst.includes('oznaka') || prviRedTekst.includes('grupa');
+      const skipCb = document.getElementById('import-skip-first-row');
+      if (skipCb) skipCb.checked = imaZaglavlje;
+
+      const opcijePolja = [
+        { id: 'fullName', label: '👤 Ime i Prezime / Naziv' },
+        { id: 'email', label: '✉️ Email adresa' },
+        { id: 'group', label: '🏷️ Odeljenje / Grupa / Partner' },
+        { id: 'phone', label: '📞 Telefon' },
+        { id: 'ignore', label: '✕ Zanemari kolonu' }
+      ];
+
+      let theadHtml = '<tr>';
+      for (let i = 0; i < brojKolona; i++) {
+        let podrazumevano = 'ignore';
+        const uzorak = (imaZaglavlje && window.uvozPrivremeniRedovi.length > 1)
+          ? (window.uvozPrivremeniRedovi[1][i] || '').toLowerCase()
+          : (window.uvozPrivremeniRedovi[0][i] || '').toLowerCase();
+
+        if (uzorak.includes('@')) podrazumevano = 'email';
+        else if (i === 0) podrazumevano = 'fullName';
+        else if (i === 2 || uzorak.includes('razred') || uzorak.includes('os ') || uzorak.includes('oš ') || uzorak.includes('grupa')) podrazumevano = 'group';
+        else if (uzorak.replace(/[^0-9]/g, '').length >= 6) podrazumevano = 'phone';
+
+        theadHtml += `
+          <th class="p-3 border-r border-slate-200 last:border-r-0 min-w-[200px]">
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Kolona ${i + 1}</span>
+            <select id="import-col-map-${i}" onchange="window.osveziPredpregledUvoza()" class="w-full bg-white border-2 border-indigo-200 rounded-xl px-2.5 py-2 text-xs font-black text-slate-800">
+              ${opcijePolja.map(o => `<option value="${o.id}" ${o.id === podrazumevano ? 'selected' : ''}>${o.label}</option>`).join('')}
+            </select>
+          </th>
+        `;
+      }
+      theadHtml += '</tr>';
+      thead.innerHTML = theadHtml;
+
+      document.getElementById('import-detected-count').innerText = `${window.uvozPrivremeniRedovi.length} redova`;
+      document.getElementById('import-step-mapping').classList.remove('hidden');
+      window.osveziPredpregledUvoza();
+    };
+
+    window.osveziPredpregledUvoza = function() {
+      const tbody = document.getElementById('import-table-body');
+      if (!tbody || window.uvozPrivremeniRedovi.length === 0) return;
+
+      const brojKolona = window.uvozPrivremeniRedovi[0].length;
+      const mapiranje = [];
+      for (let i = 0; i < brojKolona; i++) {
+        mapiranje.push(document.getElementById(`import-col-map-${i}`)?.value || 'ignore');
+      }
+
+      const preskociPrvi = document.getElementById('import-skip-first-row')?.checked || false;
+      const prikazniRedovi = window.uvozPrivremeniRedovi.slice(preskociPrvi ? 1 : 0, (preskociPrvi ? 1 : 0) + 6);
+
+      tbody.innerHTML = prikazniRedovi.map(red => `
+        <tr class="hover:bg-slate-50">
+          ${red.map((celija, cIdx) => {
+            const tip = mapiranje[cIdx] || 'ignore';
+            const stil = tip === 'fullName' ? 'font-black text-indigo-950' : (tip === 'email' ? 'font-bold text-sky-900' : (tip === 'group' ? 'font-extrabold text-emerald-800' : (tip === 'ignore' ? 'text-slate-300 line-through' : 'text-slate-700')));
+            return `<td class="p-3 border-r border-slate-100 last:border-r-0 ${stil}">${celija || '—'}</td>`;
+          }).join('')}
+        </tr>
+      `).join('');
+
+      const ukupnoZaUvoz = window.uvozPrivremeniRedovi.length - (preskociPrvi ? 1 : 0);
+      const summaryEl = document.getElementById('import-summary-text');
+      if (summaryEl) summaryEl.innerText = `Spremno za upis ${ukupnoZaUvoz} članova u bazu.`;
+    };
+
+    window.potvrdiUvozClanova = async function() {
+      if (window.uvozPrivremeniRedovi.length === 0) return;
+      const brojKolona = window.uvozPrivremeniRedovi[0].length;
+      const mapiranje = [];
+      for (let i = 0; i < brojKolona; i++) {
+        mapiranje.push(document.getElementById(`import-col-map-${i}`)?.value || 'ignore');
+      }
+
+      const sad = new Date();
+      const godina = String(sad.getFullYear()).slice(-2);
+      const mesec = String(sad.getMonth() + 1).padStart(2, '0');
+      const postojeciBrojevi = (state.membersList || [])
+        .map(m => parseInt(String(m.card || '').replace(/[^0-9]/g, '').slice(-3), 10) || 0)
+        .filter(n => n > 0);
+      let tekuciRedni = (postojeciBrojevi.length > 0 ? Math.max(...postojeciBrojevi) : 100) + 1;
+
+      const datumUclanjenja = `${String(sad.getDate()).padStart(2, '0')}.${String(sad.getMonth() + 1).padStart(2, '0')}.${sad.getFullYear()}.`;
+      const vaziDoDefault = `31.08.${sad.getFullYear() + 1}.`;
+      const preskociPrvi = document.getElementById('import-skip-first-row')?.checked || false;
+      const redovi = preskociPrvi ? window.uvozPrivremeniRedovi.slice(1) : window.uvozPrivremeniRedovi;
+
+      let uvezeno = 0;
+      const zaEmail = [];
+
+      for (const red of redovi) {
+        let fullName = '', email = '', phone = '', group = '';
+        red.forEach((val, i) => {
+          if (mapiranje[i] === 'fullName') fullName = val;
+          if (mapiranje[i] === 'email') email = val;
+          if (mapiranje[i] === 'phone') phone = val;
+          if (mapiranje[i] === 'group') group = val;
+        });
+        if (!fullName && !email) continue;
+
+        const noviBroj = `${godina}${mesec}${tekuciRedni++}`;
+        const delovi = fullName.trim().split(' ');
+        const noviClan = {
+          card: noviBroj,
+          firstName: delovi[0] || 'Polaznik',
+          lastName: delovi.slice(1).join(' '),
+          phone: phone || '',
+          email: email || '',
+          group: group || '',
+          joinedDate: datumUclanjenja,
+          validUntil: vaziDoDefault,
+          forceExpired: false
+        };
+
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', String(noviBroj)), noviClan);
+        uvezeno++;
+        if (noviClan.email && noviClan.email.includes('@')) zaEmail.push(noviClan);
+      }
+
+      document.getElementById('modal-import-partner')?.classList.add('hidden');
+      const autoPosalji = document.getElementById('import-auto-send-email')?.checked === true;
+      if (autoPosalji && zaEmail.length > 0) {
+        await window.posaljiKarticePrekoGoogleSkripte(zaEmail);
+        showNotification(`Uvezeno ${uvezeno} članova i poslato ${zaEmail.length} kartica na email!`, "success");
+      } else {
+        showNotification(`Uspešno uvezeno ${uvezeno} novih članova!`, "success");
+      }
+    };
+
+    window.otvoriModalDuplikataClanova = function() {
+      document.getElementById('modal-duplicate-members')?.classList.remove('hidden');
+      const container = document.getElementById('duplicate-members-list');
+      if (!container) return;
+      const lista = state.membersList || [];
+      const parovi = [];
+      for (let i = 0; i < lista.length; i++) {
+        for (let j = i + 1; j < lista.length; j++) {
+          const a = lista[i], b = lista[j];
+          const istoIme = `${a.firstName} ${a.lastName}`.toLowerCase().trim() === `${b.firstName} ${b.lastName}`.toLowerCase().trim();
+          const istiMail = a.email && b.email && a.email.toLowerCase().trim() === b.email.toLowerCase().trim();
+          if (istoIme || istiMail) parovi.push({ a, b });
+        }
+      }
+      if (parovi.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center bg-emerald-50 rounded-2xl text-emerald-900 font-black text-sm">✅ Nema pronađenih duplikata u bazi!</div>`;
+        return;
+      }
+      container.innerHTML = parovi.map(p => `
+        <div class="p-4 bg-slate-50 border border-amber-200 rounded-2xl flex items-center justify-between gap-3 text-xs">
+          <div>
+            <p class="font-black text-slate-900">${p.a.firstName} ${p.a.lastName} (${p.a.card}) ↔ (${p.b.card})</p>
+            <p class="text-slate-500">${p.a.group || ''} / ${p.b.group || ''}</p>
+          </div>
+          <button type="button" onclick="window.obrisiClana('${p.b.card}'); window.otvoriModalDuplikataClanova();" class="px-3 py-2 bg-rose-600 text-white rounded-xl font-black cursor-pointer">Obriši duplikat ${p.b.card}</button>
+        </div>
+      `).join('');
+    };
+
     // Dodavanje člana u bazu
     window.toggleFormaNovogClana = function() {
       document.getElementById('form-create-member')?.classList.toggle('hidden');
@@ -2450,8 +2638,34 @@
         }
         if (q) list = list.filter(m => String(m.card).toLowerCase().includes(q) || `${m.firstName} ${m.lastName}`.toLowerCase().includes(q) || (m.group && m.group.toLowerCase().includes(q)));
 
+        // Prikaz zbirne statistike odziva za izabranu školu / odeljenje
+        const statsBar = document.getElementById('group-stats-bar');
+        if (statsBar) {
+          if (izabranaGrupa !== 'all') {
+            const ukupnoDolazakaGrupe = list.reduce((sum, m) => {
+              const br = state.bookings.filter(b => b.status !== 'otkazano' && b.memberCode && String(b.memberCode).toUpperCase() === String(m.card).toUpperCase()).length;
+              return sum + br;
+            }, 0);
+            document.getElementById('group-stats-title').innerText = `Odeljenje / Grupa: ${izabranaGrupa}`;
+            document.getElementById('group-stats-members').innerText = `Prijavljenih učenika: ${list.length}`;
+            document.getElementById('group-stats-visits').innerText = `Ukupno aktivnosti: ${ukupnoDolazakaGrupe}`;
+            statsBar.classList.remove('hidden');
+            statsBar.classList.add('flex');
+          } else {
+            statsBar.classList.add('hidden');
+            statsBar.classList.remove('flex');
+          }
+        }
+
         membersBody.innerHTML = list.map(m => {
           const st = window.proveriStatusClanaZaAdmin(m);
+          const brojPoseta = state.bookings.filter(b =>
+            b.status !== 'otkazano' &&
+            b.activityType !== 'uclanjenje' &&
+            b.memberCode &&
+            String(b.memberCode).toUpperCase() === String(m.card).toUpperCase()
+          ).length;
+
           return `
             <tr class="hover:bg-slate-50">
               <td class="py-3 px-3 text-center"><input type="checkbox" class="w-4 h-4 rounded" /></td>
@@ -2461,7 +2675,12 @@
                 ${m.group ? `<span class="inline-block mt-0.5 text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">${m.group}</span>` : ''}
               </td>
               <td class="py-3 px-3 text-xs text-slate-600">${m.phone || ''} ${m.email ? `<br>${m.email}` : ''}</td>
-              <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${st.aktivna ? '🟢' : '🔴'} ${st.opis}</span></td>
+              <td class="py-3 px-3 text-center">
+                <div class="flex flex-col items-center gap-1">
+                  <span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${st.aktivna ? '🟢' : '🔴'} ${st.opis}</span>
+                  <span class="text-[10px] font-black ${brojPoseta > 0 ? 'text-indigo-700' : 'text-slate-400'}">Preuzeto programa: ${brojPoseta}</span>
+                </div>
+              </td>
               <td class="py-3 px-3 text-right space-x-1">
                 <button onclick="window.upravljajClanarinomAdmin('${m.card}')" class="px-2 py-1 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-black cursor-pointer" title="Status članarine">🔄</button>
                 ${m.email ? `<button onclick="window.posaljiKarticePrekoGoogleSkripte([state.membersList.find(x => x.card === '${m.card}')]).then(() => showNotification('Kartica je poslata na ${m.email}', 'success'))" class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black cursor-pointer" title="Pošalji karticu na email">✉️</button>` : ''}
