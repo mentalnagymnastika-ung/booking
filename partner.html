@@ -869,31 +869,53 @@
     window.html5QrCode = null;
     window.obradjujeSeKod = false;
 
-    window.pokreniQRProveru = function() {
+    window.pokreniQRProveru = async function() {
       if (window.html5QrCode?.isScanning) return;
-      document.getElementById('qrSkenerSetup').style.display = 'none';
-      document.getElementById('qrSkenerKontejner').style.display = 'flex';
+      const setupEl = document.getElementById('qrSkenerSetup');
+      const kontEl = document.getElementById('qrSkenerKontejner');
+      if (setupEl) setupEl.classList.add('hidden');
+      if (kontEl) {
+        kontEl.classList.remove('hidden');
+        kontEl.classList.add('flex');
+      }
       window.obradjujeSeKod = false;
-      if (!window.html5QrCode) window.html5QrCode = new Html5Qrcode("qrSkener");
-      window.html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 220 } }, (txt) => {
-        if (window.obradjujeSeKod) return;
-        window.obradjujeSeKod = true;
-        window.prikaziRezultatSkeniranjaPartner(txt);
-      }, () => {}).then(() => {
+
+      try {
+        if (!window.html5QrCode) {
+          window.html5QrCode = new Html5Qrcode("qrSkener");
+        }
+        await window.html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
+          (txt) => {
+            if (window.obradjujeSeKod) return;
+            window.obradjujeSeKod = true;
+            window.prikaziRezultatSkeniranjaPartner(txt);
+          },
+          () => {}
+        );
         window.html5QrCode.isScanning = true;
-      }).catch(() => {
-        showNotification("Kamera nije dostupna", "warning");
+      } catch (err) {
+        showNotification("Kamera nije dostupna ili nema dozvolu", "warning");
         window.zaustaviQRProveru();
-      });
+      }
     };
 
-    window.zaustaviQRProveru = function() {
-      if (window.html5QrCode?.isScanning) {
+    window.zaustaviQRProveru = async function() {
+      if (window.html5QrCode && window.html5QrCode.isScanning) {
         window.html5QrCode.isScanning = false;
-        window.html5QrCode.stop().catch(() => {});
+        try {
+          await window.html5QrCode.stop();
+          await window.html5QrCode.clear();
+        } catch (e) {}
       }
-      document.getElementById('qrSkenerKontejner').style.display = 'none';
-      document.getElementById('qrSkenerSetup').style.display = 'flex';
+      const setupEl = document.getElementById('qrSkenerSetup');
+      const kontEl = document.getElementById('qrSkenerKontejner');
+      if (kontEl) {
+        kontEl.classList.add('hidden');
+        kontEl.classList.remove('flex');
+      }
+      if (setupEl) setupEl.classList.remove('hidden');
     };
 
     window.proveriKodRucno = function() {
