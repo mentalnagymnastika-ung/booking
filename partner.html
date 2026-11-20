@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>@Booker Partner Studio</title>
+  
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="@Booker Partner">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="logo%20EduBook.png">
+  <link rel="apple-touch-icon" href="logo%20EduBook.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Segoe UI', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    html, body { overscroll-behavior-y: none; }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .slide-down { animation: slideDown 0.3s ease-out forwards; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); height: 0; }
+      to { opacity: 1; transform: translateY(0); height: auto; }
+    }
+    #qrSkener video {
+      object-fit: cover !important;
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-12 relative">
+
+  <div id="notification-toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[110] w-11/12 max-w-md fade-in">
+    <div id="toast-bg" class="p-4 rounded-2xl shadow-xl flex items-center justify-between border-2 bg-emerald-50 border-emerald-200 text-emerald-800">
+      <div class="flex items-center gap-3">
+        <span id="toast-icon" class="text-2xl">✅</span>
+        <p id="toast-message" class="text-sm font-bold">Obaveštenje...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- 1. EKRAN ZA PRIJAVU PARTNERA (Google nalog ILI Partnerski pristupni kod) -->
+  <!-- ======================================================================= -->
+  <div id="partner-login-screen" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
+    <div class="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 fade-in">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center font-black text-3xl text-white shadow-lg">
+          B
+        </div>
+        <h1 class="text-2xl font-black text-slate-950 tracking-tight">@Booker Partner Studio</h1>
+        <p class="text-xs sm:text-sm text-slate-500 font-semibold">
+          Samostalno upravljanje vašim ponudama, terminima, prijemom gostiju i članovima mreže
+        </p>
+      </div>
+
+      <!-- Način 1: Google prijava -->
+      <div class="space-y-2">
+        <button type="button" id="btn-partner-google-login" class="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-800 border-2 border-slate-200 hover:border-indigo-400 rounded-2xl text-sm font-black shadow-sm flex items-center justify-center gap-3 transition cursor-pointer">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          <span>Prijavi se preko Google naloga</span>
+        </button>
+      </div>
+
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-3 text-[11px] font-black uppercase tracking-wider text-slate-400">ili pristupni kod</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      <!-- Način 2: Partnerski pristupni kod (za prijemni pult / tablet) -->
+      <form id="form-partner-code-login" class="space-y-3">
+        <div>
+          <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Partnerski pristupni kod</label>
+          <input id="partner-access-code-input" type="text" placeholder="npr. ORD-101" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-center text-base font-mono font-black text-slate-900 uppercase tracking-widest focus:outline-none focus:border-indigo-500 focus:bg-white transition" />
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-2xl text-sm font-black shadow-lg shadow-indigo-200 transition cursor-pointer">
+          Otključaj radni prostor
+        </button>
+      </form>
+
+      <!-- Pomoćni izbor partnera kada glavni admin testira sistem -->
+      <div id="super-admin-partner-picker" class="hidden pt-3 border-t border-indigo-100 space-y-2">
+        <p class="text-[11px] font-black text-indigo-700 uppercase tracking-wide text-center">Super Admin režim — Izaberite profil partnera za pregled:</p>
+        <select id="super-admin-partner-select" class="w-full bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 text-xs font-black text-indigo-950"></select>
+        <button type="button" onclick="window.udjiKaoIzabraniPartner()" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-black transition cursor-pointer">
+          Otvori studio izabranog partnera
+        </button>
+      </div>
+
+      <div id="partner-login-error" class="hidden bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-2xl text-xs font-bold text-center leading-relaxed"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- 2. GLAVNI RADNI PROSTOR PARTNERA                                        -->
+  <!-- ======================================================================= -->
+  <div id="partner-workspace" class="hidden flex-1 flex flex-col">
+    
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-3 py-2.5 shadow-sm">
+      <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center font-black text-lg text-white shadow-md shrink-0">
+            B
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 id="header-partner-name" class="text-sm sm:text-base font-black text-slate-950 truncate">Partner Studio</h1>
+              <span id="network-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" title="Na mreži"></span>
+            </div>
+            <p id="header-partner-subtitle" class="text-[11px] font-bold text-indigo-600 truncate">Upravljanje ponudama i prijemom</p>
+          </div>
+        </div>
+
+        <button type="button" id="btn-partner-logout" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-black px-3.5 py-2 rounded-xl border border-rose-200 transition shrink-0 cursor-pointer">
+          Odjava
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 space-y-6">
+      
+      <!-- Navigacija partnera (4 jasna panela) -->
+      <div class="bg-white p-2.5 rounded-3xl border border-slate-200 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button id="pnav-offers" onclick="window.switchPartnerTab('offers')" class="pnav-btn active flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-black bg-indigo-600 text-white shadow-md transition cursor-pointer">
+          <span>📋</span> <span>Moje ponude</span>
+        </button>
+
+        <button id="pnav-scanner" onclick="window.switchPartnerTab('scanner')" class="pnav-btn flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+          <span>📷</span> <span>Skener prijema</span>
+        </button>
+
+        <button id="pnav-bookings" onclick="window.switchPartnerTab('bookings')" class="pnav-btn flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+          <span>💳</span> <span>Prijave i uplate</span>
+        </button>
+
+        <button id="pnav-members" onclick="window.switchPartnerTab('members')" class="pnav-btn flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+          <span>👥</span> <span>Moji članovi</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: MOJE PONUDE I TERMINI -->
+      <section id="ptab-offers" class="ptab-section space-y-5 fade-in">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-black text-slate-950">Vaše ponude i termini</h2>
+            <p class="text-xs text-slate-500 font-semibold mt-0.5">Objavite novu ponudu, otvorite ili zatvorite prijave i pratite popunjenost mesta</p>
+          </div>
+          <button type="button" id="btn-partner-new-event" class="px-5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-black rounded-2xl shadow-lg shadow-indigo-100 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>➕</span> <span>Objavi novu ponudu</span>
+          </button>
+        </div>
+
+        <div id="partner-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </section>
+
+      <!-- TAB 2: SKENER PRIJEMA (Samo za ponude ovog partnera) -->
+      <section id="ptab-scanner" class="ptab-section hidden space-y-5 fade-in">
+        <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm max-w-lg mx-auto">
+          <div class="text-center mb-5">
+            <h3 class="font-black text-slate-900 text-xl">Provera karte na prijemu</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Validacija ulaznica i termina isključivo za vaše programe</p>
+          </div>
+          
+          <div id="qrSkenerSetup" class="flex flex-col items-center justify-center py-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl text-center">
+            <div class="text-5xl mb-4 opacity-50">📷</div>
+            <button type="button" onclick="window.pokreniQRProveru()" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg transition cursor-pointer">Pokreni skener kameru</button>
+          </div>
+
+          <div id="qrSkenerKontejner" class="hidden flex-col items-center space-y-5">
+            <div class="w-[250px] h-[250px] rounded-2xl overflow-hidden border-4 border-slate-900 shadow-xl bg-black relative">
+              <div id="qrSkener" class="w-full h-full absolute inset-0 object-cover"></div>
+            </div>
+            <button type="button" onclick="window.zaustaviQRProveru()" class="px-6 py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-sm rounded-xl transition border border-rose-100 cursor-pointer">✖ Ugasi kameru</button>
+          </div>
+
+          <div class="flex gap-2 pt-6 border-t border-slate-100 mt-6">
+            <input id="scanner-manual-input" type="text" placeholder="Unesite kod karte (npr. BK-123456)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-mono font-bold uppercase focus:outline-none focus:border-indigo-500" />
+            <button type="button" onclick="window.proveriKodRucno()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3.5 rounded-xl text-sm font-black shadow-md transition cursor-pointer">Proveri</button>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm max-w-lg mx-auto space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h4 class="font-black text-slate-900 text-base">Vaša očitavanja</h4>
+            <span id="partner-scan-counter" class="text-xs font-black bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-xl border border-indigo-100">0 očitano</span>
+          </div>
+          <div id="partner-recent-scans-list" class="max-h-64 overflow-y-auto no-scrollbar space-y-2.5 text-sm"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: PRIJAVE I POTVRDE UPLATA -->
+      <section id="ptab-bookings" class="ptab-section hidden space-y-5 fade-in">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg sm:text-xl font-black text-slate-900">Prijave za vaše programe</h3>
+            <p class="text-xs text-slate-500 font-bold mt-0.5">Pregled prijavljenih polaznika i potvrda uplata za vaše termine</p>
+          </div>
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <select id="partner-filter-prijave" onchange="renderPartnerUI()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+              <option value="all">Sve prijave</option>
+              <option value="neplaceno">⏳ Čeka potvrdu uplate</option>
+              <option value="placeno">🟢 Potvrđene i članarine</option>
+            </select>
+            <input id="partner-search-prijave" oninput="renderPartnerUI()" type="text" placeholder="Ime ili kod karte..." class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-indigo-500 w-full sm:w-52" />
+          </div>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto no-scrollbar">
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="text-[11px] font-black text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                  <th class="py-3 px-4">Kod i Termin</th>
+                  <th class="py-3 px-4">Polaznik i Kontakt</th>
+                  <th class="py-3 px-4">Ponuda</th>
+                  <th class="py-3 px-4 text-center">Iznos</th>
+                  <th class="py-3 px-4 text-center">Status</th>
+                  <th class="py-3 px-4 text-right">Akcija</th>
+                </tr>
+              </thead>
+              <tbody id="partner-prijave-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: MOJI ČLANOVI (Uključivanje klijenata/učenika partnera u zajedničku mrežu) -->
+      <section id="ptab-members" class="ptab-section hidden space-y-6 fade-in">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-fit space-y-4">
+            <div>
+              <h3 class="font-black text-slate-900 text-lg">Dodaj člana u mrežu</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Vaš klijent dobija članski broj i može koristiti pogodnosti kod svih partnera u @Booker mreži.</p>
+            </div>
+
+            <form id="form-partner-create-member" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Broj članske kartice *</label>
+                <input id="pmember-card-input" type="text" required placeholder="Automatski ili ručni broj" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-slate-800 uppercase focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Ime *</label>
+                  <input id="pmember-firstname-input" type="text" required placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Prezime *</label>
+                  <input id="pmember-lastname-input" type="text" required placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Kontakt telefon *</label>
+                <input id="pmember-phone-input" type="tel" required placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Email adresa</label>
+                <input id="pmember-email-input" type="email" placeholder="clan@primer.rs" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Trajanje članarine</label>
+                <select id="pmember-duration-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                  <option value="30" selected>30 dana (Mesečna članarina)</option>
+                  <option value="skolska">Do kraja školske godine (31.08.)</option>
+                  <option value="365">Godinu dana (365 dana)</option>
+                </select>
+              </div>
+              <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition cursor-pointer">
+                Sačuvaj člana u zajedničku bazu
+              </button>
+            </form>
+          </div>
+
+          <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="font-black text-slate-900 text-lg">Članovi upisani preko vas</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Pregled članova koje ste vi uključili u @Booker mrežu</p>
+              </div>
+              <input id="pmember-search-input" oninput="renderPartnerUI()" type="text" placeholder="Pretraži člana..." class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500 w-full sm:w-52" />
+            </div>
+
+            <div class="overflow-x-auto no-scrollbar">
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="text-[11px] font-black text-slate-400 uppercase border-b border-slate-100 bg-slate-50/50">
+                    <th class="py-2.5 px-3">Kartica</th>
+                    <th class="py-2.5 px-3">Ime i Prezime</th>
+                    <th class="py-2.5 px-3">Kontakt</th>
+                    <th class="py-2.5 px-3 text-center">Važenje</th>
+                  </tr>
+                </thead>
+                <tbody id="partner-members-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: KREIRANJE / IZMENA PONUDE PARTNERA -->
+  <div id="modal-partner-event" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
+    <div class="bg-white sm:rounded-3xl rounded-t-3xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+      <div class="p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
+        <h3 id="modal-pevent-title" class="text-xl font-black text-slate-900">Nova ponuda</h3>
+        <button type="button" onclick="document.getElementById('modal-partner-event').classList.add('hidden')" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center text-slate-600 text-xl font-black border border-slate-200 cursor-pointer">✕</button>
+      </div>
+      
+      <div class="p-5 overflow-y-auto no-scrollbar space-y-4">
+        <form id="form-partner-submit-event" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide mb-1">Tip aktivnosti *</label>
+              <select id="pevent-activity-type" onchange="window.prilagodiFormuPartnera(this.value)" class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                <option value="individualno">Usluga / Pregled / Konsultacije (Termini)</option>
+                <option value="radionica">Prisustvo na lokaciji (Radionica, predavanje)</option>
+                <option value="online">Online susret (Google Meet, Zoom)</option>
+                <option value="digitalni_resurs">Digitalni resurs (PDF materijal)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-black text-indigo-950 uppercase tracking-wide mb-1">Oblast u katalogu *</label>
+              <select id="pevent-sub-category" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                <option value="medicinski_stit">Medicinski štit</option>
+                <option value="aktivan_odmor">Aktivan odmor</option>
+                <option value="edukacija">Edukacija i predavanja</option>
+                <option value="mentalni_razvoj">Mentalni razvoj društva</option>
+                <option value="socijalizacija">Socijalizacija</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="sm:col-span-1">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Redni broj *</label>
+              <input id="pevent-ordinal" type="number" min="1" max="99" required placeholder="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-base font-black text-indigo-700 focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Naziv ponude / usluge *</label>
+              <input id="pevent-title" type="text" required placeholder="npr. Preventivni pregled posture" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base font-semibold focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+            <div id="pevent-image-preview" class="w-16 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden text-2xl shrink-0">🖼️</div>
+            <div class="flex-1 space-y-1.5">
+              <p class="text-xs font-bold text-slate-700">Fotografija ponude (Plakat)</p>
+              <input type="file" id="pevent-image-file" accept="image/*" class="hidden" />
+              <button type="button" onclick="document.getElementById('pevent-image-file').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-black shadow-2xs hover:bg-slate-100 transition cursor-pointer">Odaberi sliku</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Detaljan opis ponude *</label>
+            <textarea id="pevent-description" rows="3" required placeholder="Opišite šta korisnici dobijaju..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Broj mesta / termina *</label>
+              <input id="pevent-seats" type="number" min="1" required placeholder="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Redovna cena (RSD) *</label>
+              <input id="pevent-price" type="number" min="0" step="50" required placeholder="0 = Besplatno" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Cena za članove (RSD)</label>
+              <input id="pevent-member-price" type="number" min="0" step="50" placeholder="0 = Besplatno za članove" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer" onclick="document.getElementById('pevent-promo-1plus1').click()">
+            <div>
+              <span class="text-xs font-black text-amber-950 flex items-center gap-1.5"><span>🎁</span> Uključi 1+1 Gratis promociju</span>
+              <p class="text-[11px] text-amber-800 font-medium">Dva mesta/termina po ceni jednog (drugo mesto je poklon).</p>
+            </div>
+            <input type="checkbox" id="pevent-promo-1plus1" class="w-5 h-5 rounded border-amber-300 text-indigo-600 pointer-events-none shrink-0 ml-2" />
+          </div>
+
+          <div id="pevent-digital-box" class="hidden bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3.5 space-y-1.5">
+            <label class="block text-xs font-black text-indigo-950 uppercase">Link za pristup (Meet / Zoom / PDF):</label>
+            <input id="pevent-digital-url" type="url" placeholder="https://..." class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Lokacija održavanja *</label>
+              <input id="pevent-location" type="text" required placeholder="Adresa ordinacije / učionice" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Slobodni sati / termini (opciono)</label>
+              <input id="pevent-time" type="text" placeholder="npr. 17:00, 17:30, 18:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Datum početka *</label>
+              <input id="pevent-start-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Datum završetka *</label>
+              <input id="pevent-end-date" type="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Žiro račun za uplatu (ako se naplaćuje)</label>
+              <input id="pevent-bank-account" type="text" placeholder="160-0000000000000-00" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Naziv primaoca uplate</label>
+              <input id="pevent-recipient-name" type="text" placeholder="Naziv vaše ustanove" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div class="pt-2 flex gap-2.5">
+            <button type="submit" class="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-base font-black rounded-2xl shadow-lg transition cursor-pointer">
+              SAČUVAJ PONUDU
+            </button>
+            <button type="button" onclick="document.getElementById('modal-partner-event').classList.add('hidden')" class="px-5 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition cursor-pointer">
+              Otkaži
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REZULTAT SKENIRANJA -->
+  <div id="modal-scan-result" class="hidden fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-sm p-6 text-center shadow-2xl space-y-4 slide-down" id="scan-result-content"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
+      authDomain: "edubooker-umg.firebaseapp.com",
+      projectId: "edubooker-umg",
+      storageBucket: "edubooker-umg.firebasestorage.app",
+      messagingSenderId: "406523647165",
+      appId: "1:406523647165:web:d4ec882a22f152aeec53d4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = 'booking-master-html-app';
+    const googleProvider = new GoogleAuthProvider();
+
+    const SUPER_ADMIN_EMAILS = ['brzak.goran@gmail.com', 'mentalne.gymnastike@gmail.com'];
+
+    const safeStorage = {
+      getItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+      setItem(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+    };
+
+    let state = {
+      activePartner: null,
+      googleUser: null,
+      currentTab: 'offers',
+      events: [],
+      bookings: [],
+      categories: [],
+      membersList: [],
+      scanLogs: [],
+      editingEventId: null,
+      tempImageBase64: ''
+    };
+
+    function showNotification(message, type = 'success') {
+      const toast = document.getElementById('notification-toast');
+      const toastBg = document.getElementById('toast-bg');
+      const toastIcon = document.getElementById('toast-icon');
+      const toastMsg = document.getElementById('toast-message');
+      if (!toast || !toastBg || !toastMsg) return;
+      
+      toastMsg.innerText = message;
+      if (type === 'success') {
+        toastBg.className = "p-4 rounded-2xl shadow-2xl flex items-center justify-between border-2 bg-emerald-50 border-emerald-200 text-emerald-800";
+        if (toastIcon) toastIcon.innerText = "✅";
+      } else {
+        toastBg.className = "p-4 rounded-2xl shadow-2xl flex items-center justify-between border-2 bg-amber-50 border-amber-300 text-amber-900";
+        if (toastIcon) toastIcon.innerText = "⚠️";
+      }
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3200);
+    }
+
+    function aktivirajSesijuPartnera(partnerObj) {
+      state.activePartner = partnerObj;
+      safeStorage.setItem('edubooker_active_partner_id', partnerObj.id);
+      document.getElementById('partner-login-screen').classList.add('hidden');
+      document.getElementById('partner-workspace').classList.remove('hidden');
+      document.getElementById('header-partner-name').innerText = partnerObj.name;
+      document.getElementById('header-partner-subtitle').innerText = partnerObj.email ? `Nalog: ${partnerObj.email}` : `Partnerski kod: ${partnerObj.accessCode || partnerObj.id}`;
+      renderPartnerUI();
+    }
+
+    function proveriAutorizacijuEmaila(email) {
+      const cistEmail = (email || '').toLowerCase().trim();
+      if (!cistEmail) return;
+
+      const pronadjenPartner = state.categories.find(c => c.email && c.email.toLowerCase().trim() === cistEmail);
+      if (pronadjenPartner) {
+        aktivirajSesijuPartnera(pronadjenPartner);
+        return;
+      }
+
+      if (SUPER_ADMIN_EMAILS.includes(cistEmail)) {
+        const picker = document.getElementById('super-admin-partner-picker');
+        const sel = document.getElementById('super-admin-partner-select');
+        if (picker && sel && state.categories.length > 0) {
+          sel.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+          picker.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const errEl = document.getElementById('partner-login-error');
+      if (errEl) {
+        errEl.innerText = `Google nalog (${cistEmail}) nije povezan ni sa jednim partnerom. Obratite se administratoru @Booker mreže da upiše vaš email.`;
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    window.udjiKaoIzabraniPartner = function() {
+      const sel = document.getElementById('super-admin-partner-select');
+      const izabrani = state.categories.find(c => c.id === sel?.value);
+      if (izabrani) aktivirajSesijuPartnera(izabrani);
+    };
+
+    document.getElementById('btn-partner-google-login').addEventListener('click', async () => {
+      document.getElementById('partner-login-error').classList.add('hidden');
+      try {
+        const res = await signInWithPopup(auth, googleProvider);
+        state.googleUser = res.user;
+        proveriAutorizacijuEmaila(res.user.email);
+      } catch (err) {
+        showNotification("Prijava preko Google naloga nije uspela", "warning");
+      }
+    });
+
+    document.getElementById('form-partner-code-login').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('partner-login-error');
+      errEl.classList.add('hidden');
+      const unetiKod = (document.getElementById('partner-access-code-input').value || '').trim().toUpperCase();
+      if (!unetiKod) return;
+
+      const pronadjen = state.categories.find(c => (c.accessCode && c.accessCode.toUpperCase() === unetiKod));
+      if (pronadjen) {
+        aktivirajSesijuPartnera(pronadjen);
+      } else {
+        errEl.innerText = "Nevažeći partnerski kod. Proverite kod koji vam je dodelio administrator.";
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('btn-partner-logout').addEventListener('click', async () => {
+      state.activePartner = null;
+      safeStorage.setItem('edubooker_active_partner_id', '');
+      if (state.googleUser) {
+        await signOut(auth).catch(() => {});
+        state.googleUser = null;
+      }
+      document.getElementById('partner-workspace').classList.add('hidden');
+      document.getElementById('partner-login-screen').classList.remove('hidden');
+    });
+
+    // Sinhronizacija sa zajedničkom Firebase bazom
+    function pokreniBazu() {
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'categories'), (snap) => {
+        const list = [];
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        state.categories = list;
+
+        const sacuvanPartnerId = safeStorage.getItem('edubooker_active_partner_id');
+        if (!state.activePartner && sacuvanPartnerId) {
+          const p = list.find(x => x.id === sacuvanPartnerId);
+          if (p) aktivirajSesijuPartnera(p);
+        } else if (state.googleUser && !state.activePartner) {
+          proveriAutorizacijuEmaila(state.googleUser.email);
+        }
+        renderPartnerUI();
+      });
+
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'events'), (snap) => {
+        const list = [];
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        state.events = list;
+        renderPartnerUI();
+      });
+
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), (snap) => {
+        const list = [];
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        state.bookings = list;
+        renderPartnerUI();
+      });
+
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'members'), (snap) => {
+        const list = [];
+        snap.forEach(d => list.push({ card: d.id, ...d.data() }));
+        state.membersList = list;
+        renderPartnerUI();
+      });
+
+      onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'scans'), (snap) => {
+        const list = [];
+        snap.forEach(d => list.push({ scanId: d.id, ...d.data() }));
+        list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        state.scanLogs = list;
+        renderPartnerUI();
+      });
+    }
+
+    window.switchPartnerTab = function(tab) {
+      state.currentTab = tab;
+      document.querySelectorAll('.ptab-section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(`ptab-${tab}`)?.classList.remove('hidden');
+
+      document.querySelectorAll('.pnav-btn').forEach(b => {
+        b.className = "pnav-btn flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer";
+      });
+      const activeBtn = document.getElementById(`pnav-${tab}`);
+      if (activeBtn) {
+        activeBtn.className = "pnav-btn active flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-black bg-indigo-600 text-white shadow-md transition cursor-pointer";
+      }
+
+      if (tab !== 'scanner' && window.html5QrCode?.isScanning) {
+        window.zaustaviQRProveru();
+      }
+      renderPartnerUI();
+    };
+
+    // Upravljanje ponudama partnera
+    document.getElementById('pevent-image-file').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 500;
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          state.tempImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+          document.getElementById('pevent-image-preview').innerHTML = `<img src="${state.tempImageBase64}" class="w-full h-full object-cover" />`;
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    window.prilagodiFormuPartnera = function(tip) {
+      const dBox = document.getElementById('pevent-digital-box');
+      if (dBox) {
+        if (tip === 'online' || tip === 'digitalni_resurs') dBox.classList.remove('hidden');
+        else dBox.classList.add('hidden');
+      }
+    };
+
+    document.getElementById('btn-partner-new-event').addEventListener('click', () => {
+      if (!state.activePartner) return;
+      state.editingEventId = null;
+      state.tempImageBase64 = '';
+      document.getElementById('modal-pevent-title').innerText = `Nova ponuda — ${state.activePartner.name}`;
+      document.getElementById('form-partner-submit-event').reset();
+      document.getElementById('pevent-image-preview').innerHTML = '🖼️';
+      const mojiDogadjaji = state.events.filter(e => e.category === state.activePartner.id);
+      document.getElementById('pevent-ordinal').value = mojiDogadjaji.length + 1;
+      document.getElementById('pevent-recipient-name').value = state.activePartner.name;
+      window.prilagodiFormuPartnera('individualno');
+      document.getElementById('modal-partner-event').classList.remove('hidden');
+    });
+
+    window.izmeniPonuduPartnera = function(eventId) {
+      const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
+      if (!ev) return;
+      state.editingEventId = eventId;
+      state.tempImageBase64 = ev.image || '';
+      document.getElementById('modal-pevent-title').innerText = "Izmeni svoju ponudu";
+      document.getElementById('pevent-activity-type').value = ev.activityType || 'individualno';
+      document.getElementById('pevent-sub-category').value = ev.subCategory || 'medicinski_stit';
+      document.getElementById('pevent-ordinal').value = ev.ordinalNumber || 1;
+      document.getElementById('pevent-title').value = ev.title || '';
+      document.getElementById('pevent-description').value = ev.description || '';
+      document.getElementById('pevent-seats').value = ev.totalSeats || 10;
+      document.getElementById('pevent-price').value = ev.price || 0;
+      document.getElementById('pevent-member-price').value = ev.memberPrice ?? '';
+      document.getElementById('pevent-promo-1plus1').checked = ev.hasPromo1plus1 === true;
+      document.getElementById('pevent-digital-url').value = ev.digitalUrl || '';
+      document.getElementById('pevent-location').value = ev.location || '';
+      document.getElementById('pevent-time').value = ev.time || '';
+      document.getElementById('pevent-start-date').value = ev.startDate || ev.date || '';
+      document.getElementById('pevent-end-date').value = ev.endDate || '';
+      document.getElementById('pevent-bank-account').value = ev.bankAccount || '';
+      document.getElementById('pevent-recipient-name').value = ev.recipientName || state.activePartner.name;
+      document.getElementById('pevent-image-preview').innerHTML = ev.image ? `<img src="${ev.image}" class="w-full h-full object-cover" />` : '🖼️';
+      window.prilagodiFormuPartnera(ev.activityType || 'individualno');
+      document.getElementById('modal-partner-event').classList.remove('hidden');
+    };
+
+    document.getElementById('form-partner-submit-event').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!state.activePartner) return;
+
+      const eventId = state.editingEventId || `EV-${Date.now()}`;
+      const postojeci = state.events.find(x => x.id === eventId) || {};
+      const startDate = document.getElementById('pevent-start-date').value;
+      const endDate = document.getElementById('pevent-end-date').value;
+      const vremeTekst = document.getElementById('pevent-time').value.trim();
+
+      const memberPriceRaw = document.getElementById('pevent-member-price').value;
+      const memberPrice = memberPriceRaw !== '' ? parseFloat(memberPriceRaw) : null;
+
+      const eventData = {
+        ...postojeci,
+        id: eventId,
+        category: state.activePartner.id,
+        activityType: document.getElementById('pevent-activity-type').value,
+        subCategory: document.getElementById('pevent-sub-category').value,
+        ordinalNumber: String(document.getElementById('pevent-ordinal').value || 1).padStart(2, '0'),
+        title: document.getElementById('pevent-title').value.trim(),
+        description: document.getElementById('pevent-description').value.trim(),
+        totalSeats: parseInt(document.getElementById('pevent-seats').value, 10) || 10,
+        price: parseFloat(document.getElementById('pevent-price').value) || 0,
+        memberPrice: memberPrice,
+        hasPromo1plus1: document.getElementById('pevent-promo-1plus1').checked === true,
+        digitalUrl: document.getElementById('pevent-digital-url').value.trim(),
+        location: document.getElementById('pevent-location').value.trim(),
+        time: vremeTekst,
+        useTimeSchedule: vremeTekst !== '',
+        startDate: startDate,
+        endDate: endDate,
+        date: startDate,
+        bankAccount: document.getElementById('pevent-bank-account').value.trim(),
+        recipientName: document.getElementById('pevent-recipient-name').value.trim() || state.activePartner.name,
+        isActive: postojeci.isActive !== undefined ? postojeci.isActive : true,
+        isFrozen: postojeci.isFrozen || false,
+        image: state.tempImageBase64 || postojeci.image || ''
+      };
+
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), eventData);
+      document.getElementById('modal-partner-event').classList.add('hidden');
+      showNotification("Vaša ponuda je uspešno objavljena!", "success");
+    });
+
+    window.toggleStatusPonudePartnera = async function(eventId) {
+      const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
+      if (!ev) return;
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), { isActive: !ev.isActive });
+      showNotification(`Prijave su ${!ev.isActive ? 'OTVORENE' : 'ZATVORENE'}`, "success");
+    };
+
+    window.toggleZamrzniPonuduPartnera = async function(eventId) {
+      const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
+      if (!ev) return;
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), { isFrozen: !ev.isFrozen });
+      showNotification(`Ponuda je ${!ev.isFrozen ? 'ZAMRZNUTA (sakrivena iz kataloga)' : 'ODMRZNUTA'}`, "success");
+    };
+
+    window.obrisiPonuduPartnera = async function(eventId) {
+      const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
+      if (!ev) return;
+      if (!confirm(`Da li želite da obrišete ponudu "${ev.title}"?`)) return;
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId));
+      showNotification("Ponuda je obrisana", "success");
+    };
+
+    // Potvrda uplate isključivo za prijave partnera
+    window.potvrdiUplatuPartnera = async function(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId);
+      if (!b) return;
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { isPaid: !b.isPaid });
+      showNotification(`Status uplate za ${b.firstName} je ažuriran`, "success");
+    };
+
+    // Unos člana od strane partnera u zajedničku mrežu
+    document.getElementById('form-partner-create-member').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!state.activePartner) return;
+
+      const card = document.getElementById('pmember-card-input').value.trim().toUpperCase();
+      const firstName = document.getElementById('pmember-firstname-input').value.trim();
+      const lastName = document.getElementById('pmember-lastname-input').value.trim();
+      const phone = document.getElementById('pmember-phone-input').value.trim();
+      const email = document.getElementById('pmember-email-input').value.trim();
+
+      if (state.membersList.some(m => String(m.card).toUpperCase() === card)) {
+        showNotification("Ovaj broj članske kartice već postoji u mreži!", "warning");
+        return;
+      }
+
+      const sad = new Date();
+      const fmtD = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}.`;
+      const trajanje = document.getElementById('pmember-duration-select').value;
+      let vaziDo = '';
+      if (trajanje === 'skolska') {
+        const god = sad.getMonth() >= 8 ? sad.getFullYear() + 1 : sad.getFullYear();
+        vaziDo = `31.08.${god}.`;
+      } else {
+        const dIsteka = new Date(sad.getTime() + (parseInt(trajanje, 10) || 30) * 86400000);
+        vaziDo = fmtD(dIsteka);
+      }
+
+      const noviClan = {
+        card,
+        firstName,
+        lastName,
+        phone,
+        email,
+        group: state.activePartner.name,
+        partnerId: state.activePartner.id,
+        joinedDate: fmtD(sad),
+        lastPaymentDate: sad.toISOString(),
+        validUntil: vaziDo,
+        forceExpired: false
+      };
+
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', card), noviClan);
+      document.getElementById('form-partner-create-member').reset();
+      showNotification(`Član ${firstName} ${lastName} je uspešno uključen u @Booker mrežu!`, "success");
+    });
+
+    // QR Skener izolovan samo za ponude ovog partnera
+    window.html5QrCode = null;
+    window.obradjujeSeKod = false;
+
+    window.pokreniQRProveru = function() {
+      if (window.html5QrCode?.isScanning) return;
+      document.getElementById('qrSkenerSetup').style.display = 'none';
+      document.getElementById('qrSkenerKontejner').style.display = 'flex';
+      window.obradjujeSeKod = false;
+      if (!window.html5QrCode) window.html5QrCode = new Html5Qrcode("qrSkener");
+      window.html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 220 } }, (txt) => {
+        if (window.obradjujeSeKod) return;
+        window.obradjujeSeKod = true;
+        window.prikaziRezultatSkeniranjaPartner(txt);
+      }, () => {}).then(() => {
+        window.html5QrCode.isScanning = true;
+      }).catch(() => {
+        showNotification("Kamera nije dostupna", "warning");
+        window.zaustaviQRProveru();
+      });
+    };
+
+    window.zaustaviQRProveru = function() {
+      if (window.html5QrCode?.isScanning) {
+        window.html5QrCode.isScanning = false;
+        window.html5QrCode.stop().catch(() => {});
+      }
+      document.getElementById('qrSkenerKontejner').style.display = 'none';
+      document.getElementById('qrSkenerSetup').style.display = 'flex';
+    };
+
+    window.proveriKodRucno = function() {
+      const inp = document.getElementById('scanner-manual-input');
+      if (inp && inp.value.trim()) {
+        window.prikaziRezultatSkeniranjaPartner(inp.value.trim());
+        inp.value = '';
+      }
+    };
+
+    window.prikaziRezultatSkeniranjaPartner = function(code) {
+      const cleanCode = code.trim().toUpperCase();
+      const b = state.bookings.find(x => x.id === cleanCode);
+      const content = document.getElementById('scan-result-content');
+      const mojiDogadjajiIds = new Set(state.events.filter(e => e.category === state.activePartner?.id).map(e => e.id));
+
+      if (!b || !mojiDogadjajiIds.has(b.eventId)) {
+        content.innerHTML = `
+          <div class="bg-rose-50 text-rose-800 border-2 border-rose-200 p-4 rounded-2xl">
+            <h4 class="text-lg font-black">🔴 KARTA NIJE ZA VAŠ PROGRAM</h4>
+          </div>
+          <p class="text-sm font-bold text-slate-600">Kod <strong>${cleanCode}</strong> ne pripada vašim ponudama ili ne postoji u bazi.</p>
+          <button type="button" onclick="window.zatvoriRezultatSkeniranja()" class="w-full py-3.5 bg-slate-900 text-white rounded-2xl text-sm font-black cursor-pointer">ZATVORI</button>
+        `;
+      } else if (b.status === 'otkazano') {
+        content.innerHTML = `
+          <div class="bg-rose-50 text-rose-800 border-2 border-rose-200 p-4 rounded-2xl"><h4 class="text-lg font-black">🔴 KARTA JE OTKAZANA</h4></div>
+          <p class="text-lg font-black">${b.firstName} ${b.lastName}</p>
+          <button type="button" onclick="window.zatvoriRezultatSkeniranja()" class="w-full py-3.5 bg-slate-900 text-white rounded-2xl text-sm font-black cursor-pointer">ZATVORI</button>
+        `;
+      } else {
+        const uplataOverena = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+        const maxUlaza = b.ticketsCount || 1;
+        const skenirano = b.scannedCount || 0;
+
+        if (!uplataOverena) {
+          content.innerHTML = `
+            <div class="bg-amber-50 text-amber-900 border-2 border-amber-300 p-4 rounded-2xl"><h4 class="text-lg font-black">⏳ UPLATA NIJE EVIDENTIRANA</h4></div>
+            <p class="text-xl font-black text-slate-900">${b.firstName} ${b.lastName}</p>
+            <p class="text-xs font-bold text-slate-600">Potrebno je potvrditi uplatu od ${b.totalPrice} RSD u sekciji "Prijave i uplate".</p>
+            <button type="button" onclick="window.zatvoriRezultatSkeniranja()" class="w-full py-3.5 bg-slate-900 text-white rounded-2xl text-sm font-black cursor-pointer">ZATVORI</button>
+          `;
+        } else if (skenirano < maxUlaza && b.status !== 'iskorišćena') {
+          content.innerHTML = `
+            <div class="bg-emerald-50 text-emerald-800 border-2 border-emerald-200 p-4 rounded-2xl"><h4 class="text-xl font-black">🟢 ISPRAVNA KARTA</h4></div>
+            <p class="text-2xl font-black text-slate-900">${b.firstName} ${b.lastName}</p>
+            <p class="text-sm font-bold text-indigo-700">${b.eventTitle}</p>
+            <p class="text-xs font-semibold text-slate-500">${b.eventDate} ${b.eventTime ? `u ${b.eventTime}h` : ''}</p>
+            <button type="button" onclick="window.potvrdiUlazPartner('${b.id}')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-base font-black shadow-lg cursor-pointer">✓ POTVRDI DOLAZAK (${skenirano + 1}/${maxUlaza})</button>
+            <button type="button" onclick="window.zatvoriRezultatSkeniranja()" class="w-full py-3 bg-slate-100 text-slate-600 rounded-2xl text-sm font-bold cursor-pointer">Odustani</button>
+          `;
+        } else {
+          content.innerHTML = `
+            <div class="bg-amber-50 text-amber-800 border-2 border-amber-200 p-4 rounded-2xl"><h4 class="text-lg font-black">🟡 KARTA JE VEĆ ISKORIŠĆENA</h4></div>
+            <p class="text-xl font-black text-slate-900">${b.firstName} ${b.lastName}</p>
+            <button type="button" onclick="window.zatvoriRezultatSkeniranja()" class="w-full py-3.5 bg-amber-600 text-white rounded-2xl text-sm font-black cursor-pointer">NASTAVI</button>
+          `;
+        }
+      }
+      document.getElementById('modal-scan-result').classList.remove('hidden');
+    };
+
+    window.potvrdiUlazPartner = async function(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId);
+      if (!b) return;
+      const maxUlaza = b.ticketsCount || 1;
+      const novoSkenirano = Math.min(maxUlaza, (b.scannedCount || 0) + 1);
+      const noviStatus = novoSkenirano >= maxUlaza ? 'iskorišćena' : 'delimično';
+
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
+        scannedCount: novoSkenirano,
+        status: noviStatus
+      });
+
+      const scanUniqueId = `SC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'scans', scanUniqueId), {
+        id: b.id,
+        eventId: b.eventId,
+        eventTitle: b.eventTitle,
+        polaznik: `${b.firstName} ${b.lastName}`,
+        vreme: new Date().toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' }),
+        datum: new Date().toLocaleDateString('sr-RS'),
+        timestamp: Date.now()
+      });
+
+      window.zatvoriRezultatSkeniranja();
+      showNotification("Dolazak je uspešno evidentiran!", "success");
+    };
+
+    window.zatvoriRezultatSkeniranja = function() {
+      document.getElementById('modal-scan-result').classList.add('hidden');
+      setTimeout(() => { window.obradjujeSeKod = false; }, 600);
+    };
+
+    function renderPartnerUI() {
+      if (!state.activePartner) return;
+      const pId = state.activePartner.id;
+
+      // 1. Ponude ovog partnera
+      const mojiDogadjaji = state.events.filter(e => e.category === pId);
+      const mojiDogadjajiIds = new Set(mojiDogadjaji.map(e => e.id));
+
+      const grid = document.getElementById('partner-events-grid');
+      if (grid) {
+        if (mojiDogadjaji.length === 0) {
+          grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-500 font-bold">Još uvek nemate objavljenih ponuda. Kliknite na "Objavi novu ponudu".</div>`;
+        } else {
+          grid.innerHTML = mojiDogadjaji.map(ev => {
+            const rez = state.bookings.filter(b => b.eventId === ev.id && b.status !== 'otkazano');
+            const zauzeto = rez.reduce((s, b) => s + (b.ticketsCount || 1), 0);
+            const slobodno = Math.max(0, ev.totalSeats - zauzeto);
+            const jeZamrznut = ev.isFrozen === true;
+
+            return `
+              <div class="bg-white rounded-3xl border-2 ${jeZamrznut ? 'border-slate-300 opacity-75' : 'border-slate-200'} overflow-hidden shadow-sm flex flex-col justify-between">
+                <div>
+                  <div class="h-36 bg-slate-800 relative overflow-hidden">
+                    ${ev.image ? `<img src="${ev.image}" class="w-full h-full object-cover" />` : `<div class="w-full h-full flex items-center justify-center text-4xl text-white">🎯</div>`}
+                    <span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-xl text-[11px] font-black shadow-sm ${jeZamrznut ? 'bg-sky-100 text-sky-900' : (ev.isActive ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white')}">
+                      ${jeZamrznut ? '❄️ Zamrznuto' : (ev.isActive ? '🟢 Otvoreno' : '🔒 Zatvoreno')}
+                    </span>
+                  </div>
+                  <div class="p-4 space-y-2">
+                    <h3 class="text-lg font-black text-slate-950 leading-tight">${ev.title}</h3>
+                    <p class="text-xs text-slate-500 font-bold">📅 ${ev.startDate || ev.date} ${ev.time ? `• 🕒 ${ev.time}` : ''}</p>
+                    <p class="text-xs text-slate-500 font-semibold truncate">📍 ${ev.location}</p>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs font-black">
+                      <span class="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700">Mesta: ${ev.totalSeats}</span>
+                      <span class="bg-emerald-50 px-2.5 py-1 rounded-lg text-emerald-700">Slobodno: ${slobodno}</span>
+                      <span class="bg-indigo-50 px-2.5 py-1 rounded-lg text-indigo-700">Cena: ${ev.price || 0} din</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-3 bg-slate-50 border-t border-slate-100 grid grid-cols-2 gap-1.5 text-xs font-black">
+                  <button type="button" onclick="window.toggleStatusPonudePartnera('${ev.id}')" class="py-2 rounded-xl border ${ev.isActive ? 'bg-white text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'} cursor-pointer">
+                    ${ev.isActive ? '🔓 Otvoreno' : '🔒 Zatvoreno'}
+                  </button>
+                  <button type="button" onclick="window.toggleZamrzniPonuduPartnera('${ev.id}')" class="py-2 rounded-xl bg-white border border-slate-200 text-slate-700 cursor-pointer">
+                    ${jeZamrznut ? '❄️ Odmrzni' : '🧊 Zamrzni'}
+                  </button>
+                  <button type="button" onclick="window.izmeniPonuduPartnera('${ev.id}')" class="py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 cursor-pointer">
+                    ✏️ Izmeni
+                  </button>
+                  <button type="button" onclick="window.obrisiPonuduPartnera('${ev.id}')" class="py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 cursor-pointer">
+                    🗑️ Briši
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Prijave samo za programe ovog partnera
+      const prijaveBody = document.getElementById('partner-prijave-tbody');
+      if (prijaveBody) {
+        const statusFilter = document.getElementById('partner-filter-prijave')?.value || 'all';
+        const q = (document.getElementById('partner-search-prijave')?.value || '').toLowerCase().trim();
+        let mojePrijave = state.bookings.filter(b => mojiDogadjajiIds.has(b.eventId) && b.status !== 'otkazano');
+
+        if (statusFilter === 'neplaceno') {
+          mojePrijave = mojePrijave.filter(b => !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0);
+        } else if (statusFilter === 'placeno') {
+          mojePrijave = mojePrijave.filter(b => b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0);
+        }
+
+        if (q) {
+          mojePrijave = mojePrijave.filter(b =>
+            (b.id && b.id.toLowerCase().includes(q)) ||
+            `${b.firstName} ${b.lastName}`.toLowerCase().includes(q)
+          );
+        }
+
+        if (mojePrijave.length === 0) {
+          prijaveBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400 font-bold">Nema prijava za prikaz.</td></tr>`;
+        } else {
+          prijaveBody.innerHTML = mojePrijave.map(b => {
+            const placeno = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+            const jeClan = b.paymentType === 'clanarina_pokriveno';
+            return `
+              <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4">
+                  <span class="font-mono font-black text-indigo-700 text-xs">${b.id}</span>
+                  <span class="block text-[11px] text-slate-400">${b.selectedDate || b.eventDate} ${b.eventTime ? `u ${b.eventTime}h` : ''}</span>
+                </td>
+                <td class="py-3 px-4">
+                  <p class="font-black text-slate-900 text-xs sm:text-sm">${b.firstName} ${b.lastName}</p>
+                  <p class="text-[11px] text-slate-500">📞 ${b.phone || 'N/A'}</p>
+                </td>
+                <td class="py-3 px-4 text-xs font-bold text-slate-700">${b.eventTitle}</td>
+                <td class="py-3 px-4 text-center font-black text-xs">${b.totalPrice || 0} RSD</td>
+                <td class="py-3 px-4 text-center">
+                  <span class="px-2.5 py-1 rounded-xl text-[11px] font-black ${placeno ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                    ${jeClan ? 'Članarina' : (placeno ? '🟢 Potvrđeno' : '⏳ Čeka uplatu')}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  ${!jeClan && (b.totalPrice || 0) > 0 ? `
+                    <button type="button" onclick="window.potvrdiUplatuPartnera('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-black border cursor-pointer ${b.isPaid ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-emerald-600 text-white'}">
+                      ${b.isPaid ? 'Poništi' : '✓ Potvrdi uplatu'}
+                    </button>
+                  ` : `<span class="text-xs text-slate-400 font-bold">—</span>`}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 3. Očitavanja skenera za ovog partnera
+      const scansListEl = document.getElementById('partner-recent-scans-list');
+      const scanCountEl = document.getElementById('partner-scan-counter');
+      if (scansListEl) {
+        const mojiScanovi = state.scanLogs.filter(s => mojiDogadjajiIds.has(s.eventId));
+        if (scanCountEl) scanCountEl.innerText = `${mojiScanovi.length} očitano`;
+        if (mojiScanovi.length === 0) {
+          scansListEl.innerHTML = `<p class="py-4 text-center text-slate-400 font-bold text-xs">Još uvek nema očitavanja</p>`;
+        } else {
+          scansListEl.innerHTML = mojiScanovi.slice(0, 20).map(s => `
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <p class="font-black text-slate-900 text-xs">${s.polaznik} <span class="font-mono text-indigo-700">(${s.id})</span></p>
+                <p class="text-[11px] text-slate-500">${s.eventTitle}</p>
+              </div>
+              <span class="text-[11px] font-black text-emerald-700 bg-white px-2 py-1 rounded-lg border border-emerald-200">✓ ${s.vreme}</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 4. Članovi upisani preko ovog partnera
+      const membersBody = document.getElementById('partner-members-tbody');
+      if (membersBody) {
+        const q = (document.getElementById('pmember-search-input')?.value || '').toLowerCase().trim();
+        let mojiClanovi = state.membersList.filter(m =>
+          m.partnerId === pId || (m.group && m.group.toLowerCase().trim() === state.activePartner.name.toLowerCase().trim())
+        );
+        if (q) {
+          mojiClanovi = mojiClanovi.filter(m =>
+            String(m.card).toLowerCase().includes(q) ||
+            `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+          );
+        }
+        if (mojiClanovi.length === 0) {
+          membersBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400 font-bold">Još uvek niste uneli nijednog člana.</td></tr>`;
+        } else {
+          membersBody.innerHTML = mojiClanovi.map(m => `
+            <tr class="hover:bg-slate-50">
+              <td class="py-3 px-3 font-mono font-black text-indigo-700 text-xs">${m.card}</td>
+              <td class="py-3 px-3 font-bold text-slate-900 text-xs sm:text-sm">${m.firstName} ${m.lastName}</td>
+              <td class="py-3 px-3 text-xs text-slate-600">${m.phone || ''} ${m.email ? `<br><span class="text-slate-400">${m.email}</span>` : ''}</td>
+              <td class="py-3 px-3 text-center text-xs font-black text-emerald-700">${m.validUntil || 'Aktivna'}</td>
+            </tr>
+          `).join('');
+        }
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        if (!user.isAnonymous) {
+          state.googleUser = user;
+          if (state.categories.length > 0 && !state.activePartner) {
+            proveriAutorizacijuEmaila(user.email);
+          }
+        }
+        pokreniBazu();
+      } else {
+        await signInAnonymously(auth).catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
