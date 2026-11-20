@@ -1785,12 +1785,16 @@
       const cistTel = (b.phone && b.phone !== 'Nije traženo' && b.phone !== 'Nije uneto') ? b.phone.replace(/[^0-9]/g, '') : '';
       const cistEmail = (b.email && b.email !== 'Nije uneto') ? b.email.toLowerCase().trim() : '';
 
-      // Određujemo odakle član dolazi (klasifikacija po partneru, školi ili udruženju)
+      // Određujemo odakle član dolazi (školski link sa odeljenjem ima najviši prioritet, zatim partner, pa udruženje)
       const dogadjaj = state.events.find(e => e.id === b.eventId);
       const partnerObj = dogadjaj ? state.categories.find(c => c.id === dogadjaj.category) : null;
-      const izvorClana = (b.school && b.school !== 'Pridruženi član' && b.school !== 'Bez ustanove')
-        ? b.school
-        : (partnerObj ? partnerObj.name : 'Udruženje Mentalna Gimnastika');
+      const imaSkoluIzLinka = b.school && b.school !== 'Pridruženi član' && b.school !== 'Bez ustanove' && b.school !== 'Nije traženo';
+      const punNazivSkole = imaSkoluIzLinka
+        ? ((b.className && b.className !== 'Članarina podmlatka' && b.className !== 'Nije navedeno' && !b.school.includes(b.className))
+            ? `${b.school} • ${b.className}`
+            : b.school)
+        : '';
+      const izvorClana = punNazivSkole || (partnerObj ? partnerObj.name : 'Udruženje Mentalna Gimnastika');
       const partnerIdIzvor = partnerObj ? partnerObj.id : 'umg_admin';
 
       let pronadjen = (state.membersList || []).find(m =>
