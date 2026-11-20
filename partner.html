@@ -170,11 +170,14 @@
       <!-- TAB 1: MOJE PONUDE I TERMINI -->
       <section id="ptab-offers" class="ptab-section space-y-5 fade-in">
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-lg sm:text-xl font-black text-slate-950">Vaše ponude i termini</h2>
-            <p class="text-xs text-slate-500 font-semibold mt-0.5">Objavite novu ponudu, otvorite ili zatvorite prijave i pratite popunjenost mesta</p>
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="text-lg sm:text-xl font-black text-slate-950">Vaše ponude i termini</h2>
+              <span id="partner-slots-quota-badge" class="text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-xl">Aktivno: 0 / 1</span>
+            </div>
+            <p class="text-xs text-slate-500 font-semibold">Objavite ponudu, oživite je Story slajdovima i pratite popunjenost mesta</p>
           </div>
-          <button type="button" id="btn-partner-new-event" class="px-5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-black rounded-2xl shadow-lg shadow-indigo-100 transition flex items-center justify-center gap-2 cursor-pointer">
+          <button type="button" id="btn-partner-new-event" class="px-5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-black rounded-2xl shadow-lg shadow-indigo-100 transition flex items-center justify-center gap-2 cursor-pointer shrink-0">
             <span>➕</span> <span>Objavi novu ponudu</span>
           </button>
         </div>
@@ -415,15 +418,77 @@
             <input id="pevent-digital-url" type="url" placeholder="https://..." class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Lokacija održavanja *</label>
-              <input id="pevent-location" type="text" required placeholder="Adresa ordinacije / učionice" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+          <!-- Opciona harmonika za Story slajdove i Video (ne opterećuje osnovni ekran) -->
+          <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-3.5 space-y-2.5">
+            <div onclick="document.getElementById('pstory-builder-body').classList.toggle('hidden')" class="flex items-center justify-between cursor-pointer select-none">
+              <div>
+                <span class="text-xs font-black text-indigo-950 uppercase tracking-wide flex items-center gap-1.5"><span>✨</span> Story slajdovi ili Video (opciono)</span>
+                <span class="text-[11px] text-slate-500 font-semibold block">Dodajte do 3 kratke poruke ili video snimak na poleđinu kartice</span>
+              </div>
+              <span class="text-xs font-black text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">Otvori ▼</span>
             </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Slobodni sati / termini (opciono)</label>
-              <input id="pevent-time" type="text" placeholder="npr. 17:00, 17:30, 18:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+
+            <div id="pstory-builder-body" class="hidden space-y-2.5 pt-2.5 border-t border-indigo-100">
+              <div class="bg-white p-2.5 rounded-xl border border-indigo-100 flex items-center gap-2.5">
+                <div id="pstory-img-preview-1" onclick="document.getElementById('pstory-img-file-1').click()" class="w-11 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 cursor-pointer shrink-0 overflow-hidden">📷 1</div>
+                <input type="file" id="pstory-img-file-1" accept="image/*" onchange="window.ucitajSlikuSlajdaPartner(1, event)" class="hidden" />
+                <input id="pstory-text-1" type="text" maxlength="75" placeholder="1. Slajd (Udica — kratka poruka)" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold" />
+                <button type="button" onclick="window.obrisiSlajdPartner(1)" class="text-slate-400 hover:text-rose-600 text-xs font-black px-1 cursor-pointer">✕</button>
+              </div>
+              <div class="bg-white p-2.5 rounded-xl border border-indigo-100 flex items-center gap-2.5">
+                <div id="pstory-img-preview-2" onclick="document.getElementById('pstory-img-file-2').click()" class="w-11 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 cursor-pointer shrink-0 overflow-hidden">📷 2</div>
+                <input type="file" id="pstory-img-file-2" accept="image/*" onchange="window.ucitajSlikuSlajdaPartner(2, event)" class="hidden" />
+                <input id="pstory-text-2" type="text" maxlength="75" placeholder="2. Slajd (Prednost vaše usluge)" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold" />
+                <button type="button" onclick="window.obrisiSlajdPartner(2)" class="text-slate-400 hover:text-rose-600 text-xs font-black px-1 cursor-pointer">✕</button>
+              </div>
+              <div class="bg-white p-2.5 rounded-xl border border-indigo-100 flex items-center gap-2.5">
+                <div id="pstory-img-preview-3" onclick="document.getElementById('pstory-img-file-3').click()" class="w-11 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 cursor-pointer shrink-0 overflow-hidden">📷 3</div>
+                <input type="file" id="pstory-img-file-3" accept="image/*" onchange="window.ucitajSlikuSlajdaPartner(3, event)" class="hidden" />
+                <input id="pstory-text-3" type="text" maxlength="75" placeholder="3. Slajd (Poziv na zakazivanje)" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold" />
+                <button type="button" onclick="window.obrisiSlajdPartner(3)" class="text-slate-400 hover:text-rose-600 text-xs font-black px-1 cursor-pointer">✕</button>
+              </div>
+              <div>
+                <label class="block text-[11px] font-black text-indigo-950 uppercase mb-1">Video link (YouTube Shorts / MP4):</label>
+                <input id="pevent-video-url" type="url" placeholder="https://youtube.com/shorts/..." class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2 text-xs font-semibold" />
+              </div>
             </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Lokacija održavanja *</label>
+            <input id="pevent-location" type="text" required placeholder="Adresa ordinacije / učionice" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <!-- Brzi generator satnice za partnera -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-black text-slate-800 uppercase tracking-wide">Termini i satnica (opciono)</label>
+              <button type="button" onclick="document.getElementById('pcalc-box').classList.toggle('hidden')" class="text-[11px] font-black text-indigo-700 bg-white border border-indigo-200 px-2.5 py-1 rounded-lg cursor-pointer">⚡ Kalkulator termina</button>
+            </div>
+            <div id="pcalc-box" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              <div>
+                <span class="block text-[10px] font-bold text-slate-500 mb-0.5">Od (sati):</span>
+                <input id="pcalc-start" type="time" value="17:00" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+              </div>
+              <div>
+                <span class="block text-[10px] font-bold text-slate-500 mb-0.5">Do (sati):</span>
+                <input id="pcalc-end" type="time" value="19:00" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+              </div>
+              <div>
+                <span class="block text-[10px] font-bold text-slate-500 mb-0.5">Trajanje (min):</span>
+                <select id="pcalc-dur" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold">
+                  <option value="15">15 min</option>
+                  <option value="20">20 min</option>
+                  <option value="30" selected>30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60">60 min</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="button" onclick="window.generisiTerminePartner()" class="w-full py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-black cursor-pointer">Popuni</button>
+              </div>
+            </div>
+            <input id="pevent-time" type="text" placeholder="npr. 17:00, 17:30, 18:00 (ili ostavite prazno za celodnevni događaj)" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -702,10 +767,78 @@
       }
     };
 
+    window.tempPartnerStoryImages = { 1: '', 2: '', 3: '' };
+
+    window.ucitajSlikuSlajdaPartner = function(broj, e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 480;
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const b64 = canvas.toDataURL('image/jpeg', 0.6);
+          window.tempPartnerStoryImages[broj] = b64;
+          const prev = document.getElementById(`pstory-img-preview-${broj}`);
+          if (prev) prev.innerHTML = `<img src="${b64}" class="w-full h-full object-cover" />`;
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.obrisiSlajdPartner = function(broj) {
+      window.tempPartnerStoryImages[broj] = '';
+      const txt = document.getElementById(`pstory-text-${broj}`);
+      if (txt) txt.value = '';
+      const prev = document.getElementById(`pstory-img-preview-${broj}`);
+      if (prev) prev.innerHTML = `📷 ${broj}`;
+    };
+
+    window.generisiTerminePartner = function() {
+      const startStr = document.getElementById('pcalc-start')?.value || '17:00';
+      const endStr = document.getElementById('pcalc-end')?.value || '19:00';
+      const dur = parseInt(document.getElementById('pcalc-dur')?.value || '30', 10);
+      const [sh, sm] = startStr.split(':').map(Number);
+      const [eh, em] = endStr.split(':').map(Number);
+      let cur = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      const slots = [];
+      while (cur + dur <= endMin) {
+        slots.push(`${String(Math.floor(cur / 60)).padStart(2, '0')}:${String(cur % 60).padStart(2, '0')}`);
+        cur += dur;
+      }
+      if (slots.length > 0) {
+        document.getElementById('pevent-time').value = slots.join(', ');
+        document.getElementById('pevent-seats').value = slots.length;
+        showNotification(`Generisano ${slots.length} termina!`, "success");
+      }
+    };
+
+    function getPartnerOfferQuota() {
+      if (!state.activePartner) return { limit: 1, activeCount: 0 };
+      const limit = state.activePartner.maxOffers || 1;
+      const activeCount = state.events.filter(e => e.category === state.activePartner.id && !e.isFrozen && e.isActive).length;
+      return { limit, activeCount };
+    }
+
     document.getElementById('btn-partner-new-event').addEventListener('click', () => {
       if (!state.activePartner) return;
+      const { limit, activeCount } = getPartnerOfferQuota();
+      if (activeCount >= limit) {
+        showNotification(`Dostigli ste limit od ${limit} aktivne ponude u katalogu. Zamrznite ili izmenite postojeću ponudu.`, "warning");
+        return;
+      }
+
       state.editingEventId = null;
       state.tempImageBase64 = '';
+      window.tempPartnerStoryImages = { 1: '', 2: '', 3: '' };
+      [1, 2, 3].forEach(br => window.obrisiSlajdPartner(br));
       document.getElementById('modal-pevent-title').innerText = `Nova ponuda — ${state.activePartner.name}`;
       document.getElementById('form-partner-submit-event').reset();
       document.getElementById('pevent-image-preview').innerHTML = '🖼️';
@@ -721,6 +854,21 @@
       if (!ev) return;
       state.editingEventId = eventId;
       state.tempImageBase64 = ev.image || '';
+      window.tempPartnerStoryImages = { 1: '', 2: '', 3: '' };
+      [1, 2, 3].forEach(br => {
+        const s = ev.storySlides?.[br - 1];
+        const txt = document.getElementById(`pstory-text-${br}`);
+        const prev = document.getElementById(`pstory-img-preview-${br}`);
+        if (txt) txt.value = s?.text || '';
+        if (s?.image) {
+          window.tempPartnerStoryImages[br] = s.image;
+          if (prev) prev.innerHTML = `<img src="${s.image}" class="w-full h-full object-cover" />`;
+        } else if (prev) {
+          prev.innerHTML = `📷 ${br}`;
+        }
+      });
+      if (document.getElementById('pevent-video-url')) document.getElementById('pevent-video-url').value = ev.videoUrl || '';
+
       document.getElementById('modal-pevent-title').innerText = "Izmeni svoju ponudu";
       document.getElementById('pevent-activity-type').value = ev.activityType || 'individualno';
       document.getElementById('pevent-sub-category').value = ev.subCategory || 'medicinski_stit';
@@ -747,6 +895,14 @@
       e.preventDefault();
       if (!state.activePartner) return;
 
+      if (!state.editingEventId) {
+        const { limit, activeCount } = getPartnerOfferQuota();
+        if (activeCount >= limit) {
+          showNotification(`Dostigli ste limit od ${limit} aktivne ponude.`, "warning");
+          return;
+        }
+      }
+
       const eventId = state.editingEventId || `EV-${Date.now()}`;
       const postojeci = state.events.find(x => x.id === eventId) || {};
       const startDate = document.getElementById('pevent-start-date').value;
@@ -755,6 +911,13 @@
 
       const memberPriceRaw = document.getElementById('pevent-member-price').value;
       const memberPrice = memberPriceRaw !== '' ? parseFloat(memberPriceRaw) : null;
+
+      const storySlides = [];
+      [1, 2, 3].forEach(br => {
+        const txt = document.getElementById(`pstory-text-${br}`)?.value.trim() || '';
+        const img = window.tempPartnerStoryImages?.[br] || '';
+        if (txt || img) storySlides.push({ text: txt, image: img });
+      });
 
       const eventData = {
         ...postojeci,
@@ -770,6 +933,8 @@
         memberPrice: memberPrice,
         hasPromo1plus1: document.getElementById('pevent-promo-1plus1').checked === true,
         digitalUrl: document.getElementById('pevent-digital-url').value.trim(),
+        videoUrl: document.getElementById('pevent-video-url')?.value.trim() || '',
+        storySlides: storySlides,
         location: document.getElementById('pevent-location').value.trim(),
         time: vremeTekst,
         useTimeSchedule: vremeTekst !== '',
@@ -791,6 +956,13 @@
     window.toggleStatusPonudePartnera = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
       if (!ev) return;
+      if (!ev.isActive && !ev.isFrozen) {
+        const { limit, activeCount } = getPartnerOfferQuota();
+        if (activeCount >= limit) {
+          showNotification(`Limit je ${limit} aktivna ponuda. Prvo zatvorite ili zamrznite drugu aktivnu ponudu.`, "warning");
+          return;
+        }
+      }
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), { isActive: !ev.isActive });
       showNotification(`Prijave su ${!ev.isActive ? 'OTVORENE' : 'ZATVORENE'}`, "success");
     };
@@ -798,6 +970,13 @@
     window.toggleZamrzniPonuduPartnera = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
       if (!ev) return;
+      if (ev.isFrozen && ev.isActive) {
+        const { limit, activeCount } = getPartnerOfferQuota();
+        if (activeCount >= limit) {
+          showNotification(`Limit je ${limit} aktivna ponuda. Zamrznite drugu ponudu pre odmrzavanja ove.`, "warning");
+          return;
+        }
+      }
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), { isFrozen: !ev.isFrozen });
       showNotification(`Ponuda je ${!ev.isFrozen ? 'ZAMRZNUTA (sakrivena iz kataloga)' : 'ODMRZNUTA'}`, "success");
     };
@@ -1013,6 +1192,14 @@
     function renderPartnerUI() {
       if (!state.activePartner) return;
       const pId = state.activePartner.id;
+      const { limit, activeCount } = getPartnerOfferQuota();
+      const quotaBadge = document.getElementById('partner-slots-quota-badge');
+      if (quotaBadge) {
+        quotaBadge.innerText = `Aktivni slotovi: ${activeCount} / ${limit}`;
+        quotaBadge.className = activeCount >= limit
+          ? "text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl"
+          : "text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl";
+      }
 
       // 1. Ponude ovog partnera
       const mojiDogadjaji = state.events.filter(e => e.category === pId);
