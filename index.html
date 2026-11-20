@@ -149,9 +149,20 @@
     .active-shine {
       animation: activeShinePulse 2.4s ease-in-out infinite;
     }
+
+    @keyframes dotBPulse {
+      0%, 100% { opacity: 0.25; transform: scale(0.75); }
+      35% { opacity: 1; transform: scale(1.2); }
+      70% { opacity: 0.85; transform: scale(1); }
+    }
+    .b-dot {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: dotBPulse 1.6s infinite ease-in-out;
+    }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-28 lg:pb-8 relative">
+<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-28 relative">
 
   <div id="notification-toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[110] w-11/12 max-w-md fade-in">
     <div id="toast-bg" class="p-4 rounded-2xl shadow-xl flex items-center justify-between border-2 bg-emerald-50 border-emerald-200 text-emerald-800">
@@ -238,14 +249,6 @@
     <span class="text-indigo-700 underline cursor-pointer p-1" id="btn-trigger-sync">Sinhronizuj sada</span>
   </div>
 
-  <div class="bg-white border-b border-slate-200 px-4 py-3 hidden lg:block shadow-sm">
-    <div class="max-w-6xl mx-auto flex gap-3">
-      <button id="nav-events-desktop" class="nav-btn-desktop active px-5 py-3 rounded-xl text-sm font-bold transition bg-indigo-600 text-white shadow-md">📅 Kalendar</button>
-      <button id="nav-my-tickets-desktop" class="nav-btn-desktop px-5 py-3 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-50">📋 Moje karte</button>
-      <button id="nav-admin-panel-desktop" class="hidden nav-btn-desktop px-5 py-3 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-50">⚙️ Administracija</button>
-    </div>
-  </div>
-
   <main class="flex-1 max-w-6xl w-full mx-auto p-4">
 
     <section id="tab-events" class="tab-section space-y-6 fade-in">
@@ -259,14 +262,17 @@
     </section>
 
     <section id="tab-my-tickets" class="tab-section hidden space-y-6 fade-in">
-      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      <div id="my-tickets-header-box" class="hidden slide-down relative bg-white p-5 pt-6 rounded-3xl border border-slate-200 shadow-sm flex-col md:flex-row md:items-center justify-between gap-4">
+        <button type="button" onclick="window.zatvoriPretraguMojihKarata()" title="Zatvori pretragu" class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 flex items-center justify-center text-sm font-black transition cursor-pointer">
+          ✕
+        </button>
+        <div class="pr-8">
           <h2 id="my-tickets-heading" class="text-xl font-black text-slate-900">Vaše rezervisane karte</h2>
           <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte.</p>
         </div>
-        <div class="flex gap-2 w-full md:w-auto" id="my-tickets-search-wrapper">
-          <input id="search-ticket-phone" type="text" placeholder="Telefon ili broj kartice..." class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-indigo-500 w-full md:w-56" />
-          <button id="btn-search-my-tickets" class="bg-indigo-600 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-sm">Pronađi</button>
+        <div class="flex gap-2 w-full md:w-auto pr-0 md:pr-8" id="my-tickets-search-wrapper">
+          <input id="search-ticket-phone" type="text" placeholder="ČLANSKI BROJ, TEL. BROJ" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none focus:border-indigo-500 w-full md:w-64" />
+          <button id="btn-search-my-tickets" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-sm transition cursor-pointer">Pronađi</button>
         </div>
       </div>
       <div id="my-tickets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 items-start"></div>
@@ -972,10 +978,15 @@
           
           <!-- Zaglavlje modala za učlanjenje prilagođeno oblasti -->
           <div class="flex items-center justify-between gap-2 bg-slate-100 border border-slate-200 rounded-2xl px-3.5 py-2.5">
-            <span id="modal-booking-price-type" class="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wide">ČLANARINA PODMLATKA (PRIDRUŽENI ČLAN)</span>
-            <button type="button" onclick="window.vratiNaUnosClanskeKartice()" class="text-xs font-black text-indigo-600 hover:text-indigo-800 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shrink-0 cursor-pointer">
-              ← Imam broj
-            </button>
+            <span id="modal-booking-price-type" class="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wide">UČLANJENJE</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="window.vratiNaUnosClanskeKartice()" class="text-xs font-black text-indigo-600 hover:text-indigo-800 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 cursor-pointer">
+                ← Imam broj
+              </button>
+              <button type="button" onclick="document.getElementById('modal-booking').classList.add('hidden')" title="Zatvori prozor" class="w-8 h-8 rounded-xl bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 font-black text-sm flex items-center justify-center transition cursor-pointer">
+                ✕
+              </button>
+            </div>
           </div>
 
           <div id="google-form-notice" class="bg-indigo-50 border border-indigo-100 text-indigo-950 p-3 rounded-xl text-xs font-semibold hidden">
@@ -2111,8 +2122,8 @@
     </div>
   </div>
 
-  <!-- Plutajuća dugmad za mobilni/iPhone (Levo Kalendar, Desno Moje karte, providna pri skrolovanju) -->
-  <nav id="mobile-floating-nav" class="fixed bottom-5 inset-x-5 z-40 flex items-center justify-between lg:hidden pointer-events-none transition-opacity duration-300 opacity-100">
+  <!-- Plutajuća dugmad za sve ekrane (Levo Kalendar, Desno @B Moje karte, providna pri skrolovanju) -->
+  <nav id="mobile-floating-nav" class="fixed bottom-5 inset-x-5 sm:inset-x-8 z-40 flex items-center justify-between pointer-events-none transition-opacity duration-300 opacity-100">
     
     <!-- 1. LEVI ĆOŠAK: Veliko plutajuće dugme za Kalendar (Ponude) -->
     <button id="nav-events-mobile" type="button" title="Kalendar ponuda" class="nav-btn-mobile pointer-events-auto w-20 h-20 rounded-full bg-indigo-600 text-white border-4 border-white/90 shadow-[0_10px_30px_rgba(79,70,229,0.6)] flex items-center justify-center transition-all active:scale-90">
@@ -2129,14 +2140,9 @@
       <span class="text-2xl">⚙️</span>
     </button>
 
-    <!-- 2. DESNI ĆOŠAK: Veliko plutajuće dugme za Moje karte -->
-    <button id="nav-my-tickets-mobile" type="button" title="Moje karte" class="nav-btn-mobile pointer-events-auto relative w-20 h-20 rounded-full bg-slate-800/95 backdrop-blur-md text-slate-200 border-4 border-slate-600 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90">
-      <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
-        <path d="M13 5v2"></path>
-        <path d="M13 17v2"></path>
-        <path d="M13 11v2"></path>
-      </svg>
+    <!-- 2. DESNI ĆOŠAK: Veliko plutajuće dugme @B za Moje karte -->
+    <button id="nav-my-tickets-mobile" type="button" title="Moje karte" class="nav-btn-mobile pointer-events-auto relative w-20 h-20 rounded-full bg-slate-700/95 backdrop-blur-md text-amber-400 border-4 border-slate-500 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90">
+      <span id="nav-my-tickets-atb-icon" class="flex items-center justify-center"></span>
       <span id="badge-my-tickets-count" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-black shadow-md border-2 border-white">0</span>
     </button>
   </nav>
@@ -3704,19 +3710,15 @@ function startRealtimeSync() {
       }, 150);
     };
 
-    // Direktno otvaranje forme za učlanjenje kada korisnik klikne na ljubičasto dugme "Učlanjenje"
+    // Direktno otvaranje forme za učlanjenje kada korisnik klikne na ljubičasto dugme "UČLANJENJE"
     window.otvoriUclanjenjeIzDetalja = function(eventId) {
       document.getElementById('modal-info').classList.add('hidden');
       window.openBookingModal(eventId);
       setTimeout(() => {
-        const regularFields = document.getElementById('regular-user-fields');
-        const toggleBtn = document.getElementById('btn-toggle-non-member');
-        if (regularFields && regularFields.classList.contains('hidden') && toggleBtn) {
-          toggleBtn.click();
+        if (typeof window.prebaciNaModalUclanjenja === 'function') {
+          window.prebaciNaModalUclanjenja();
         }
-        const fName = document.getElementById('booking-firstname');
-        if (fName) fName.focus();
-      }, 150);
+      }, 60);
     };
 
     window.openInfoModal = function(eventId) {
@@ -3774,11 +3776,10 @@ function startRealtimeSync() {
             ${dodatniTag}
           </div>
 
-          <!-- DONJA POLOVINA (50%): Informativni ljubičasti boks za učlanjenje / cenu usluge -->
-          <div class="h-full w-full bg-indigo-600 border-2 border-indigo-500 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-md select-none">
-            <span class="block text-xs font-extrabold text-indigo-100 uppercase tracking-wider">${oznakaDruge}</span>
-            <span class="block text-xl sm:text-2xl font-black text-white leading-tight mt-0.5">${redovnaCena} din</span>
-          </div>
+          <!-- DONJA POLOVINA (50%): Interaktivno ljubičasto dugme UČLANJENJE koje direktno otvara modal za učlanjenje -->
+          <button type="button" ${mozePrijava ? `onclick="window.otvoriUclanjenjeIzDetalja('${eventId}')"` : 'disabled'} class="h-full w-full ${mozePrijava ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 cursor-pointer shadow-md' : 'bg-slate-300 border-slate-300 cursor-not-allowed opacity-70'} border-2 border-indigo-500 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center transition select-none">
+            <span class="block text-sm sm:text-base font-black text-white uppercase tracking-wider">UČLANJENJE</span>
+          </button>
         `;
       }
       
@@ -4212,10 +4213,7 @@ function startRealtimeSync() {
         const priceType = document.getElementById('modal-booking-price-type');
         const priceCalc = document.getElementById('modal-booking-price-calc');
 
-        let tipNaziv = 'Kotizacija za učešće';
-        if (event.paymentType === 'donacija') tipNaziv = 'Preporučena donacija';
-        else if (jeModelClanarine) tipNaziv = 'Članarina podmlatka (pridruženi član)';
-        if (priceType) priceType.innerText = tipNaziv;
+        if (priceType) priceType.innerText = 'UČLANJENJE';
 
         const jePromo1plus1 = event.hasPromo1plus1 === true;
         const jeDigitalni = event.activityType === 'digitalni_resurs';
@@ -4431,10 +4429,8 @@ function startRealtimeSync() {
       if (pillEl) {
         const sRedovna = Number(event.price || 0);
         const sClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '') ? Number(event.memberPrice) : sRedovna;
-        const jeClanarinaModel = event.paymentType === 'clanarina' || samoClanoviFlag || tipAkt === 'digitalni_resurs';
-        const prikazanaCena = jeClanarinaModel ? 850 : ((sRedovna === 0 && sClanska > 0) ? sClanska : sRedovna);
-        const nazivZaPilulu = jeClanarinaModel ? 'Učlanjenje' : (tipAkt === 'individualno' ? 'Cena usluge' : 'Kotizacija');
-        pillEl.innerText = `${nazivZaPilulu}: ${prikazanaCena} din`;
+        const prikazanaCena = (sRedovna === 0 && sClanska > 0) ? sClanska : sRedovna;
+        pillEl.innerText = `Učlanjenje: ${prikazanaCena} din`;
       }
 
       // Za PDF sveske sakrivamo kalendar izbora dana dolaska
@@ -7245,7 +7241,6 @@ let prevlacenjeStartX = 0;
           <img src="${slikaSlajda}" draggable="false" class="absolute inset-0 w-full h-full object-cover blur-xl opacity-50 scale-110 pointer-events-none" />
           <div class="relative z-10 w-full h-full overflow-hidden flex items-center justify-center">
             <img src="${slikaSlajda}" draggable="false" class="w-full h-full object-cover story-ken-burns pointer-events-none" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/40 pointer-events-none"></div>
             ${slajd.text ? `
               <div class="absolute inset-x-4 bottom-24 z-20 text-center pointer-events-none story-text-anim">
                 <p class="inline-block bg-black/65 backdrop-blur-xs text-white text-xl sm:text-2xl font-black leading-snug px-4 py-3 rounded-2xl border border-white/20 shadow-2xl tracking-tight">
@@ -8319,7 +8314,62 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       renderUI();
     };
 
+    function generisiAnimiranoSlovoB(velicinaKlase = 'w-4 h-4') {
+      const tacke = [
+        [6, 4], [6, 8], [6, 12], [6, 16], [6, 20],
+        [10, 4], [14, 5], [16, 8], [14, 11], [10, 12],
+        [15, 13], [17, 16], [15, 19], [10, 20]
+      ];
+      const krugovi = tacke.map(([cx, cy], idx) =>
+        `<circle cx="${cx}" cy="${cy}" r="1.45" fill="currentColor" class="b-dot" style="animation-delay: ${(idx * 0.11).toFixed(2)}s;" />`
+      ).join('');
+      return `<svg class="${velicinaKlase} shrink-0" viewBox="0 0 24 24" aria-hidden="true">${krugovi}</svg>`;
+    }
+
+    function generisiAnimiranoAtB(velicinaKlase = 'w-11 h-11') {
+      const tacke = [
+        [14, 4], [14, 8], [14, 12], [14, 16], [14, 20],
+        [18, 4], [22, 5], [24, 8], [22, 11], [18, 12],
+        [23, 13], [25, 16], [23, 19], [18, 20]
+      ];
+      const krugovi = tacke.map(([cx, cy], idx) =>
+        `<circle cx="${cx}" cy="${cy}" r="1.45" fill="currentColor" class="b-dot" style="animation-delay: ${(idx * 0.11).toFixed(2)}s;" />`
+      ).join('');
+      return `
+        <svg class="${velicinaKlase} shrink-0" viewBox="0 0 28 24" aria-hidden="true">
+          <text x="1.5" y="16.5" fill="currentColor" font-family="Inter, Segoe UI, sans-serif" font-weight="900" font-size="13">@</text>
+          ${krugovi}
+        </svg>
+      `;
+    }
+
+    window.zatvoriPretraguMojihKarata = function() {
+      const box = document.getElementById('my-tickets-header-box');
+      const inpTicket = document.getElementById('search-ticket-phone');
+      if (box) {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+      }
+      if (inpTicket) inpTicket.value = '';
+      state.ticketSearchPhone = '';
+      renderUI();
+    };
+
     window.togglePretragaPonuda = function() {
+      if (state.currentTab === 'my-tickets') {
+        const box = document.getElementById('my-tickets-header-box');
+        const inpTicket = document.getElementById('search-ticket-phone');
+        if (!box) return;
+        if (box.classList.contains('hidden')) {
+          box.classList.remove('hidden');
+          box.classList.add('flex');
+          if (inpTicket) inpTicket.focus();
+        } else {
+          window.zatvoriPretraguMojihKarata();
+        }
+        return;
+      }
+
       const sc = document.getElementById('search-container');
       const inp = document.getElementById('search-input');
       if (!sc) return;
@@ -8335,6 +8385,10 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
     };
 
     function renderUI() {
+      const atbSlotInit = document.getElementById('nav-my-tickets-atb-icon');
+      if (atbSlotInit && !atbSlotInit.innerHTML.trim()) {
+        atbSlotInit.innerHTML = generisiAnimiranoAtB('w-12 h-11');
+      }
       const visitsBadge = document.getElementById('admin-analytics-visits-badge');
       if (visitsBadge) {
         const posete = safeStorage.getItem('edubooker_app_visits') || '1';
@@ -8524,16 +8578,16 @@ window.promeniRezimBojaKalendara = function(rezim) {
               ? `
                 <div class="absolute top-3 left-3 z-20 pointer-events-none">
                   <div class="bg-gradient-to-r from-amber-500 to-orange-500 border-2 border-white text-white px-4 py-2 rounded-2xl shadow-xl font-black text-sm sm:text-base flex items-center gap-2 tracking-tight">
-                    <span class="text-base">⏳</span>
+                    ${generisiAnimiranoSlovoB('w-5 h-5')}
                     <span>${infoVreme.odbrojavanje}</span>
                   </div>
                 </div>
               `
               : `
                 <div class="absolute top-3 left-3 z-20 pointer-events-none">
-                  <div class="bg-slate-900/80 backdrop-blur-md border border-white/25 text-slate-200 px-3 py-1 rounded-xl shadow-md font-bold text-[11px] flex items-center gap-1.5">
+                  <div class="bg-slate-900/80 backdrop-blur-md border border-white/25 text-slate-200 px-3 py-1 rounded-xl shadow-md font-black text-[11px] uppercase tracking-wider flex items-center gap-1.5">
                     <span>⏳</span>
-                    <span>Čeka se termin</span>
+                    <span>NAJAVA</span>
                   </div>
                 </div>
               `);
@@ -8710,8 +8764,13 @@ window.promeniRezimBojaKalendara = function(rezim) {
       const myTicketsHeading = document.getElementById('my-tickets-heading');
       const myTicketsDesc = document.getElementById('my-tickets-desc');
       const myTicketsSearch = document.getElementById('my-tickets-search-wrapper');
+      const myTicketsHeaderBox = document.getElementById('my-tickets-header-box');
 
       if (state.isAdminAuthenticated) {
+        if (myTicketsHeaderBox) {
+          myTicketsHeaderBox.classList.remove('hidden');
+          myTicketsHeaderBox.classList.add('flex');
+        }
         myTicketsHeading.innerText = "Pregled svih rezervacija";
         myTicketsDesc.innerText = "Izaberite program za detaljan spisak polaznika.";
         if (myTicketsSearch) myTicketsSearch.style.display = 'none';
@@ -8881,7 +8940,7 @@ window.promeniRezimBojaKalendara = function(rezim) {
                     </span>
                     ${infoVreme.odbrojavanje ? `
                       <span class="${infoVreme.bojaKlase} px-2.5 py-1 rounded-xl border-2 font-black text-xs flex items-center gap-1 shadow-xs">
-                        <span>⏱️</span> ${infoVreme.odbrojavanje}
+                        ${infoVreme.jeNajava ? generisiAnimiranoSlovoB('w-4 h-4') : '<span>⏱️</span>'} ${infoVreme.odbrojavanje}
                       </span>
                     ` : ''}
                   </div>
@@ -9761,7 +9820,11 @@ window.promeniRezimBojaKalendara = function(rezim) {
 
       document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
         const velicina = btn.id === 'nav-admin-panel-mobile' ? 'w-16 h-16' : 'w-20 h-20';
-        btn.className = `nav-btn-mobile pointer-events-auto relative ${velicina} rounded-full bg-slate-800/95 backdrop-blur-md text-slate-200 border-4 border-slate-600 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90`;
+        const jeMojeKarte = btn.id === 'nav-my-tickets-mobile';
+        const stilNeaktivnog = jeMojeKarte
+          ? 'bg-slate-700/95 text-amber-400 border-4 border-slate-500'
+          : 'bg-slate-800/95 text-slate-200 border-4 border-slate-600';
+        btn.className = `nav-btn-mobile pointer-events-auto relative ${velicina} rounded-full ${stilNeaktivnog} backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90`;
         if (btn.id === 'nav-admin-panel-mobile' && !state.isAdminAuthenticated) {
           btn.classList.add('hidden');
         }
@@ -9770,6 +9833,10 @@ window.promeniRezimBojaKalendara = function(rezim) {
       if (activeMobile) {
         const velicinaAktivnog = activeMobile.id === 'nav-admin-panel-mobile' ? 'w-16 h-16' : 'w-20 h-20';
         activeMobile.className = `nav-btn-mobile pointer-events-auto relative ${velicinaAktivnog} rounded-full bg-indigo-600 text-white border-4 border-white/90 shadow-[0_10px_30px_rgba(79,70,229,0.65)] flex items-center justify-center transition-all scale-105 active:scale-90`;
+      }
+      const atbSlot = document.getElementById('nav-my-tickets-atb-icon');
+      if (atbSlot && !atbSlot.innerHTML.trim()) {
+        atbSlot.innerHTML = generisiAnimiranoAtB('w-12 h-11');
       }
       renderUI();
     };
