@@ -1674,20 +1674,229 @@
       reader.readAsDataURL(file);
     });
 
+    function minUKoristanFormat(minuti) {
+      const h = Math.floor(minuti / 60);
+      const m = minuti % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function formatUMinute(vremeStr) {
+      if (!vremeStr || !vremeStr.includes(':')) return 0;
+      const [h, m] = vremeStr.split(':').map(Number);
+      return (h * 60) + (m || 0);
+    }
+
+    function napuniPocetnaVremena() {
+      const selektori = ['slot-b1-start', 'slot-b2-start'];
+      let opcijeHtml = '';
+      for (let min = 7 * 60; min <= 22 * 60; min += 15) {
+        const vremeIspis = minUKoristanFormat(min);
+        opcijeHtml += `<option value="${vremeIspis}">${vremeIspis}</option>`;
+      }
+      selektori.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.innerHTML.trim() === '') {
+          el.innerHTML = opcijeHtml;
+        }
+      });
+      if (document.getElementById('slot-b1-start') && !document.getElementById('slot-b1-start').value) {
+        document.getElementById('slot-b1-start').value = '18:00';
+      }
+      if (document.getElementById('slot-b2-start') && !document.getElementById('slot-b2-start').value) {
+        document.getElementById('slot-b2-start').value = '14:00';
+      }
+    }
+
+    window.trenutniGenerisaniSlotovi = [];
+
     window.promeniRezimBojaKalendara = function(r) {
       document.getElementById('custom-calendar-colors-box')?.classList.toggle('hidden', r !== 'custom');
     };
     window.promeniVidljivostSekcijePredavaca = function(u) {
+      const cb = document.getElementById('toggle-instructor-section');
+      if (cb) cb.checked = u;
       document.getElementById('instructor-fields-body')?.classList.toggle('hidden', !u);
     };
     window.promeniVidljivostKalkulatoraSatnice = function(u) {
-      document.getElementById('time-calculator-body')?.classList.toggle('hidden', !u);
+      const cb = document.getElementById('toggle-time-calculator');
+      if (cb) cb.checked = u;
+      const body = document.getElementById('time-calculator-body');
+      if (body) {
+        if (u) {
+          body.classList.remove('hidden');
+          napuniPocetnaVremena();
+          window.osveziKalkulatorSatnice();
+        } else {
+          body.classList.add('hidden');
+          window.trenutniGenerisaniSlotovi = [];
+          document.getElementById('wrapper-generated-slots')?.classList.add('hidden');
+          if (document.getElementById('event-time')) document.getElementById('event-time').value = '';
+          if (document.getElementById('event-time-slots-json')) document.getElementById('event-time-slots-json').value = '';
+        }
+      }
     };
+
+    window.resetujKalkulatorNaPodrazumevano = function() {
+      napuniPocetnaVremena();
+      window.trenutniGenerisaniSlotovi = [];
+      if (document.getElementById('slot-total-shift-duration')) document.getElementById('slot-total-shift-duration').value = '120';
+      if (document.getElementById('slot-blocks-count-select')) document.getElementById('slot-blocks-count-select').value = '1';
+      if (document.getElementById('slot-b1-start')) document.getElementById('slot-b1-start').value = '18:00';
+      if (document.getElementById('slot-b2-start')) document.getElementById('slot-b2-start').value = '14:00';
+      if (document.getElementById('slot-duration-select')) document.getElementById('slot-duration-select').value = '30';
+      if (document.getElementById('slot-break-select')) document.getElementById('slot-break-select').value = '5';
+      const wrapB2 = document.getElementById('wrapper-slot-block-2');
+      if (wrapB2) { wrapB2.classList.add('hidden'); wrapB2.classList.remove('flex'); }
+      document.getElementById('wrapper-generated-slots')?.classList.add('hidden');
+      if (document.getElementById('admin-slots-badges-container')) document.getElementById('admin-slots-badges-container').innerHTML = '';
+      if (document.getElementById('event-time')) document.getElementById('event-time').value = '';
+      if (document.getElementById('event-time-slots-json')) document.getElementById('event-time-slots-json').value = '';
+      window.osveziKalkulatorSatnice();
+    };
+
+    window.promeniBrojBlokovaSatnice = function(val) {
+      const wrapB2 = document.getElementById('wrapper-slot-block-2');
+      if (wrapB2) {
+        if (val === '2') { wrapB2.classList.remove('hidden'); wrapB2.classList.add('flex'); }
+        else { wrapB2.classList.add('hidden'); wrapB2.classList.remove('flex'); }
+      }
+      window.osveziKalkulatorSatnice();
+    };
+
+    window.osveziKalkulatorSatnice = function() {
+      napuniPocetnaVremena();
+      const ukupnoRadnoMinuta = parseInt(document.getElementById('slot-total-shift-duration')?.value, 10) || 120;
+      const b1StartMin = formatUMinute(document.getElementById('slot-b1-start')?.value || '18:00');
+      const b1EndDisplay = document.getElementById('slot-b1-end-display');
+      if (b1EndDisplay) b1EndDisplay.innerText = `Do ${minUKoristanFormat(b1StartMin + ukupnoRadnoMinuta)}h`;
+
+      const b2StartMin = formatUMinute(document.getElementById('slot-b2-start')?.value || '14:00');
+      const b2EndDisplay = document.getElementById('slot-b2-end-display');
+      if (b2EndDisplay) b2EndDisplay.innerText = `Do ${minUKoristanFormat(b2StartMin + ukupnoRadnoMinuta)}h`;
+
+      const durationSelect = document.getElementById('slot-duration-select');
+      if (durationSelect) {
+        Array.from(durationSelect.options).forEach(opt => {
+          if (opt.value === 'all') return;
+          const minVal = parseInt(opt.value, 10);
+          if (minVal > ukupnoRadnoMinuta) {
+            opt.disabled = true;
+            opt.text = `${minVal} min (veće od radnog vremena)`;
+          } else {
+            opt.disabled = false;
+            opt.text = minVal >= 60 ? `${minVal} minuta (${minVal / 60}h)` : `${minVal} minuta`;
+          }
+        });
+        if (durationSelect.selectedOptions[0]?.disabled) {
+          const prvaMoguca = Array.from(durationSelect.options).find(o => !o.disabled);
+          if (prvaMoguca) durationSelect.value = prvaMoguca.value;
+        }
+      }
+    };
+
+    window.generisiTermineSatnice = function() {
+      window.osveziKalkulatorSatnice();
+      const ukupnoRadnoMinuta = parseInt(document.getElementById('slot-total-shift-duration')?.value, 10) || 120;
+      const trajanjeIzbor = document.getElementById('slot-duration-select')?.value || '30';
+      const pauzaIzbor = parseInt(document.getElementById('slot-break-select')?.value, 10) || 0;
+      const brojBlokova = document.getElementById('slot-blocks-count-select')?.value || '1';
+
+      const jeGrupniTermin = trajanjeIzbor === 'all';
+      const trajanjeTermina = jeGrupniTermin ? ukupnoRadnoMinuta : parseInt(trajanjeIzbor, 10);
+      const pauza = jeGrupniTermin ? 0 : pauzaIzbor;
+      const korak = trajanjeTermina + pauza;
+
+      const blokovi = [];
+      const b1S = formatUMinute(document.getElementById('slot-b1-start')?.value || '18:00');
+      blokovi.push({ start: b1S, end: b1S + ukupnoRadnoMinuta });
+
+      if (brojBlokova === '2') {
+        const b2S = formatUMinute(document.getElementById('slot-b2-start')?.value || '14:00');
+        blokovi.push({ start: b2S, end: b2S + ukupnoRadnoMinuta });
+      }
+
+      const noviSlotovi = [];
+      blokovi.forEach(blok => {
+        let cur = blok.start;
+        while (cur + trajanjeTermina <= blok.end) {
+          noviSlotovi.push({ time: minUKoristanFormat(cur), duration: trajanjeTermina, status: 'otvoren' });
+          cur += korak;
+        }
+      });
+
+      if (noviSlotovi.length === 0) {
+        showNotification("Nije moguće izračunati termine sa zadatim parametrima", "warning");
+        return;
+      }
+
+      window.trenutniGenerisaniSlotovi = noviSlotovi;
+      window.osveziPrikazGenerisanihSlotova();
+      showNotification(`Izračunato ${noviSlotovi.length} termina!`, "success");
+    };
+
+    window.promeniStatusSlota = function(index) {
+      const slot = window.trenutniGenerisaniSlotovi[index];
+      if (!slot) return;
+      if (slot.status === 'otvoren') slot.status = 'zakljucan';
+      else if (slot.status === 'zakljucan') slot.status = 'rezervni';
+      else slot.status = 'otvoren';
+      window.osveziPrikazGenerisanihSlotova();
+    };
+
+    window.osveziPrikazGenerisanihSlotova = function() {
+      const wrap = document.getElementById('wrapper-generated-slots');
+      const container = document.getElementById('admin-slots-badges-container');
+      const countEl = document.getElementById('slots-count-summary');
+      if (!wrap || !container) return;
+
+      wrap.classList.remove('hidden');
+      const otvoreni = window.trenutniGenerisaniSlotovi.filter(s => s.status === 'otvoren');
+      const zakljucani = window.trenutniGenerisaniSlotovi.filter(s => s.status === 'zakljucan');
+      const rezervni = window.trenutniGenerisaniSlotovi.filter(s => s.status === 'rezervni');
+
+      if (countEl) countEl.innerText = `${otvoreni.length} otvoreno, ${zakljucani.length} zaključano, ${rezervni.length} rezerva`;
+
+      container.innerHTML = window.trenutniGenerisaniSlotovi.map((s, idx) => {
+        let stil = 'bg-emerald-50 border-emerald-300 text-emerald-950';
+        let ikona = '🟢';
+        let tekstStanja = 'Otvoren';
+        if (s.status === 'zakljucan') { stil = 'bg-slate-100 border-slate-300 text-slate-500 opacity-75'; ikona = '🔒'; tekstStanja = 'Zaključan'; }
+        else if (s.status === 'rezervni') { stil = 'bg-amber-50 border-amber-300 text-amber-950 font-black'; ikona = '⭐'; tekstStanja = 'Rezervni'; }
+
+        return `
+          <button type="button" onclick="window.promeniStatusSlota(${idx})" class="p-2 rounded-xl border-2 ${stil} flex flex-col items-center justify-center transition cursor-pointer select-none shadow-2xs">
+            <span class="text-xs font-black">${s.time}h</span>
+            <span class="text-[9px] font-bold mt-0.5 flex items-center gap-1"><span>${ikona}</span> ${tekstStanja}</span>
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('event-time').value = otvoreni.map(s => s.time).join(', ');
+      document.getElementById('event-time-slots-json').value = JSON.stringify(window.trenutniGenerisaniSlotovi);
+
+      const seatsInput = document.getElementById('event-total-seats');
+      if (seatsInput && otvoreni.length > 0) {
+        const dPocetak = document.getElementById('event-start-date')?.value;
+        const dKraj = document.getElementById('event-end-date')?.value;
+        let brojDana = 1;
+        if (dPocetak && dKraj && dPocetak !== dKraj) {
+          const razlikaMs = new Date(dKraj).getTime() - new Date(dPocetak).getTime();
+          brojDana = Math.max(1, Math.round(razlikaMs / 86400000) + 1);
+        }
+        seatsInput.value = otvoreni.length * brojDana;
+      }
+    };
+
     window.prilagodiFormuObuke = function(tip) {
+      napuniPocetnaVremena();
+      window.osveziKalkulatorSatnice();
       document.getElementById('box-trail-settings')?.classList.toggle('hidden', tip !== 'teren');
       document.getElementById('box-digital-resource-settings')?.classList.toggle('hidden', tip !== 'online' && tip !== 'digitalni_resurs' && tip !== 'individualno');
       document.getElementById('box-pdf-protection-options')?.classList.toggle('hidden', tip !== 'digitalni_resurs');
       document.getElementById('box-service-settings')?.classList.toggle('hidden', tip !== 'individualno');
+      if (tip === 'individualno') {
+        window.promeniVidljivostKalkulatoraSatnice(true);
+      }
     };
     window.proveriPrikazPlacanja = function(v) {
       document.getElementById('box-payment-details')?.classList.toggle('hidden', (parseFloat(v) || 0) <= 0);
@@ -1702,6 +1911,10 @@
       document.getElementById('event-sub-category').innerHTML = KATEGORIJE_AKTIVNOSTI.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
       document.getElementById('event-category').innerHTML = state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       document.getElementById('event-image-preview').innerHTML = "🖼️";
+      window.resetujKalkulatorNaPodrazumevano();
+      window.promeniVidljivostSekcijePredavaca(false);
+      window.promeniVidljivostKalkulatoraSatnice(false);
+      window.proveriPrikazPlacanja(0);
       document.getElementById('modal-event').classList.remove('hidden');
     });
 
@@ -1734,6 +1947,39 @@
       document.getElementById('event-digital-url').value = ev.digitalUrl || '';
       document.getElementById('event-trail-code').value = ev.trailCode || '';
       document.getElementById('event-image-preview').innerHTML = ev.image ? `<img src="${ev.image}" class="w-full h-full object-cover rounded-xl" />` : "🖼️";
+
+      const imaKontakt = !!(ev.hasInstructorContact || ev.instructorPhone || ev.instructorEmail);
+      window.promeniVidljivostSekcijePredavaca(imaKontakt);
+      if (imaKontakt) {
+        document.getElementById('event-instructor-phone').value = ev.instructorPhone || '';
+        document.getElementById('event-instructor-email').value = ev.instructorEmail || '';
+      }
+
+      window.resetujKalkulatorNaPodrazumevano();
+      const koristiSatnicu = ev.useTimeSchedule !== undefined ? ev.useTimeSchedule : !!(ev.timeSlotsJson || (ev.time && ev.time.trim() !== ''));
+      window.promeniVidljivostKalkulatoraSatnice(koristiSatnicu);
+      if (koristiSatnicu) {
+        if (ev.calcConfig) {
+          document.getElementById('slot-total-shift-duration').value = ev.calcConfig.shiftDuration || '120';
+          document.getElementById('slot-blocks-count-select').value = ev.calcConfig.blocksCount || '1';
+          window.promeniBrojBlokovaSatnice(ev.calcConfig.blocksCount || '1');
+          document.getElementById('slot-b1-start').value = ev.calcConfig.b1Start || '18:00';
+          document.getElementById('slot-b2-start').value = ev.calcConfig.b2Start || '14:00';
+          document.getElementById('slot-duration-select').value = ev.calcConfig.slotDuration || '30';
+          document.getElementById('slot-break-select').value = ev.calcConfig.breakTime || '5';
+        }
+        window.osveziKalkulatorSatnice();
+        if (ev.timeSlotsJson) {
+          try {
+            window.trenutniGenerisaniSlotovi = JSON.parse(ev.timeSlotsJson);
+            window.osveziPrikazGenerisanihSlotova();
+          } catch (e) {}
+        } else if (ev.time) {
+          window.trenutniGenerisaniSlotovi = ev.time.split(',').map(t => ({ time: t.trim(), duration: 30, status: 'otvoren' }));
+          window.osveziPrikazGenerisanihSlotova();
+        }
+      }
+
       document.getElementById('modal-event').classList.remove('hidden');
     };
 
@@ -1743,6 +1989,19 @@
       const postojeci = state.events.find(x => x.id === eventId) || {};
       const startDate = document.getElementById('event-start-date').value;
       const memberPriceVal = document.getElementById('event-member-price').value;
+
+      const hasInstructorContact = document.getElementById('toggle-instructor-section')?.checked === true;
+      const useTimeSchedule = document.getElementById('toggle-time-calculator')?.checked === true;
+      const time = useTimeSchedule ? (document.getElementById('event-time')?.value.trim() || '') : '';
+      const timeSlotsJson = useTimeSchedule ? (document.getElementById('event-time-slots-json')?.value || '') : '';
+      const calcConfig = useTimeSchedule ? {
+        shiftDuration: document.getElementById('slot-total-shift-duration')?.value || '120',
+        blocksCount: document.getElementById('slot-blocks-count-select')?.value || '1',
+        b1Start: document.getElementById('slot-b1-start')?.value || '18:00',
+        b2Start: document.getElementById('slot-b2-start')?.value || '14:00',
+        slotDuration: document.getElementById('slot-duration-select')?.value || '30',
+        breakTime: document.getElementById('slot-break-select')?.value || '5'
+      } : null;
 
       const eventData = {
         ...postojeci,
@@ -1764,9 +2023,16 @@
         digitalUrl: document.getElementById('event-digital-url').value.trim(),
         trailCode: document.getElementById('event-trail-code').value.trim().toUpperCase(),
         location: document.getElementById('event-location').value.trim(),
+        hasInstructorContact,
+        instructorPhone: hasInstructorContact ? (document.getElementById('event-instructor-phone')?.value.trim() || '') : '',
+        instructorEmail: hasInstructorContact ? (document.getElementById('event-instructor-email')?.value.trim() || '') : '',
         startDate: startDate,
         endDate: document.getElementById('event-end-date').value,
         date: startDate,
+        useTimeSchedule,
+        time,
+        timeSlotsJson,
+        calcConfig,
         isActive: postojeci.isActive !== undefined ? postojeci.isActive : true,
         isFrozen: postojeci.isFrozen || false,
         isPinned: postojeci.isPinned || false,
@@ -1939,6 +2205,253 @@
         }).join('');
       }
     }
+
+    // --- BEKAP I SELEKTIVNO VRAĆANJE OGLASA ---
+    window.ucitaniOglasiIzFajla = [];
+
+    window.otvoriModalBekapa = function() {
+      const modal = document.getElementById('modal-events-backup');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      window.prebaciTabBekapa('export');
+    };
+
+    window.prebaciTabBekapa = function(tab) {
+      const viewExp = document.getElementById('backup-view-export');
+      const viewImp = document.getElementById('backup-view-import');
+      const btnExp = document.getElementById('tab-btn-backup-export');
+      const btnImp = document.getElementById('tab-btn-backup-import');
+
+      if (tab === 'export') {
+        viewExp?.classList.remove('hidden');
+        viewImp?.classList.add('hidden');
+        if (btnExp) btnExp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white text-indigo-700 shadow-xs transition cursor-pointer";
+        if (btnImp) btnImp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+        window.iscrtajListuZaIzvozBekapa();
+      } else {
+        viewExp?.classList.add('hidden');
+        viewImp?.classList.remove('hidden');
+        if (btnImp) btnImp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white text-indigo-700 shadow-xs transition cursor-pointer";
+        if (btnExp) btnExp.className = "py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+      }
+    };
+
+    window.iscrtajListuZaIzvozBekapa = function() {
+      const listEl = document.getElementById('backup-export-list');
+      if (!listEl) return;
+      if (!state.events || state.events.length === 0) {
+        listEl.innerHTML = `<p class="text-center text-slate-400 font-bold text-xs py-6">Trenutno nema oglasa u bazi.</p>`;
+        window.osveziBrojacIzvozaBekapa();
+        return;
+      }
+      const danasIso = new Date().toISOString().split('T')[0];
+      listEl.innerHTML = state.events.map(ev => {
+        const kraj = ev.endDate || ev.startDate || ev.date || '';
+        const jeIstekao = kraj && kraj < danasIso;
+        const jeZavrsenIliZamrznut = jeIstekao || ev.isFrozen || !ev.isActive;
+        const statusOznaka = ev.isFrozen
+          ? '<span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-black text-[10px]">❄️ Zamrznuto</span>'
+          : (jeIstekao
+              ? '<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-black text-[10px]">⏱️ Završeno</span>'
+              : '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-black text-[10px]">🟢 Aktivno</span>');
+        const imaSliku = ev.image && ev.image.length > 100;
+
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer select-none transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <input type="checkbox" value="${ev.id}" data-expired="${jeZavrsenIliZamrznut ? '1' : '0'}" onchange="window.osveziBrojacIzvozaBekapa()" class="backup-export-cb w-4 h-4 rounded border-slate-300 text-indigo-600 shrink-0" ${jeZavrsenIliZamrznut ? 'checked' : ''} />
+              <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-black text-slate-900 truncate">${ev.title}</p>
+                <p class="text-[11px] text-slate-500 font-semibold flex items-center gap-2 mt-0.5">
+                  <span>📅 ${ev.startDate || ev.date || 'Bez datuma'}</span>
+                  ${imaSliku ? '<span class="text-indigo-600 font-bold">🖼️ Sa slikom</span>' : ''}
+                </p>
+              </div>
+            </div>
+            <div class="shrink-0 ml-2">${statusOznaka}</div>
+          </label>
+        `;
+      }).join('');
+      window.osveziBrojacIzvozaBekapa();
+    };
+
+    window.osveziBrojacIzvozaBekapa = function() {
+      const oznaceni = document.querySelectorAll('.backup-export-cb:checked').length;
+      const countEl = document.getElementById('backup-export-count');
+      if (countEl) countEl.innerText = `Izabrano: ${oznaceni}`;
+    };
+
+    window.oznaciOglaseZaBekap = function(rezim) {
+      document.querySelectorAll('.backup-export-cb').forEach(cb => {
+        if (rezim === 'svi') cb.checked = true;
+        else if (rezim === 'nijedan') cb.checked = false;
+        else if (rezim === 'istekli') cb.checked = cb.getAttribute('data-expired') === '1';
+      });
+      window.osveziBrojacIzvozaBekapa();
+    };
+
+    window.izvrsiPreuzimanjeBekapa = async function() {
+      const cekiraniIdjevi = Array.from(document.querySelectorAll('.backup-export-cb:checked')).map(cb => cb.value);
+      if (cekiraniIdjevi.length === 0) {
+        showNotification("Označite bar jedan oglas za preuzimanje", "warning");
+        return;
+      }
+      const idSet = new Set(cekiraniIdjevi);
+      const oglasiZaBekap = state.events.filter(e => idSet.has(e.id));
+      const paketBekapa = { app: "@Booker", exportedAt: new Date().toISOString(), count: oglasiZaBekap.length, events: oglasiZaBekap };
+
+      const blob = new Blob([JSON.stringify(paketBekapa, null, 2)], { type: 'application/json;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Booker_Bekap_Oglasa_${new Date().toISOString().slice(0, 10)}_(${oglasiZaBekap.length}).json`;
+      link.click();
+
+      const obrisiNakonIzvoza = document.getElementById('backup-delete-after-export')?.checked === true;
+      if (obrisiNakonIzvoza && confirm(`Fajl sa ${oglasiZaBekap.length} oglasa je preuzet. Da li želite da ih sada OBRIŠETE iz aktivne baze?`)) {
+        for (const evId of cekiraniIdjevi) {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', evId)).catch(() => {});
+        }
+        showNotification(`Sačuvano na računar i očišćeno ${oglasiZaBekap.length} oglasa iz baze!`, "success");
+        window.iscrtajListuZaIzvozBekapa();
+        return;
+      }
+      showNotification(`Uspešno preuzeto ${oglasiZaBekap.length} oglasa na računar!`, "success");
+    };
+
+    window.ucitajBekapFajlSaRacunara = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsirano = JSON.parse(evt.target.result);
+          const lista = Array.isArray(parsirano) ? parsirano : (parsirano.events || []);
+          if (!Array.isArray(lista) || lista.length === 0) {
+            showNotification("U izabranom fajlu nisu pronađeni oglasi", "warning");
+            return;
+          }
+          window.ucitaniOglasiIzFajla = lista;
+          document.getElementById('backup-import-selection-area')?.classList.remove('hidden');
+          const postojeciIdjevi = new Set((state.events || []).map(x => x.id));
+          const listContainer = document.getElementById('backup-import-list');
+          if (listContainer) {
+            listContainer.innerHTML = lista.map((ev, idx) => {
+              const vecUBazi = postojeciIdjevi.has(ev.id);
+              return `
+                <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer select-none">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <input type="checkbox" value="${idx}" class="backup-import-cb w-4 h-4 rounded border-slate-300 text-emerald-600 shrink-0" ${!vecUBazi ? 'checked' : ''} />
+                    <div class="min-w-0">
+                      <p class="text-xs sm:text-sm font-black text-slate-900 truncate">${ev.title || 'Bez naziva'}</p>
+                      <p class="text-[11px] text-slate-500 font-semibold mt-0.5">📍 ${ev.location || 'N/A'} | 📅 ${ev.startDate || ev.date || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-black px-2 py-0.5 rounded shrink-0 ${vecUBazi ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                    ${vecUBazi ? 'Već je u bazi' : 'Spremno za vraćanje'}
+                  </span>
+                </label>
+              `;
+            }).join('');
+          }
+        } catch (err) {
+          showNotification("Neispravan format bekap fajla", "warning");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    window.oznaciSveZaUvozBekapa = function(stanje) {
+      document.querySelectorAll('.backup-import-cb').forEach(cb => cb.checked = stanje);
+    };
+
+    window.potvrdiVracanjeIzabranihOglasa = async function() {
+      const cekiraniIndeksi = Array.from(document.querySelectorAll('.backup-import-cb:checked')).map(cb => parseInt(cb.value, 10));
+      if (cekiraniIndeksi.length === 0) {
+        showNotification("Označite bar jedan oglas za vraćanje", "warning");
+        return;
+      }
+      let vracenoBrojac = 0;
+      for (const idx of cekiraniIndeksi) {
+        const oglas = window.ucitaniOglasiIzFajla[idx];
+        if (!oglas || !oglas.id) continue;
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', oglas.id), oglas);
+        vracenoBrojac++;
+      }
+      document.getElementById('modal-events-backup')?.classList.add('hidden');
+      showNotification(`Uspešno vraćeno ${vracenoBrojac} oglasa u @Booker!`, "success");
+    };
+
+    // --- NEDELJNI I MESEČNI IZVEŠTAJ (CSV) ---
+    window.preuzmiIzvestaj = function(period) {
+      const sveRezervacije = [
+        ...state.bookings,
+        ...JSON.parse(safeStorage.getItem('edubooker_archive') || '[]')
+      ];
+      const jedinstvene = [];
+      const vidjeniIdjevi = new Set();
+      sveRezervacije.forEach(b => {
+        if (!vidjeniIdjevi.has(b.id)) {
+          vidjeniIdjevi.add(b.id);
+          jedinstvene.push(b);
+        }
+      });
+
+      const sada = new Date();
+      const granica = new Date();
+      granica.setDate(sada.getDate() - (period === 'nedeljni' ? 7 : 30));
+
+      let filtrirane = jedinstvene.filter(b => {
+        const t = b.timestamp ? new Date(b.timestamp) : new Date(b.eventDate);
+        return t >= granica;
+      });
+
+      let sufiksNaziva = 'Svi_Partneri';
+      if (state.adminPartnerFilter && state.adminPartnerFilter !== 'all') {
+        const obukePartnera = new Set(state.events.filter(e => e.category === state.adminPartnerFilter).map(e => e.id));
+        filtrirane = filtrirane.filter(b => obukePartnera.has(b.eventId));
+        const partnerKategorija = state.categories.find(c => c.id === state.adminPartnerFilter);
+        if (partnerKategorija) sufiksNaziva = partnerKategorija.name.replace(/[^a-zA-Z0-9]/g, '_');
+      }
+
+      if (filtrirane.length === 0) {
+        showNotification(`Nema zabeleženih rezervacija za period: ${period}.`, "warning");
+        return;
+      }
+
+      filtrirane.sort((a, b) => `${a.eventDate} ${a.eventTime || ''}`.localeCompare(`${b.eventDate} ${b.eventTime || ''}`));
+
+      let csvSadrzaj = "Status UPLATE,Program,Datum programa,Polaznik,Ustanova,Odeljenje,Broj karata,Iznos (RSD),Status karte,Tip plaćanja,Članska kartica,Kontakt telefon,Email,Vreme prijave,Kod rezervacije\n";
+      filtrirane.forEach(b => {
+        const uplaceno = (b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0) ? "PLAĆENO" : "ČEKA UPLATU";
+        const vremePrijaveFmt = b.timestamp ? new Date(b.timestamp).toLocaleString('sr-RS', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+        const red = [
+          `"${uplaceno}"`,
+          `"${(b.eventTitle || '').replace(/"/g, '""')}"`,
+          `"${b.eventDate} ${b.eventTime || ''}"`,
+          `"${b.firstName} ${b.lastName}"`,
+          `"${b.school || 'Nije traženo'}"`,
+          `"${b.className || 'Nije traženo'}"`,
+          b.ticketsCount || 1,
+          b.totalPrice || 0,
+          `"${(b.status || 'aktivna').toUpperCase()}"`,
+          `"${b.paymentType === 'clanarina_pokriveno' ? 'Članarina' : (b.paymentType || 'Kotizacija')}"`,
+          `"${b.memberCode || 'Nije član'}"`,
+          `"${b.phone || ''}"`,
+          `"${b.email || ''}"`,
+          `"${vremePrijaveFmt}"`,
+          `"${b.id}"`
+        ];
+        csvSadrzaj += red.join(",") + "\n";
+      });
+
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, csvSadrzaj], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `@Booker_Uplate_${sufiksNaziva}_${period}_${sada.toISOString().slice(0, 10)}.csv`;
+      link.click();
+      showNotification(`Izveštaj za ${period} period je uspešno preuzet!`, "success");
+    };
 
     onAuthStateChanged(auth, (user) => {
       if (user && !user.isAnonymous) {
