@@ -2439,9 +2439,10 @@
       const linkUstanova = urlParametri.get('ustanova') ? decodeURIComponent(urlParametri.get('ustanova')).trim() : '';
       const linkRazred = urlParametri.get('razred') ? decodeURIComponent(urlParametri.get('razred')).trim() : '';
 
+      const punaSkolaIzLinka = linkUstanova ? (linkRazred ? `${linkUstanova} • ${linkRazred}` : linkUstanova) : '';
       const finalSchool = aktivniClan 
-        ? (state.activeMembership.group || 'Član udruženja') 
-        : (linkUstanova || 'Bez ustanove');
+        ? (state.activeMembership.group || punaSkolaIzLinka || 'Član udruženja') 
+        : (punaSkolaIzLinka || 'Bez ustanove');
 
       const finalClass = aktivniClan 
         ? 'Članska evidencija' 
