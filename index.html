@@ -142,6 +142,13 @@
     .story-bar-active {
       animation: storyBarFill 3.5s linear forwards;
     }
+    @keyframes activeShinePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); filter: brightness(1); }
+      50% { box-shadow: 0 0 14px 2px rgba(16, 185, 129, 0.65); filter: brightness(1.08); }
+    }
+    .active-shine {
+      animation: activeShinePulse 2.4s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-28 lg:pb-8 relative">
@@ -7969,33 +7976,15 @@ function generisiTriDatumaZaKocku(startDateStr, endDateStr) {
       const danas = new Date();
       danas.setHours(0, 0, 0, 0);
 
-      const dOd = parsiraj(startDateStr);
+      const dOd = parsiraj(startDateStr) || danas;
       const dDo = parsiraj(endDateStr) || dOd;
-
-      let centralniDatum = danas;
-      if (dOd) {
-        dOd.setHours(0, 0, 0, 0);
-        if (dDo) dDo.setHours(23, 59, 59, 999);
-        // Ako je događaj u toku (danas je između početka i kraja), prikazujemo današnji dan u sredini, inače datum početka iz Admina
-        if (danas.getTime() >= dOd.getTime() && (!dDo || danas.getTime() <= dDo.getTime())) {
-          centralniDatum = danas;
-        } else {
-          centralniDatum = dOd;
-        }
-      }
-
-      const prethodni = new Date(centralniDatum);
-      prethodni.setDate(centralniDatum.getDate() - 1);
-
-      const sledeci = new Date(centralniDatum);
-      sledeci.setDate(centralniDatum.getDate() + 1);
 
       const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 
       return {
-        pre: fmt(prethodni),
-        glavni: fmt(centralniDatum),
-        posle: fmt(sledeci)
+        pocetak: fmt(dOd),
+        kraj: fmt(dDo),
+        danas: fmt(danas)
       };
     }
 
@@ -8036,6 +8025,7 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
       let odbrojavanje = '';
       let jeIsteklo = false;
       let jeAktivno = false;
+      let jeNajava = false;
       let bojaKlase = 'bg-cyan-50 text-cyan-800 border-cyan-200';
 
       if (sad.getTime() > dDo.getTime()) {
@@ -8045,28 +8035,19 @@ function formatirajTerminOdbrojavanje(startDateStr, endDateStr) {
         bojaKlase = 'bg-slate-50 text-slate-500 border-slate-200 font-bold';
       } else if (sad.getTime() < dOd.getTime()) {
         jeAktivno = true;
+        jeNajava = true;
         const razlikaDana = Math.ceil((dOd.getTime() - sad.getTime()) / (1000 * 60 * 60 * 24));
         odbrojavanje = razlikaDana === 1 ? 'Za 1 dan' : `Za ${razlikaDana} dana`;
-
-        if (razlikaDana <= 2) {
-          // Manje od 48h, crvena koja trepće
-          bojaKlase = 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse font-black';
-        } else if (razlikaDana <= 5) {
-          // Približava se, zelena
-          bojaKlase = 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold';
-        } else {
-          // Dovoljno daleko, tirkizna
-          bojaKlase = 'bg-cyan-50 text-cyan-800 border-cyan-200 font-bold';
-        }
+        bojaKlase = 'bg-amber-50 text-amber-800 border-amber-300 font-black';
       } else {
-        // Termin je u toku ili počinje danas (manje od 48h)
         jeAktivno = true;
+        jeNajava = false;
         const preostaloDana = Math.ceil((dDo.getTime() - sad.getTime()) / (1000 * 60 * 60 * 24));
         odbrojavanje = preostaloDana > 1 ? `Još ${preostaloDana} dana` : 'Danas';
-        bojaKlase = 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse font-black';
+        bojaKlase = 'bg-emerald-50 text-emerald-800 border-emerald-300 font-black';
       }
       
-      return { danDatum, odbrojavanje, jeIsteklo, jeAktivno, bojaKlase };
+      return { danDatum, odbrojavanje, jeIsteklo, jeAktivno, jeNajava, bojaKlase };
     }
 
     window.promeniFilterGrupeClanova = function(izabranaGrupa) {
@@ -8526,39 +8507,104 @@ window.promeniRezimBojaKalendara = function(rezim) {
           const jeAktivno = evt.isActive && infoVreme.jeAktivno && remaining > 0;
           const jeOkrenutaKartica = window.okrenuteKarticeSet && window.okrenuteKarticeSet.has(evt.id);
 
-          // Srednji i donji blok (Veliki naslov + Neutralni sivo-crni broj + Čist kalendar + 50/50 donja kapsula)
-          const unutrasnjostKarticeHtml = `
-            <div class="relative z-20 bg-white border-t border-slate-200 px-4 pt-3 pb-3.5 flex-1 flex flex-col justify-between overflow-hidden">
-              
-              <!-- Neutralan tamnosivo-crni bedž i krupan, dominantan naslov -->
-              <div onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="flex items-center gap-2.5 cursor-pointer group min-h-[58px]">
-                <span class="text-xs font-black bg-slate-800 text-slate-100 px-2.5 py-1 rounded-lg shrink-0 border border-slate-900 shadow-2xs">#${evt.ordinalNumber || '01'}</span>
-                <h3 class="text-2xl sm:text-[25px] font-black text-slate-950 leading-[1.12] tracking-tight line-clamp-2 group-hover:text-indigo-600 transition flex-1">
-                  ${evt.title}
-                </h3>
-              </div>
+          const jeNajava = jeAktivno && infoVreme.jeNajava === true;
+          const jeUToku = jeAktivno && !jeNajava;
 
-              <!-- CENTRALNI DEO: 2 velike kocke (Kalendar levo, Info Detaljnije desno) -->
-              <div class="grid grid-cols-2 gap-3 my-1.5">
-                
-                <!-- 1. LEVA KOCKA: Stoni kalendar sa čistim bojama po izboru -->
-                <div onclick="event.stopPropagation(); ${jeAktivno ? `openBookingModal('${evt.id}')` : `openInfoModal('${evt.id}')`}" class="rounded-2xl border-2 border-slate-300 bg-gradient-to-b from-slate-100 via-white to-slate-200 shadow-inner overflow-hidden flex flex-col cursor-pointer hover:border-indigo-400 transition">
+          // Usklađene boje za gornji bedž i središnju kockicu kalendara
+          const gornjiBedzHtml = jeUToku
+            ? `
+              <div class="absolute top-3 left-3 z-20 pointer-events-none">
+                <div class="bg-emerald-600 active-shine border-2 border-white text-white px-4 py-2 rounded-2xl shadow-xl font-black text-sm sm:text-base flex items-center gap-2 tracking-tight">
+                  <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                  <span>${infoVreme.odbrojavanje}</span>
+                </div>
+              </div>
+            `
+            : (jeNajava
+              ? `
+                <div class="absolute top-3 left-3 z-20 pointer-events-none">
+                  <div class="bg-gradient-to-r from-amber-500 to-orange-500 border-2 border-white text-white px-4 py-2 rounded-2xl shadow-xl font-black text-sm sm:text-base flex items-center gap-2 tracking-tight">
+                    <span class="text-base">⏳</span>
+                    <span>${infoVreme.odbrojavanje}</span>
+                  </div>
+                </div>
+              `
+              : `
+                <div class="absolute top-3 left-3 z-20 pointer-events-none">
+                  <div class="bg-slate-900/80 backdrop-blur-md border border-white/25 text-slate-200 px-3 py-1 rounded-xl shadow-md font-bold text-[11px] flex items-center gap-1.5">
+                    <span>⏳</span>
+                    <span>Čeka se termin</span>
+                  </div>
+                </div>
+              `);
+
+          // Središnja kocka kalendara usklađena sa gornjim bedžom
+          const kalendarKockaHtml = jeUToku
+            ? `
+              <div onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="rounded-2xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-50/60 via-white to-slate-100 shadow-inner overflow-hidden flex flex-col cursor-pointer hover:border-emerald-500 transition">
+                <div style="background-color: ${bojeKal.header};" class="h-5 w-full flex items-center justify-around px-4 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
+                </div>
+                <div class="flex-1 py-1.5 px-2 flex flex-col items-center justify-center leading-none select-none">
+                  <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.pocetak}</span>
+                  <div class="my-1 w-full bg-emerald-600 active-shine text-white font-black text-sm sm:text-base py-1.5 rounded-xl text-center shadow-sm tracking-widest uppercase">
+                    AKTIVNO
+                  </div>
+                  <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.kraj}</span>
+                </div>
+              </div>
+            `
+            : (jeNajava
+              ? `
+                <div onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-50/70 via-white to-slate-100 shadow-inner overflow-hidden flex flex-col cursor-pointer hover:border-amber-500 transition">
                   <div style="background-color: ${bojeKal.header};" class="h-5 w-full flex items-center justify-around px-4 shadow-xs">
                     <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
                     <span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>
                   </div>
                   <div class="flex-1 py-1.5 px-2 flex flex-col items-center justify-center leading-none select-none">
-                    <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.pre}</span>
-                    <div style="background-color: ${bojeKal.bg}; color: ${bojeKal.text};" class="my-1 w-full font-black text-lg sm:text-xl py-1 rounded-xl text-center shadow-sm tracking-wide">
-                      ${triDatuma.glavni}
+                    <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.pocetak}</span>
+                    <div class="my-1 w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-sm sm:text-base py-1.5 rounded-xl text-center shadow-sm tracking-widest uppercase">
+                      DOLAZI
                     </div>
-                    <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.posle}</span>
+                    <span class="text-sm sm:text-base font-black text-slate-900 tracking-wider">${triDatuma.kraj}</span>
                   </div>
                 </div>
+              `
+              : `
+                <div onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="rounded-2xl border-2 border-slate-200 bg-slate-100 overflow-hidden flex flex-col cursor-pointer">
+                  <div class="h-5 w-full bg-slate-400 flex items-center justify-around px-4">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white/75"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-white/75"></span>
+                  </div>
+                  <div class="flex-1 p-2.5 flex items-center justify-center text-center select-none">
+                    <span class="text-sm sm:text-base font-black text-sky-500 leading-tight tracking-wide">
+                      Uskoro<br>termini
+                    </span>
+                  </div>
+                </div>
+              `);
 
-                <!-- 2. DESNA KOCKA: Veliki plavi "i" znak i sitno, tanko "Detaljnije" skroz na dnu -->
+          const unutrasnjostKarticeHtml = `
+            <div class="relative z-20 bg-white border-t border-slate-200 px-4 pt-3 pb-3.5 flex-1 flex flex-col justify-between overflow-hidden">
+              
+              <!-- Neutralan tamnosivo-crni bedž i krupan, dominantan naslov -->
+              <div onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="flex items-center gap-2.5 cursor-pointer group min-h-[58px]">
+                <span class="text-xs font-black bg-slate-800 text-slate-100 border-slate-900 px-2.5 py-1 rounded-lg shrink-0 border shadow-2xs">#${evt.ordinalNumber || '01'}</span>
+                <h3 class="text-2xl sm:text-[25px] font-black text-slate-950 group-hover:text-indigo-600 leading-[1.12] tracking-tight line-clamp-2 transition flex-1">
+                  ${evt.title}
+                </h3>
+              </div>
+
+              <!-- CENTRALNI DEO: 2 velike kocke (Kalendar levo, Info Detaljnije desno u punoj boji) -->
+              <div class="grid grid-cols-2 gap-3 my-1.5">
+                
+                <!-- 1. LEVA KOCKA: Stoni kalendar -->
+                ${kalendarKockaHtml}
+
+                <!-- 2. DESNA KOCKA: Veliki plavi "i" znak (uvek u boji) -->
                 <button type="button" onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="relative rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-white to-slate-50 hover:from-indigo-50/40 hover:to-indigo-100/30 hover:border-indigo-300 shadow-sm flex flex-col items-center justify-center p-2.5 pb-5 transition active:scale-95 cursor-pointer group">
-                  <div class="w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shadow-md border-2 border-slate-800 group-hover:scale-105 transition">
+                  <div class="w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 border-slate-800 text-white flex items-center justify-center shadow-md border-2 group-hover:scale-105 transition">
                     <span class="font-serif italic font-black text-4xl sm:text-5xl leading-none select-none">i</span>
                   </div>
                   <span class="absolute bottom-1 inset-x-0 text-center text-[10px] font-light text-slate-400 group-hover:text-indigo-600 tracking-wide">Detaljnije</span>
@@ -8566,14 +8612,14 @@ window.promeniRezimBojaKalendara = function(rezim) {
 
               </div>
 
-              <!-- DONJI DEO: Zaobljena kapsula podeljena tačno POLA-POLA (50% Slobodno / 50% @Booking) -->
-              <div class="border-2 border-indigo-400/80 bg-white rounded-full p-1 grid grid-cols-2 items-center gap-1 shadow-xs">
+              <!-- DONJI DEO: Zaobljena kapsula -->
+              <div class="border-2 ${jeAktivno ? 'border-indigo-400/80 bg-white' : 'border-slate-300 bg-slate-100'} rounded-full p-1 grid grid-cols-2 items-center gap-1 shadow-xs">
                 <div class="text-center text-sm sm:text-base whitespace-nowrap select-none px-1">
-                  ${remaining > 0 
+                  ${jeAktivno 
                     ? `<span class="font-black text-slate-900">Slobodno:</span> <span class="font-black text-emerald-600 text-base sm:text-lg">${remaining}</span>` 
-                    : `<span class="font-black text-rose-600">Popunjeno</span>`}
+                    : `<span class="font-bold text-slate-400 text-xs sm:text-sm">—</span>`}
                 </div>
-                <button type="button" onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-2.5 px-2 rounded-full text-sm sm:text-base font-black tracking-wide shadow-md transition active:scale-95 ${jeAktivno ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}" ${!jeAktivno ? 'disabled' : ''}>
+                <button type="button" onclick="event.stopPropagation(); openBookingModal('${evt.id}')" class="w-full py-2.5 px-2 rounded-full text-sm sm:text-base font-black tracking-wide shadow-md transition active:scale-95 ${jeAktivno ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'}" ${!jeAktivno ? 'disabled' : ''}>
                   ${!evt.isActive || infoVreme.jeIsteklo ? 'Zatvoreno' : remaining === 0 ? 'Popunjeno' : '@Booking'}
                 </button>
               </div>
@@ -8594,18 +8640,11 @@ window.promeniRezimBojaKalendara = function(rezim) {
                       <div onclick="window.okreniKarticu(event, this, '${evt.id}')" class="w-full h-full bg-gradient-to-br from-indigo-700 via-indigo-900 to-slate-900 flex items-center justify-center text-6xl cursor-pointer">🎯</div>
                     `}
 
-                    <!-- Gore levo: Odbrojavanje uokvireno plavom linijom -->
-                    ${infoVreme.odbrojavanje ? `
-                      <div class="absolute top-3 left-3 z-20 pointer-events-none">
-                        <div class="bg-white/95 backdrop-blur-md border-2 border-sky-400 text-rose-700 px-3.5 py-1.5 rounded-2xl shadow-lg font-black text-xs sm:text-sm flex items-center gap-1.5">
-                          <span class="text-base">⏱️</span>
-                          <span>${infoVreme.odbrojavanje}</span>
-                        </div>
-                      </div>
-                    ` : ''}
+                    <!-- Gore levo: Usklađen bedž (Zeleno presijavanje / Narandžasto / Čeka se termin) -->
+                    ${gornjiBedzHtml}
 
-                    <!-- Gore desno: Uvećan bedž sa poklonom 1+1 -->
-                    ${evt.hasPromo1plus1 ? `
+                    <!-- Gore desno: Bedž sa poklonom 1+1 (vidljiv samo kada je ponuda aktivna ili u najavi) -->
+                    ${(jeAktivno && evt.hasPromo1plus1) ? `
                       <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-md text-amber-950 border-2 border-amber-400 px-3.5 py-2.5 rounded-2xl shadow-xl flex flex-col items-center justify-center leading-none select-none pointer-events-none">
                         <span class="text-3xl">🎁</span>
                         <span class="text-sm font-black tracking-widest text-amber-950 mt-1">1+1</span>
