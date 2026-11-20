@@ -242,6 +242,11 @@
   <main class="flex-1 max-w-6xl w-full mx-auto p-4">
 
     <section id="tab-events" class="tab-section space-y-6 fade-in">
+      <div id="school-link-top-badge" class="hidden max-w-sm mx-auto bg-indigo-950/90 border border-indigo-400/40 text-white px-4 py-2.5 rounded-2xl text-center shadow-md">
+        <span class="block text-[10px] font-black uppercase tracking-widest text-indigo-300">Program za grupu</span>
+        <span id="school-link-top-text" class="text-xs sm:text-sm font-black text-white"></span>
+      </div>
+
       <div class="w-full max-w-sm mx-auto bg-slate-800/95 backdrop-blur-md p-3 rounded-3xl border border-slate-700 shadow-xl flex flex-col gap-3">
         <div class="w-full" id="categories-filter-container"></div>
         <div id="search-container" class="hidden slide-down">
@@ -5064,6 +5069,18 @@
     window.addEventListener('DOMContentLoaded', async () => {
       let ukupnoPoseta = parseInt(safeStorage.getItem('edubooker_app_visits') || '0', 10) + 1;
       safeStorage.setItem('edubooker_app_visits', ukupnoPoseta.toString());
+
+      const urlP = new URLSearchParams(window.location.search);
+      const uNaziv = urlP.get('ustanova') ? decodeURIComponent(urlP.get('ustanova')).trim() : '';
+      const uRazred = urlP.get('razred') ? decodeURIComponent(urlP.get('razred')).trim() : '';
+      if (uNaziv) {
+        const badgeBox = document.getElementById('school-link-top-badge');
+        const badgeTxt = document.getElementById('school-link-top-text');
+        if (badgeBox && badgeTxt) {
+          badgeTxt.innerText = uRazred ? `${uNaziv} • ${uRazred}` : uNaziv;
+          badgeBox.classList.remove('hidden');
+        }
+      }
 
       loadLocalCache();
       ocistiIstekleRezervacije();
