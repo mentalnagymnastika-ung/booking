@@ -274,17 +274,23 @@
                   <button type="button" onclick="window.generisiPartnerskiKod()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-black cursor-pointer" title="Generiši nasumični kod">🎲 Kod</button>
                 </div>
               </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Simbol oblasti</label>
-                <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
-                  <option value="none">— Bez ikone (samo čist tekst) —</option>
-                  <option value="medicinski_stit">Medicinski štit (Preventiva i ordinacije)</option>
-                  <option value="zdrava_aktivnost">Zdrava aktivnost (Staze i boravak u prirodi)</option>
-                  <option value="mentalni_razvoj">Mentalni razvoj (Mozgalice, logika i fokus)</option>
-                  <option value="postura_rast">Postura i rast (Fizijatrija i motorika)</option>
-                  <option value="govor_komunikacija">Govor i komunikacija (Logopedija)</option>
-                  <option value="edukacija">Edukacija i radionice (Knjiga i materijali)</option>
-                </select>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Limit aktivnih ponuda *</label>
+                  <input id="cat-max-offers-input" type="number" min="1" max="50" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-indigo-700 focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Simbol oblasti</label>
+                  <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    <option value="none">— Bez ikone —</option>
+                    <option value="medicinski_stit">Medicinski štit</option>
+                    <option value="zdrava_aktivnost">Zdrava aktivnost</option>
+                    <option value="mentalni_razvoj">Mentalni razvoj</option>
+                    <option value="postura_rast">Postura i rast</option>
+                    <option value="govor_komunikacija">Govor i komunikacija</option>
+                    <option value="edukacija">Edukacija i radionice</option>
+                  </select>
+                </div>
               </div>
               <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition cursor-pointer">➕ Sačuvaj Partnera</button>
             </form>
@@ -1392,14 +1398,16 @@
       if (!accessCode) {
         accessCode = `PRT-${Math.floor(100 + Math.random() * 900)}`;
       }
+      const maxOffers = Math.max(1, parseInt(document.getElementById('cat-max-offers-input')?.value || '1', 10));
       const icon = document.getElementById('cat-icon-select').value;
       const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + String(Date.now()).slice(-4);
 
-      const noviPartner = { id, name, email, accessCode, icon };
+      const noviPartner = { id, name, email, accessCode, maxOffers, icon };
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', id), noviPartner);
 
       document.getElementById('form-create-category').reset();
-      showNotification(`Partner "${name}" je sačuvan (Kod: ${accessCode})!`, "success");
+      if (document.getElementById('cat-max-offers-input')) document.getElementById('cat-max-offers-input').value = '1';
+      showNotification(`Partner "${name}" je sačuvan (Limit: ${maxOffers} ponuda, Kod: ${accessCode})!`, "success");
     });
 
     window.editCategory = async function(catId) {
@@ -1415,12 +1423,17 @@
       const noviKod = prompt("Partnerski pristupni kod (npr. ORD-101):", cat.accessCode || '');
       if (noviKod === null) return;
 
+      const noviLimitStr = prompt("Maksimalan broj aktivnih ponuda u katalogu (podrazumevano 1):", String(cat.maxOffers || 1));
+      if (noviLimitStr === null) return;
+      const noviLimit = Math.max(1, parseInt(noviLimitStr, 10) || 1);
+
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'categories', catId), {
         name: noviNaziv.trim(),
         email: noviEmail.trim().toLowerCase(),
-        accessCode: noviKod.trim().toUpperCase()
+        accessCode: noviKod.trim().toUpperCase(),
+        maxOffers: noviLimit
       });
-      showNotification("Podaci i ovlašćenja partnera su ažurirani!", "success");
+      showNotification(`Partner ažuriran (Limit aktivnih ponuda: ${noviLimit})!`, "success");
     };
 
     window.deleteCategory = async function(catId) {
@@ -2517,11 +2530,13 @@
     function renderUI() {
       if (!state.isSuperAdmin) return;
 
-      // 1. Partneri i oblasti (sa prikazom Google emaila i koda za partner.html)
+      // 1. Partneri i oblasti (sa prikazom Google emaila, koda i limita aktivnih ponuda)
       const adminCategoriesGrid = document.getElementById('admin-categories-grid');
       if (adminCategoriesGrid) {
         adminCategoriesGrid.innerHTML = state.categories.map(cat => {
           const ikonaSvg = getSafeSvgIcon(cat.icon);
+          const limitPonuda = cat.maxOffers || 1;
+          const aktivnihPonuda = state.events.filter(e => e.category === cat.id && !e.isFrozen && e.isActive).length;
           return `
             <div class="flex items-start justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 shadow-sm gap-2">
               <div class="flex items-start gap-3 min-w-0">
@@ -2529,7 +2544,10 @@
                 <div class="min-w-0 space-y-1">
                   <p class="text-base font-black text-slate-900 truncate">${cat.name}</p>
                   <p class="text-xs font-bold text-indigo-700 truncate">✉️ ${cat.email || 'Nije upisan Google email'}</p>
-                  <p class="text-xs font-mono font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">🔑 Kod: ${cat.accessCode || 'Nema koda'}</p>
+                  <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <span class="text-xs font-mono font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">🔑 ${cat.accessCode || 'Nema koda'}</span>
+                    <span class="text-xs font-black text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">📌 Ponude: ${aktivnihPonuda}/${limitPonuda}</span>
+                  </div>
                 </div>
               </div>
               <div class="flex gap-1 shrink-0">
