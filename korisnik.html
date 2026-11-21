@@ -154,6 +154,29 @@
       transform-origin: center;
       animation: dotBPulse 1.6s infinite ease-in-out;
     }
+
+    /* Animacija vrata i brave Kućnog sefa */
+    .kucni-sef-vrata {
+      transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: left center;
+    }
+    .kucni-sef-otvoren .kucni-sef-vrata {
+      transform: perspective(1200px) rotateY(-108deg);
+    }
+    .kucni-sef-tocak {
+      transition: transform 0.35s ease;
+    }
+    @keyframes sefShake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(5px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+    .sef-shake {
+      animation: sefShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+
   </style>
 </head>
 <body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col pb-28 relative">
@@ -836,6 +859,76 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal: Ugrađeni interaktivni KUĆNI SEF (Kuća / Ključ) -->
+  <div id="modal-kucni-sef" class="hidden fixed inset-0 z-[115] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="kucni-sef-okvir" class="relative w-full max-w-md min-h-[520px] bg-slate-900 border-4 border-amber-400/60 rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between">
+      
+      <!-- Dugme za zatvaranje -->
+      <button type="button" onclick="window.zatvoriKucniSef()" class="absolute top-3.5 right-3.5 z-30 w-10 h-10 rounded-2xl bg-white/95 hover:bg-rose-50 text-rose-600 border-2 border-rose-200 flex items-center justify-center text-lg font-black shadow-lg transition cursor-pointer">
+        ✕
+      </button>
+
+      <!-- UNUTRAŠNJOST SEFA (Nagrada i završni PDF izazov) -->
+      <div id="sef-nagrada-ekran" class="absolute inset-0 bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center p-6 text-center z-0">
+        <div class="w-20 h-20 rounded-3xl bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center text-4xl mb-4 shadow-lg">
+          🏆
+        </div>
+        <span class="text-xs font-black uppercase tracking-widest text-amber-300 mb-1">KUĆNI SEF OTKLJUČAN</span>
+        <h3 id="sef-nagrada-naslov" class="text-2xl font-black text-white leading-tight mb-3">Čestitamo!</h3>
+        <div class="w-full bg-white/10 border border-white/15 rounded-2xl p-4 mb-5 text-sm sm:text-base text-slate-100 leading-relaxed font-medium">
+          <p id="sef-nagrada-poruka">Uspešno ste rešili sve zadatke iz sveske i otključali završni izazov!</p>
+        </div>
+        <button type="button" id="btn-sef-otvori-sadrzaj" class="w-full py-4 px-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-base font-black shadow-xl transition flex items-center justify-center gap-2.5 cursor-pointer">
+          <span>📖</span>
+          <span id="btn-sef-otvori-tekst">OTVORI ZAVRŠNI IZAZOV</span>
+        </button>
+      </div>
+
+      <!-- VRATA SEFA (Brava, točak i unos šifre iz sveske) -->
+      <div class="kucni-sef-vrata absolute inset-0 bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-r-4 border-amber-500/40 z-10 flex flex-col items-center justify-between p-5 sm:p-6">
+        
+        <div class="text-center mt-1 pr-8">
+          <div class="inline-flex items-center gap-2 bg-amber-400/15 border border-amber-400/40 text-amber-300 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/>
+            </svg>
+            <span>KUĆNI SEF • PORTAL</span>
+          </div>
+          <h4 id="sef-vrata-naziv-igre" class="text-base sm:text-lg font-black text-white mt-2 line-clamp-1">Naziv igre</h4>
+          <p class="text-xs text-slate-400 font-semibold mt-0.5">Šifra se dobija rešavanjem zadataka iz vaše sveske</p>
+        </div>
+
+        <!-- Rotirajući točak brave -->
+        <div id="kucni-sef-tocak" class="kucni-sef-tocak w-28 h-28 rounded-full border-4 border-amber-400/70 bg-slate-800 flex items-center justify-center shadow-xl relative my-2">
+          <div class="absolute w-full h-2.5 bg-slate-600"></div>
+          <div class="absolute h-full w-2.5 bg-slate-600"></div>
+          <div class="w-14 h-14 rounded-full border-4 border-amber-400/80 bg-slate-900 z-10 flex items-center justify-center">
+            <span id="sef-katanac-ikona" class="text-xl">🔒</span>
+          </div>
+        </div>
+
+        <!-- Panel za unos šifre i obaveštenje o pokušajima / blokadi -->
+        <div class="w-full bg-slate-950/90 p-4 rounded-2xl border-2 border-slate-700 space-y-3">
+          <div id="sef-blokada-poruka" class="hidden bg-rose-950/90 border border-rose-500 text-rose-200 p-3 rounded-xl text-xs font-bold text-center leading-relaxed"></div>
+
+          <div id="sef-unos-blok" class="space-y-3">
+            <input id="sef-sifra-input" type="text" maxlength="20" placeholder="UNESI ŠIFRU IZ SVESKE" class="w-full h-14 rounded-xl bg-emerald-950/70 border-2 border-emerald-500/40 text-emerald-300 font-mono text-xl font-black text-center tracking-widest uppercase focus:outline-none focus:border-amber-400" />
+            <p id="sef-pokusaji-info" class="text-center text-xs font-bold text-slate-400">Imate 3 pokušaja za otključavanje</p>
+            <div class="grid grid-cols-2 gap-2.5">
+              <button type="button" onclick="document.getElementById('sef-sifra-input').value=''; document.getElementById('sef-sifra-input').focus();" class="py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 font-black text-xs sm:text-sm border border-slate-700 cursor-pointer">
+                OBRIŠI
+              </button>
+              <button type="button" onclick="window.proveriSifruKucnogSefa()" class="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-md cursor-pointer">
+                OTKLJUČAJ SEF
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -1731,9 +1824,15 @@
       const clanskaCenaPoKarti = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? 0 : sirovaClanska;
 
       window.proveriAktivnostClanarine30Dana = function(clanObj) {
-        if (!clanObj) return { aktivna: false, preostaloDana: 0, vaziDoTekst: 'N/A' };
+        if (!clanObj) return { aktivna: false, registrovanSaglasnost: false, preostaloDana: 0, vaziDoTekst: 'N/A' };
+        const jeSamoRegistrovan = clanObj.membershipStatus === 'registrovan_saglasnost' && !clanObj.isPaidMember;
         if (clanObj.forceExpired === true) {
-          return { aktivna: false, preostaloDana: 0, vaziDoTekst: 'Istekla' };
+          return {
+            aktivna: false,
+            registrovanSaglasnost: jeSamoRegistrovan,
+            preostaloDana: 0,
+            vaziDoTekst: jeSamoRegistrovan ? 'Pridruženi član (čeka aktivaciju)' : 'Istekla'
+          };
         }
 
         const sada = Date.now();
@@ -1876,6 +1975,12 @@
           });
 
           const usageCount = previousUsages.length;
+          const probneIgreUMesecu = previousUsages.filter(b => b.paymentType === 'besplatna_proba_saglasnost');
+          const iskoristioMesecnuProbu = probneIgreUMesecu.length > 0;
+          const jeOtvorenoZaProbu = event.accessTarget === 'registrovani_proba';
+          const jeSopstvenoOdeljenje = pronadjenClan.group && event.schoolGroupTag && pronadjenClan.group.toLowerCase().trim() === event.schoolGroupTag.toLowerCase().trim();
+          const imaPravoNaProbu = status30Dana.registrovanSaglasnost && jeOtvorenoZaProbu && !iskoristioMesecnuProbu && !jeSopstvenoOdeljenje;
+
           state.activeMembership = {
             card: pronadjenClan.card,
             firstName: pronadjenClan.firstName,
@@ -1885,6 +1990,9 @@
             group: pronadjenClan.group || '',
             usageCount: usageCount,
             isMembershipActive: status30Dana.aktivna,
+            isRegisteredConsentOnly: status30Dana.registrovanSaglasnost,
+            canUseMonthlyTrial: imaPravoNaProbu,
+            alreadyUsedTrial: iskoristioMesecnuProbu,
             daysRemaining: status30Dana.preostaloDana
           };
 
@@ -1895,9 +2003,17 @@
             const infoEl = document.getElementById('membership-member-info');
             if (nameEl) nameEl.innerText = `${pronadjenClan.firstName} ${pronadjenClan.lastName} (${pronadjenClan.card})`;
             if (infoEl) {
-              infoEl.innerText = status30Dana.aktivna
-                ? `Članarina aktivna (još ${status30Dana.preostaloDana} dana) — ${usageCount + 1}. dolazak`
-                : `Članarina od 30 dana je istekla — broj ${pronadjenClan.card} se zadržava uz uplatu članarine`;
+              if (status30Dana.aktivna) {
+                infoEl.innerText = `Članarina aktivna (još ${status30Dana.preostaloDana} dana) — ${usageCount + 1}. aktivnost`;
+              } else if (imaPravoNaProbu) {
+                infoEl.innerText = `Pridruženi član (${pronadjenClan.group}) — otključana 1 besplatna proba ovog meseca (0 din)`;
+              } else if (status30Dana.registrovanSaglasnost) {
+                infoEl.innerText = jeSopstvenoOdeljenje
+                  ? `Igra vašeg odeljenja (${pronadjenClan.group}) — za kućnu verziju i Kućni sef aktivirajte članarinu (830 din)`
+                  : `Kartica je spremna — za otključavanje kućnih igara i Kućnog sefa aktivirajte članarinu Podmlatka (830 din)`;
+              } else {
+                infoEl.innerText = `Članarina od 30 dana je istekla — broj ${pronadjenClan.card} se zadržava uz uplatu članarine`;
+              }
             }
           }
 
@@ -2406,7 +2522,7 @@
       const clanskaCena = jeModelClanarine ? 0 : sirovaClanska;
       const redovnaCena = jeModelClanarine ? (sirovaRedovna || sirovaClanska || 850) : ((sirovaRedovna === 0 && sirovaClanska > 0) ? sirovaClanska : sirovaRedovna);
 
-      const imaAktivnuClanarinu = aktivniClan && state.activeMembership.isMembershipActive === true;
+      const imaAktivnuClanarinu = aktivniClan && (state.activeMembership.isMembershipActive === true || state.activeMembership.canUseMonthlyTrial === true);
       const pricePerTicket = imaAktivnuClanarinu ? clanskaCena : redovnaCena;
       const jeDigitalni = event.activityType === 'digitalni_resurs';
       const doplataZaDrugi = (jeDigitalni && event.pdfSecondPrice !== null && event.pdfSecondPrice !== undefined)
@@ -2524,6 +2640,10 @@
         trailCode: event.trailCode || '',
         digitalUrl: event.digitalUrl || '',
         digitalUrl2: event.digitalUrl2 || '',
+        schoolGroupTag: event.schoolGroupTag || '',
+        vaultPassword: event.vaultPassword || '',
+        vaultMessage: event.vaultMessage || '',
+        vaultRewardUrl: event.vaultRewardUrl || '',
         pdfProtection: event.pdfProtection || 'view_only',
         pdfAllowPrint: event.pdfAllowPrint === true,
         pdfAllowDownload: event.pdfAllowDownload === true,
@@ -2960,6 +3080,164 @@
           openTicketModal(b);
         }
         renderUI();
+      }
+    };
+
+    window.aktivniSefPodaci = null;
+
+    window.otvoriKucniSef = function(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId);
+      if (!b) return;
+
+      const uplataOverena = b.isPaid === true || b.paymentType === 'clanarina_pokriveno' || Number(b.totalPrice || 0) === 0;
+      if (!uplataOverena || b.status === 'otkazano') {
+        showNotification("Ovaj Kućni sef pripada igri koja još nije aktivirana.", "warning");
+        return;
+      }
+
+      const ev = state.events.find(e => e.id === b.eventId);
+      const ocekivanaSifra = (b.vaultPassword || (ev ? ev.vaultPassword : '') || '').trim().toUpperCase();
+      const porukaNagrade = (b.vaultMessage || (ev ? ev.vaultMessage : '') || 'Uspešno ste rešili sve zadatke iz sveske i otključali završni izazov!').trim();
+      const nagradaUrl = (b.vaultRewardUrl || (ev ? ev.vaultRewardUrl : '') || b.digitalUrl || (ev ? ev.digitalUrl : '') || '').trim();
+
+      window.aktivniSefPodaci = {
+        booking: b,
+        sifra: ocekivanaSifra,
+        poruka: porukaNagrade,
+        url: nagradaUrl
+      };
+
+      const okvir = document.getElementById('kucni-sef-okvir');
+      const tocak = document.getElementById('kucni-sef-tocak');
+      const katanac = document.getElementById('sef-katanac-ikona');
+      const inputEl = document.getElementById('sef-sifra-input');
+
+      if (okvir) okvir.classList.remove('kucni-sef-otvoren');
+      if (tocak) tocak.style.transform = 'rotate(0deg)';
+      if (katanac) katanac.innerText = '🔒';
+      if (inputEl) inputEl.value = '';
+
+      document.getElementById('sef-vrata-naziv-igre').innerText = b.eventTitle || 'Kućna misija';
+      document.getElementById('sef-nagrada-naslov').innerText = `Bravo, ${b.firstName}!`;
+      document.getElementById('sef-nagrada-poruka').innerText = porukaNagrade;
+
+      window.osveziStatusBlokadeSefa();
+      document.getElementById('modal-kucni-sef').classList.remove('hidden');
+    };
+
+    window.zatvoriKucniSef = function() {
+      document.getElementById('modal-kucni-sef')?.classList.add('hidden');
+      if (window.sefBlokadaTimer) {
+        clearInterval(window.sefBlokadaTimer);
+      }
+    };
+
+    window.osveziStatusBlokadeSefa = function() {
+      if (window.sefBlokadaTimer) clearInterval(window.sefBlokadaTimer);
+      const kljucBlokade = 'edubooker_sef_lock_until';
+      const kljucPokusaji = 'edubooker_sef_attempts';
+      const blokadaDiv = document.getElementById('sef-blokada-poruka');
+      const unosBlok = document.getElementById('sef-unos-blok');
+      const pokusajiInfo = document.getElementById('sef-pokusaji-info');
+
+      const proveri = () => {
+        const lockUntil = parseInt(safeStorage.getItem(kljucBlokade) || '0', 10);
+        const sada = Date.now();
+        if (lockUntil > sada) {
+          const preostaloSek = Math.ceil((lockUntil - sada) / 1000);
+          const min = Math.floor(preostaloSek / 60);
+          const sek = String(preostaloSek % 60).padStart(2, '0');
+          if (blokadaDiv) {
+            blokadaDiv.classList.remove('hidden');
+            blokadaDiv.innerText = `Sef je privremeno zaključan zbog 3 pogrešna pokušaja. Vratite se na zadatke u svesci i pokušajte ponovo za ${min}:${sek} min.`;
+          }
+          if (unosBlok) unosBlok.classList.add('hidden');
+          return true;
+        } else {
+          if (lockUntil > 0) {
+            safeStorage.setItem(kljucBlokade, '0');
+            safeStorage.setItem(kljucPokusaji, '0');
+          }
+          if (blokadaDiv) blokadaDiv.classList.add('hidden');
+          if (unosBlok) unosBlok.classList.remove('hidden');
+          const iskorisceno = parseInt(safeStorage.getItem(kljucPokusaji) || '0', 10);
+          const preostalo = Math.max(1, 3 - iskorisceno);
+          if (pokusajiInfo) pokusajiInfo.innerText = `Preostalo pokušaja: ${preostalo} od 3`;
+          return false;
+        }
+      };
+
+      if (proveri()) {
+        window.sefBlokadaTimer = setInterval(proveri, 1000);
+      }
+    };
+
+    window.proveriSifruKucnogSefa = function() {
+      if (window.osveziStatusBlokadeSefa()) return;
+      if (!window.aktivniSefPodaci) return;
+
+      const inputEl = document.getElementById('sef-sifra-input');
+      const uneto = (inputEl?.value || '').trim().toUpperCase();
+      if (!uneto) return;
+
+      const tocak = document.getElementById('kucni-sef-tocak');
+      const okvir = document.getElementById('kucni-sef-okvir');
+      const katanac = document.getElementById('sef-katanac-ikona');
+      const kljucBlokade = 'edubooker_sef_lock_until';
+      const kljucPokusaji = 'edubooker_sef_attempts';
+
+      if (uneto === window.aktivniSefPodaci.sifra) {
+        safeStorage.setItem(kljucPokusaji, '0');
+        safeStorage.setItem(kljucBlokade, '0');
+        if (tocak) tocak.style.transform = 'rotate(-90deg)';
+        if (katanac) katanac.innerText = '🔓';
+
+        const btnSadrzaj = document.getElementById('btn-sef-otvori-sadrzaj');
+        const nagradaUrl = window.aktivniSefPodaci.url;
+        const b = window.aktivniSefPodaci.booking;
+
+        if (btnSadrzaj) {
+          btnSadrzaj.onclick = () => {
+            window.zatvoriKucniSef();
+            if (!nagradaUrl) {
+              showNotification("Završni link još nije unet u podešavanjima igre.", "warning");
+              return;
+            }
+            const jePdf = nagradaUrl.toLowerCase().includes('.pdf') || nagradaUrl.includes('raw.githubusercontent.com');
+            if (jePdf) {
+              const tempBooking = { ...b, digitalUrl: nagradaUrl };
+              const urlCitaca = window.sastaviCitacUrl(tempBooking, 1);
+              document.getElementById('pdf-viewer-title').innerText = `${b.eventTitle} (Završni izazov)`;
+              document.getElementById('pdf-viewer-license').innerText = `Licenca: ${b.id} (${b.firstName} ${b.lastName})`;
+              const iframe = document.getElementById('pdf-viewer-iframe');
+              if (iframe) iframe.src = urlCitaca;
+              document.getElementById('modal-pdf-viewer').classList.remove('hidden');
+            } else {
+              window.open(nagradaUrl, '_blank');
+            }
+          };
+        }
+
+        setTimeout(() => {
+          okvir?.classList.add('kucni-sef-otvoren');
+        }, 350);
+      } else {
+        const noviBrojPokusaja = parseInt(safeStorage.getItem(kljucPokusaji) || '0', 10) + 1;
+        safeStorage.setItem(kljucPokusaji, String(noviBrojPokusaja));
+        if (tocak) tocak.style.transform = `rotate(${noviBrojPokusaja * 45}deg)`;
+        okvir?.classList.add('sef-shake');
+        setTimeout(() => okvir?.classList.remove('sef-shake'), 450);
+        if (inputEl) inputEl.value = '';
+
+        if (noviBrojPokusaja >= 3) {
+          const petnaestMinutaMs = 15 * 60 * 1000;
+          safeStorage.setItem(kljucBlokade, String(Date.now() + petnaestMinutaMs));
+          window.osveziStatusBlokadeSefa();
+        } else {
+          const preostalo = 3 - noviBrojPokusaja;
+          showNotification(`Pogrešna šifra! Preostalo pokušaja: ${preostalo}`, "warning");
+          window.osveziStatusBlokadeSefa();
+        }
       }
     };
 
@@ -3629,6 +3907,9 @@
         openTicketModal(booking);
       };
 
+      const pridruzeniDogadjajSef = state.events.find(e => e.id === booking.eventId);
+      const sifraSefa = (booking.vaultPassword || (pridruzeniDogadjajSef ? pridruzeniDogadjajSef.vaultPassword : '') || '').trim();
+      const jeKartaKucnogSefa = prepoznatTipKarte === 'kucni_sef' || sifraSefa !== '';
       const jeKartaUclanjenja = prepoznatTipKarte === 'uclanjenje' || booking.eventId === 'UCLANJENJE_PODMLATKA';
 
       if (jeKartaUclanjenja) {
@@ -3694,6 +3975,46 @@
             subEl.className = "text-xs font-bold text-emerald-800 pt-1";
             subEl.innerText = "Sa ovim brojem besplatno (0 din) preuzimate sve članske sveske i staze narednih 30 dana!";
           }
+        }
+      } else if (jeKartaKucnogSefa) {
+        if (pdfDualBox) pdfDualBox.classList.add('hidden');
+        document.getElementById('ticket-gift-container')?.classList.add('hidden');
+        document.getElementById('ticket-qr-canvas')?.classList.add('hidden');
+        document.getElementById('ticket-non-qr-wrapper')?.classList.add('hidden');
+        document.getElementById('payment-switch-container')?.classList.add('hidden');
+        if (sliderWrapEl) sliderWrapEl.classList.add('hidden');
+
+        const onlineWrap = document.getElementById('ticket-online-action-wrapper');
+        const onlineTagEl = document.getElementById('online-ticket-tag');
+        const onlineInstEl = document.getElementById('online-ticket-instruction');
+        const onlineBtnEl = document.getElementById('btn-open-online-link');
+        const onlineIconEl = document.getElementById('online-btn-icon');
+        const onlineTextEl = document.getElementById('online-btn-text');
+
+        if (onlineWrap) onlineWrap.classList.remove('hidden');
+        if (onlineTagEl) onlineTagEl.innerText = 'KUĆNI SEF • ZAVRŠNI IZAZOV';
+
+        if (!jeAktivnaPlacenaKarta) {
+          if (onlineInstEl) onlineInstEl.innerText = 'Kućni sef je zaključan dok se ne evidentira uplata članarine Podmlatka.';
+          if (onlineBtnEl) {
+            onlineBtnEl.removeAttribute('href');
+            onlineBtnEl.onclick = (e) => { e.preventDefault(); showNotification("Kućni sef se otključava nakon potvrde uplate!", "warning"); };
+            onlineBtnEl.className = "w-full py-4 bg-slate-200 text-slate-500 rounded-2xl text-sm font-black flex items-center justify-center gap-2 cursor-not-allowed";
+          }
+          if (onlineIconEl) onlineIconEl.innerText = '🔒';
+          if (onlineTextEl) onlineTextEl.innerText = 'SEF ZAKLJUČAN (ČEKA UPLATU)';
+        } else {
+          if (onlineInstEl) onlineInstEl.innerText = 'Rešili ste zadatke iz sveske? Otvorite Kućni sef, unesite tajnu šifru i preuzmite završni izazov!';
+          if (onlineBtnEl) {
+            onlineBtnEl.removeAttribute('href');
+            onlineBtnEl.onclick = (e) => {
+              e.preventDefault();
+              window.otvoriKucniSef(booking.id);
+            };
+            onlineBtnEl.className = "w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl text-base font-black shadow-lg flex items-center justify-center gap-2 transition cursor-pointer";
+          }
+          if (onlineIconEl) onlineIconEl.innerText = '🔑';
+          if (onlineTextEl) onlineTextEl.innerText = 'OTVORI KUĆNI SEF';
         }
       } else if (jePdfKarta) {
         document.getElementById('ticket-online-action-wrapper')?.classList.add('hidden');
@@ -4442,6 +4763,12 @@
       renderUI();
     };
 
+    window.klikKucniSefSekcija = function() {
+      state.activeCategory = 'kucni_sef_sekcija';
+      window.otvorenMeniPojedinacnih = false;
+      renderUI();
+    };
+
     window.klikDugmePojedinacne = function() {
       window.otvorenMeniPojedinacnih = !window.otvorenMeniPojedinacnih;
       renderUI();
@@ -4531,11 +4858,12 @@
 
       const filterContainer = document.getElementById('categories-filter-container');
       if (filterContainer) {
-        if (state.activeCategory !== 'all' && !state.events.some(e => e.subCategory === state.activeCategory && !e.isFrozen)) {
+        if (state.activeCategory !== 'all' && state.activeCategory !== 'kucni_sef_sekcija' && !state.events.some(e => e.subCategory === state.activeCategory && !e.isFrozen)) {
           state.activeCategory = 'all';
         }
         const isAllActive = state.activeCategory === 'all';
-        const isSingleActive = !isAllActive || window.otvorenMeniPojedinacnih;
+        const isKucniSefActive = state.activeCategory === 'kucni_sef_sekcija';
+        const isSingleActive = (!isAllActive && !isKucniSefActive) || window.otvorenMeniPojedinacnih;
 
         const VELIKE_IKONE_KATEGORIJA = {
           all: `<svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>`,
@@ -4575,9 +4903,17 @@
         }
 
         filterContainer.innerHTML = `
-          <div class="grid grid-cols-2 gap-3 w-full">
+          <div class="grid grid-cols-3 gap-2.5 w-full">
             <button type="button" onclick="window.klikSvePonude()" title="Sve ponude zajedno" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer ${isAllActive && !window.otvorenMeniPojedinacnih ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30' : 'bg-slate-700/80 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
               ${VELIKE_IKONE_KATEGORIJA.all}
+            </button>
+
+            <button type="button" onclick="window.klikKucniSefSekcija()" title="KUĆNI SEF (Kuća / Ključ)" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex flex-col items-center justify-center border-2 active:scale-95 cursor-pointer px-1 ${isKucniSefActive ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-lg shadow-amber-500/30' : 'bg-slate-700/80 text-amber-300 border-slate-600 hover:bg-slate-700'}">
+              <svg class="w-7 h-7 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/>
+                <circle cx="12" cy="11" r="1.5"/>
+              </svg>
+              <span class="text-[10px] font-black uppercase tracking-tight leading-none mt-1">KUĆNI SEF</span>
             </button>
 
             <button type="button" onclick="window.klikDugmePojedinacne()" title="${nazivDrugogDugmeta}" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer relative ${isSingleActive ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30' : 'bg-slate-700/80 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
@@ -4589,7 +4925,9 @@
       }
 
       let filteredEvents = state.events.filter(e => !e.isFrozen);
-      if (state.activeCategory !== 'all') {
+      if (state.activeCategory === 'kucni_sef_sekcija') {
+        filteredEvents = filteredEvents.filter(e => e.activityType === 'kucni_sef' || e.activityType === 'digitalni_resurs' || !!e.vaultPassword);
+      } else if (state.activeCategory !== 'all') {
         filteredEvents = filteredEvents.filter(e => e.subCategory === state.activeCategory);
       }
       if (state.searchTerm) {
@@ -4737,11 +5075,14 @@
 
           const unutrasnjostKarticeHtml = `
             <div class="relative z-20 bg-white border-t border-slate-200 px-4 pt-3 pb-3.5 flex-1 flex flex-col justify-between overflow-hidden">
-              <div onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="flex items-center gap-2.5 cursor-pointer group min-h-[58px]">
-                <span class="text-xs font-black bg-slate-800 text-slate-100 border-slate-900 px-2.5 py-1 rounded-lg shrink-0 border shadow-2xs">#${evt.ordinalNumber || '01'}</span>
-                <h3 class="text-2xl sm:text-[25px] font-black text-slate-950 group-hover:text-indigo-600 leading-[1.12] tracking-tight line-clamp-2 transition flex-1">
-                  ${evt.title}
-                </h3>
+              <div>
+                ${evt.schoolGroupTag ? `<span class="inline-block mb-1 text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-md truncate max-w-full">${evt.schoolGroupTag}</span>` : ''}
+                <div onclick="event.stopPropagation(); openInfoModal('${evt.id}')" class="flex items-center gap-2.5 cursor-pointer group min-h-[54px]">
+                  <span class="text-xs font-black bg-slate-800 text-slate-100 border-slate-900 px-2.5 py-1 rounded-lg shrink-0 border shadow-2xs">#${evt.ordinalNumber || '01'}</span>
+                  <h3 class="text-2xl sm:text-[25px] font-black text-slate-950 group-hover:text-indigo-600 leading-[1.12] tracking-tight line-clamp-2 transition flex-1">
+                    ${evt.title}
+                  </h3>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-3 my-1.5">
