@@ -1775,13 +1775,60 @@
       const linkRoditelji = `${baza}?ustanova=${encodeURIComponent(ustanova.trim())}&razred=${encodeURIComponent(razred.trim())}`;
       const linkUciteljica = `${linkRoditelji}&ucitelj=1`;
 
-      const poruka1 = `Poštovani roditelji,\nnaše odeljenje učestvuje u projektu „Zimski izazov“ Udruženja Mentalna Gimnastika. Na času će deca u grupama smisliti 5 zagonetki iz oblasti ${tema || 'gradiva'}, a od njih će nastati igra koju će rešavati njihovi vršnjaci u školi. Svaka grupa će smisliti i nacrtati i sopstvenu zagonetku. Sve zagonetke objavljujemo u digitalnoj knjizi razreda, a svako može da dobije i štampanu verziju.\n\nDa li želite da vaše dete učestvuje u pravljenju ove staze? Odgovorite sa da ili ne do ${rok || 'kraja nedelje'} na linku:\n${linkRoditelji}\n\nUčešće je besplatno. Odgovorom „da“ dajete saglasnost da se zagonetke koje dete smisli koriste u igri; ime deteta se objavljuje samo ako to posebno označite u obrascu. Dete koje ne učestvuje radi redovan zadatak na času.`;
+      const poruka1 = `Poštovani roditelji,\r\nnaše odeljenje učestvuje u projektu „Zimski izazov“ Udruženja Mentalna Gimnastika. Na času će deca u grupama smisliti 5 zagonetki iz oblasti ${tema || 'gradiva'}, a od njih će nastati igra koju će rešavati njihovi vršnjaci u školi. Svaka grupa će smisliti i nacrtati i sopstvenu zagonetku. Sve zagonetke objavljujemo u digitalnoj knjizi razreda, a svako može da dobije i štampanu verziju.\r\n\r\nDa li želite da vaše dete učestvuje u pravljenju ove staze? Odgovorite sa da ili ne do ${rok || 'kraja nedelje'} na linku:\r\n${linkRoditelji}\r\n\r\nUčešće je besplatno. Odgovorom „da“ dajete saglasnost da se zagonetke koje dete smisli koriste u igri; ime deteta se objavljuje samo ako to posebno označite u obrascu. Dete koje ne učestvuje radi redovan zadatak na času.`;
 
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(poruka1).catch(() => {});
+      const sadrzajDokumenta = `UPUTSTVO I PORUKA ZA UČITELJA / VASPITAČA\r\nUstanova: ${ustanova.trim()}\r\nOdeljenje / Grupa: ${razred.trim()}\r\n====================================================\r\n\r\n1. LINK ZA VAŠ UVID (SPISAK KO JE ODGOVORIO):\r\n${linkUciteljica}\r\n\r\n====================================================\r\n\r\n2. PORUKA ZA RODITELJE (KOPIRAJTE I POŠALJITE U GRUPU):\r\n\r\n${poruka1}`;
+
+      // Preuzimanje .txt fajla koji se odmah otvara u Notepad / WordPad programu
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, sadrzajDokumenta], { type: 'text/plain;charset=utf-8;' });
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(blob);
+      const cistNaziv = `${ustanova.trim()}_${razred.trim()}`.replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ_-]/g, '_');
+      downloadLink.download = `Poziv_Saglasnost_${cistNaziv}.txt`;
+      downloadLink.click();
+
+      // Prikaz preglednog prozora sa mogućnošću direktnog kopiranja svakog dela posebno
+      let modal = document.getElementById('modal-saglasnost-tekst');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-saglasnost-tekst';
+        modal.className = 'fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4';
+        modal.innerHTML = `
+          <div class="bg-white rounded-3xl w-full max-w-xl p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 fade-in">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 class="text-lg font-black text-slate-900">Spremno za slanje učiteljici</h3>
+              <button type="button" onclick="document.getElementById('modal-saglasnost-tekst').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 font-black text-slate-600 cursor-pointer">✕</button>
+            </div>
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-indigo-950 uppercase">1. Link za praćenje odgovora (za učiteljicu):</label>
+              <div class="flex gap-2">
+                <input id="saglasnost-teacher-url-box" type="text" readonly class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 select-all" />
+                <button type="button" id="btn-copy-teacher-url" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black cursor-pointer shrink-0">Kopiraj link</button>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-emerald-950 uppercase">2. Tekst poruke za roditelje (sa linkom za prijavu):</label>
+              <textarea id="saglasnost-parent-msg-box" rows="8" readonly class="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3 text-xs sm:text-sm font-medium text-slate-800 select-all"></textarea>
+              <button type="button" id="btn-copy-parent-msg" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-black shadow-md cursor-pointer">Kopiraj celu poruku za roditelje</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
       }
-      alert(`Poruka 1 sa linkom za roditelje je kopirana u memoriju!\n\nLink za vaš uvid (pregled ko je odgovorio):\n${linkUciteljica}`);
-      showNotification("Poziv za saglasnost je kopiran!", "success");
+
+      document.getElementById('saglasnost-teacher-url-box').value = linkUciteljica;
+      document.getElementById('saglasnost-parent-msg-box').value = poruka1;
+      document.getElementById('btn-copy-teacher-url').onclick = () => {
+        navigator.clipboard?.writeText(linkUciteljica);
+        showNotification("Link za praćenje učiteljice je kopiran!", "success");
+      };
+      document.getElementById('btn-copy-parent-msg').onclick = () => {
+        navigator.clipboard?.writeText(poruka1);
+        showNotification("Poruka za roditelje je kopirana!", "success");
+      };
+      modal.classList.remove('hidden');
+      showNotification("Fajl za Notepad/WordPad je preuzet!", "success");
     };
 
     window.kopirajLinkZaUcitelja = function() {
