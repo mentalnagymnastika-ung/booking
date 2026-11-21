@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Saglasnost za učešće • Mentalna Gimnastika</title>
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" type="image/png" href="logo%20EduBook.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body { overscroll-behavior-y: none; font-family: 'Inter', 'Segoe UI', sans-serif; font-size: 16px; }
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col items-center justify-center p-3 sm:p-5 pb-12">
+
+  <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden fade-in">
+    
+    <!-- Zaglavlje sa prekidačem Latinica / Ћирилица -->
+    <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-900 p-6 sm:p-7 text-white text-center relative">
+      <div class="flex justify-end mb-2">
+        <button type="button" id="btn-toggle-script" onclick="window.promeniPismo()" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl transition cursor-pointer">
+          Ћирилица
+        </button>
+      </div>
+
+      <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center font-black text-3xl text-amber-300 shadow-lg">
+        E
+      </div>
+      <span id="lbl-org-name" class="inline-block text-xs sm:text-sm font-black uppercase tracking-widest bg-white/15 px-3.5 py-1 rounded-full text-indigo-100 mb-2">
+        Udruženje Mentalna Gimnastika
+      </span>
+      <h1 id="projekat-naslov" class="text-2xl sm:text-3xl font-black tracking-tight leading-snug">Zimski izazov, Škola u pokretu</h1>
+      <p id="skola-odeljenje-oznaka" class="text-sm sm:text-base font-bold text-amber-300 mt-2">Učitavanje podataka odeljenja...</p>
+    </div>
+
+    <!-- Glavni sadržaj forme -->
+    <div id="form-container" class="p-5 sm:p-7 space-y-6">
+      
+      <div class="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-700 leading-relaxed space-y-2">
+        <p id="lbl-greeting" class="font-bold text-indigo-950 text-base sm:text-lg">Poštovani roditelji,</p>
+        <p id="lbl-intro">Učešće deteta u pravljenju i probi igre u školi je <strong>potpuno besplatno</strong>. Molimo vas da izaberete da li želite da vaše dete učestvuje u ovom projektu.</p>
+      </div>
+
+      <!-- Ako link nema parametre škole/razreda, prikaži polja za unos -->
+      <div id="manual-school-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+        <div>
+          <label id="lbl-school-input" class="block text-sm font-black text-slate-700 mb-1.5">Naziv škole ili vrtića *</label>
+          <input id="input-ustanova" type="text" placeholder="npr. OŠ Petefi Šandor" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label id="lbl-class-input" class="block text-sm font-black text-slate-700 mb-1.5">Odeljenje / Grupa *</label>
+          <input id="input-razred" type="text" placeholder="npr. 3-2" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500" />
+        </div>
+      </div>
+
+      <!-- Izbor DA / NE -->
+      <div class="space-y-3">
+        <label id="lbl-choice-title" class="block text-sm sm:text-base font-black text-slate-800 uppercase tracking-wider">Vaš odgovor za učešće deteta *</label>
+        <div class="grid grid-cols-1 gap-3">
+          <button type="button" id="btn-choice-da" onclick="window.izaberiOdgovor('DA')" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-400 text-left transition flex items-center gap-4 cursor-pointer">
+            <span id="radio-dot-da" class="w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 font-black text-sm"></span>
+            <div>
+              <span id="lbl-da-main" class="block text-base sm:text-lg font-black text-slate-900">DA, želim da moje dete učestvuje</span>
+              <span id="lbl-da-sub" class="block text-sm text-slate-500 font-semibold mt-0.5">Besplatno učešće u školi i besplatna članska kartica</span>
+            </div>
+          </button>
+
+          <button type="button" id="btn-choice-ne" onclick="window.izaberiOdgovor('NE')" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-rose-300 text-left transition flex items-center gap-4 cursor-pointer">
+            <span id="radio-dot-ne" class="w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 font-black text-sm"></span>
+            <div>
+              <span id="lbl-ne-main" class="block text-base sm:text-lg font-black text-slate-900">NE, moje dete neće učestvovati</span>
+              <span id="lbl-ne-sub" class="block text-sm text-slate-500 font-semibold mt-0.5">Dete će raditi redovan zadatak na času</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <form id="consent-form" class="hidden space-y-5 pt-3 border-t border-slate-100 fade-in">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label id="lbl-child-first" class="block text-sm font-black text-slate-800 mb-1.5">Ime deteta *</label>
+            <input id="child-firstname" type="text" required placeholder="Ime" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500 focus:bg-white" />
+          </div>
+          <div>
+            <label id="lbl-child-last" class="block text-sm font-black text-slate-800 mb-1.5">Prezime deteta *</label>
+            <input id="child-lastname" type="text" required placeholder="Prezime" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500 focus:bg-white" />
+          </div>
+        </div>
+
+        <!-- Polja samo za DA -->
+        <div id="fields-for-da" class="space-y-5">
+          <div>
+            <label id="lbl-parent-name" class="block text-sm font-black text-slate-800 mb-1.5">Ime i prezime roditelja *</label>
+            <input id="parent-name" type="text" placeholder="Ime i prezime roditelja" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500 focus:bg-white" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label id="lbl-parent-email" class="block text-sm font-black text-slate-800 mb-1.5">Email roditelja (za karticu) *</label>
+              <input id="parent-email" type="email" placeholder="vas@email.com" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500 focus:bg-white" />
+            </div>
+            <div>
+              <label id="lbl-parent-phone" class="block text-sm font-black text-slate-800 mb-1.5">Kontakt telefon (opciono)</label>
+              <input id="parent-phone" type="tel" placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500 focus:bg-white" />
+            </div>
+          </div>
+
+          <!-- Saglasnosti -->
+          <div class="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
+            <label class="flex items-start gap-3.5 cursor-pointer select-none">
+              <input type="checkbox" id="cb-consent-materials" class="w-6 h-6 mt-0.5 rounded border-slate-300 text-indigo-600 shrink-0" />
+              <span id="lbl-consent-1" class="text-sm sm:text-base text-slate-700 leading-relaxed font-semibold">
+                <strong class="text-slate-950">Obavezna saglasnost *:</strong> Dajem saglasnost Udruženju Mentalna Gimnastika da zagonetke i crteže koje moje dete napravi koristi u igri odeljenja i digitalnoj knjizi razreda, kao i da ih objavi na platformi @Booker i u edukativnim publikacijama i promotivnim materijalima Udruženja.
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3.5 cursor-pointer select-none pt-3 border-t border-slate-200/80">
+              <input type="checkbox" id="cb-consent-childname" class="w-6 h-6 mt-0.5 rounded border-slate-300 text-indigo-600 shrink-0" />
+              <span id="lbl-consent-2" class="text-sm sm:text-base text-slate-700 leading-relaxed font-semibold">
+                <strong class="text-slate-950">Objava imena deteta (opciono):</strong> Dozvoljavam da se ime i prezime mog deteta objavi pored njegove zagonetke i crteža u digitalnoj knjizi razreda i na platformi @Booker.
+              </span>
+            </label>
+          </div>
+
+          <!-- Dodatno pitanje za kućno kreiranje (DA / NE / podrazumevano Možda) -->
+          <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 sm:p-5 space-y-3">
+            <label id="lbl-extra-question" class="block text-sm sm:text-base font-black text-amber-950 leading-snug">
+              Dodatno pitanje: Da li biste želeli da i sami kod kuće sa detetom kreirate ovakvu igru uz pomoć naših alata (Razigravanje i Kreator Pro)?
+            </label>
+            <input type="hidden" id="home-creator-value" value="mozda" />
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" id="btn-creator-da" onclick="window.izaberiKucnoKreiranje('da')" class="py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-emerald-500 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer">
+                DA
+              </button>
+              <button type="button" id="btn-creator-ne" onclick="window.izaberiKucnoKreiranje('ne')" class="py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-rose-400 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer">
+                NE
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="form-error-msg" class="hidden bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-xl text-sm font-bold text-center"></div>
+
+        <button type="submit" id="btn-submit-consent" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base sm:text-lg font-black shadow-lg transition cursor-pointer">
+          POTVRDI I POŠALJI ODGOVOR
+        </button>
+      </form>
+    </div>
+
+    <!-- Ekran potvrde nakon slanja -->
+    <div id="success-container" class="hidden p-6 sm:p-8 text-center space-y-5 fade-in">
+      <div id="success-icon" class="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl font-black">
+        ✓
+      </div>
+      <h2 id="success-title" class="text-xl sm:text-2xl font-black text-slate-950">Odgovor je uspešno zabeležen!</h2>
+      <p id="success-desc" class="text-sm sm:text-base text-slate-600 leading-relaxed"></p>
+
+      <div id="card-preview-box" class="hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-900 rounded-2xl p-5 sm:p-6 text-white text-left shadow-xl space-y-2.5 border border-indigo-400/30">
+        <div class="flex items-center justify-between text-xs uppercase tracking-widest text-indigo-200 font-black">
+          <span id="lbl-card-header">Članska kartica Podmlatka</span>
+          <span id="lbl-card-badge" class="bg-sky-400 text-slate-950 px-2.5 py-0.5 rounded">Registrovan</span>
+        </div>
+        <p id="issued-card-number" class="text-3xl sm:text-4xl font-mono font-black text-amber-300 tracking-wider">0000000</p>
+        <p id="issued-child-name" class="text-lg font-black">Ime i Prezime</p>
+        <p id="issued-school-info" class="text-sm text-indigo-200 font-semibold">Škola • Odeljenje</p>
+        <div id="lbl-card-note" class="pt-2.5 border-t border-white/15 text-xs sm:text-sm text-emerald-300 font-bold leading-relaxed">
+          Ovaj broj vam omogućava besplatnu probu jednog tuđeg projekta u @Booker-u i služi za aktivaciju kućne igre vašeg odeljenja!
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <a id="btn-open-booker-link" href="korisnik.html" class="inline-block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base font-black shadow-md transition">
+          Otvori @Booker aplikaciju
+        </a>
+      </div>
+    </div>
+
+    <!-- Panel za učiteljicu (otvara se kada je u URL-u ?ucitelj=1) -->
+    <div id="teacher-overview-panel" class="hidden border-t-4 border-indigo-600 bg-slate-50 p-5 sm:p-7 space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <span id="lbl-teacher-tag" class="text-xs font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 px-3 py-1 rounded-md">Uvid za učitelja / vaspitača</span>
+          <h3 id="lbl-teacher-title" class="text-xl font-black text-slate-900 mt-1.5">Pregled odgovora odeljenja</h3>
+        </div>
+        <button type="button" id="btn-refresh-teacher" onclick="window.osveziPregledUcitelja()" class="px-4 py-2 bg-white border border-slate-300 rounded-xl text-sm font-black text-slate-700 hover:bg-slate-100 cursor-pointer">
+          Osveži
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 text-center">
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200">
+          <span id="stat-total-resp" class="block text-2xl font-black text-slate-900">0</span>
+          <span id="lbl-stat-total" class="text-xs font-bold text-slate-500 uppercase">Ukupno</span>
+        </div>
+        <div class="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200">
+          <span id="stat-yes-resp" class="block text-2xl font-black text-emerald-700">0</span>
+          <span id="lbl-stat-yes" class="text-xs font-bold text-emerald-800 uppercase">Učestvuje (DA)</span>
+        </div>
+        <div class="bg-rose-50 p-3.5 rounded-2xl border border-rose-200">
+          <span id="stat-no-resp" class="block text-2xl font-black text-rose-700">0</span>
+          <span id="lbl-stat-no" class="text-xs font-bold text-rose-800 uppercase">Ne učestvuje</span>
+        </div>
+      </div>
+
+      <div id="teacher-responses-list" class="space-y-2.5 max-h-96 overflow-y-auto">
+        <p class="text-sm text-slate-400 text-center py-4 font-bold">Učitavanje spiska...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
+      authDomain: "edubooker-umg.firebaseapp.com",
+      projectId: "edubooker-umg",
+      storageBucket: "edubooker-umg.firebasestorage.app",
+      messagingSenderId: "406523647165",
+      appId: "1:406523647165:web:d4ec882a22f152aeec53d4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = 'booking-master-html-app';
+    const GOOGLE_SCRIPT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyPW36Ab2bBgp_qbgAd_oqSEEl9nJyp91J6fVKDnIGcwJV7iwAG1RadeK8r9kpaUqFy3Q/exec";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramUstanova = urlParams.get('ustanova') ? decodeURIComponent(urlParams.get('ustanova')).trim() : '';
+    const paramRazred = urlParams.get('razred') ? decodeURIComponent(urlParams.get('razred')).trim() : '';
+    const paramProjekat = urlParams.get('projekat') ? decodeURIComponent(urlParams.get('projekat')).trim() : 'Zimski izazov, Škola u pokretu';
+    const jeUciteljPregled = urlParams.get('ucitelj') === '1';
+
+    let izabraniOdgovor = null;
+    let trenutnoPismo = 'lat';
+
+    function latUCir(tekst) {
+      if (!tekst) return '';
+      const mapa = {
+        'Lj': 'Љ', 'LJ': 'Љ', 'lj': 'љ',
+        'Nj': 'Њ', 'NJ': 'Њ', 'nj': 'њ',
+        'Dž': 'Џ', 'DŽ': 'Џ', 'dž': 'џ',
+        'A': 'А', 'B': 'Б', 'V': 'В', 'G': 'Г', 'D': 'Д', 'Đ': 'Ђ', 'E': 'Е', 'Ž': 'Ж', 'Z': 'З', 'I': 'И',
+        'J': 'Ј', 'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н', 'O': 'О', 'P': 'П', 'R': 'Р', 'S': 'С', 'T': 'Т',
+        'Ć': 'Ћ', 'U': 'У', 'F': 'Ф', 'H': 'Х', 'C': 'Ц', 'Č': 'Ч', 'Š': 'Ш',
+        'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д', 'đ': 'ђ', 'e': 'е', 'ž': 'ж', 'z': 'з', 'i': 'и',
+        'j': 'ј', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п', 'r': 'р', 's': 'с', 't': 'т',
+        'ć': 'ћ', 'u': 'у', 'f': 'ф', 'h': 'х', 'c': 'ц', 'č': 'ч', 'š': 'ш'
+      };
+      return tekst.replace(/Lj|LJ|lj|Nj|NJ|nj|Dž|DŽ|dž|[ABVGDĐEŽZIJKLMNOPRSTĆUFHCČŠabvgdđežzijklmnoprstćufhcčš]/g, m => mapa[m] || m);
+    }
+
+    const TEKSTOVI_LAT = {
+      orgName: 'Udruženje Mentalna Gimnastika',
+      greeting: 'Poštovani roditelji,',
+      introHtml: 'Učešće deteta u pravljenju i probi igre u školi je <strong>potpuno besplatno</strong>. Molimo vas da izaberete da li želite da vaše dete učestvuje u ovom projektu.',
+      schoolInput: 'Naziv škole ili vrtića *',
+      classInput: 'Odeljenje / Grupa *',
+      choiceTitle: 'Vaš odgovor za učešće deteta *',
+      daMain: 'DA, želim da moje dete učestvuje',
+      daSub: 'Besplatno učešće u školi i besplatna članska kartica',
+      neMain: 'NE, moje dete neće učestvovati',
+      neSub: 'Dete će raditi redovan zadatak na času',
+      childFirst: 'Ime deteta *',
+      childLast: 'Prezime deteta *',
+      parentName: 'Ime i prezime roditelja *',
+      parentEmail: 'Email roditelja (za karticu) *',
+      parentPhone: 'Kontakt telefon (opciono)',
+      consent1Html: '<strong class="text-slate-950">Obavezna saglasnost *:</strong> Dajem saglasnost Udruženju Mentalna Gimnastika da zagonetke i crteže koje moje dete napravi koristi u igri odeljenja i digitalnoj knjizi razreda, kao i da ih objavi na platformi @Booker i u edukativnim publikacijama i promotivnim materijalima Udruženja.',
+      consent2Html: '<strong class="text-slate-950">Objava imena deteta (opciono):</strong> Dozvoljavam da se ime i prezime mog deteta objavi pored njegove zagonetke i crteža u digitalnoj knjizi razreda i na platformi @Booker.',
+      extraQuestion: 'Dodatno pitanje: Da li biste želeli da i sami kod kuće sa detetom kreirate ovakvu igru uz pomoć naših alata (Razigravanje i Kreator Pro)?',
+      submitBtn: 'POTVRDI I POŠALJI ODGOVOR',
+      cardHeader: 'Članska kartica Podmlatka',
+      cardBadge: 'Registrovan',
+      cardNote: 'Ovaj broj vam omogućava besplatnu probu jednog tuđeg projekta u @Booker-u i služi za aktivaciju kućne igre vašeg odeljenja!',
+      openBookerBtn: 'Otvori @Booker aplikaciju',
+      teacherTag: 'Uvid za učitelja / vaspitača',
+      teacherTitle: 'Pregled odgovora odeljenja',
+      refreshBtn: 'Osveži',
+      statTotal: 'Ukupno',
+      statYes: 'Učestvuje (DA)',
+      statNo: 'Ne učestvuje'
+    };
+
+    window.primeniPismo = function() {
+      const jeCir = trenutnoPismo === 'cir';
+      const f = (txt) => jeCir ? latUCir(txt) : txt;
+
+      document.getElementById('btn-toggle-script').innerText = jeCir ? 'Latinica' : 'Ћирилица';
+      document.getElementById('lbl-org-name').innerText = f(TEKSTOVI_LAT.orgName);
+      document.getElementById('projekat-naslov').innerText = f(paramProjekat);
+
+      if (paramUstanova) {
+        const oznaka = paramRazred ? `${paramUstanova} • ${paramRazred}` : paramUstanova;
+        document.getElementById('skola-odeljenje-oznaka').innerText = f(oznaka);
+      } else {
+        document.getElementById('skola-odeljenje-oznaka').innerText = f('Prijava učenika za školski izazov');
+      }
+
+      document.getElementById('lbl-greeting').innerText = f(TEKSTOVI_LAT.greeting);
+      document.getElementById('lbl-intro').innerHTML = jeCir
+        ? 'Учешће детета у прављењу и проби игре у школи је <strong>потпуно бесплатно</strong>. Молимо вас да изаберете да ли желите да ваше дете учествује у овом пројекту.'
+        : TEKSTOVI_LAT.introHtml;
+
+      document.getElementById('lbl-school-input').innerText = f(TEKSTOVI_LAT.schoolInput);
+      document.getElementById('lbl-class-input').innerText = f(TEKSTOVI_LAT.classInput);
+      document.getElementById('lbl-choice-title').innerText = f(TEKSTOVI_LAT.choiceTitle);
+      document.getElementById('lbl-da-main').innerText = f(TEKSTOVI_LAT.daMain);
+      document.getElementById('lbl-da-sub').innerText = f(TEKSTOVI_LAT.daSub);
+      document.getElementById('lbl-ne-main').innerText = f(TEKSTOVI_LAT.neMain);
+      document.getElementById('lbl-ne-sub').innerText = f(TEKSTOVI_LAT.neSub);
+      document.getElementById('lbl-child-first').innerText = f(TEKSTOVI_LAT.childFirst);
+      document.getElementById('lbl-child-last').innerText = f(TEKSTOVI_LAT.childLast);
+      document.getElementById('lbl-parent-name').innerText = f(TEKSTOVI_LAT.parentName);
+      document.getElementById('lbl-parent-email').innerText = f(TEKSTOVI_LAT.parentEmail);
+      document.getElementById('lbl-parent-phone').innerText = f(TEKSTOVI_LAT.parentPhone);
+
+      document.getElementById('lbl-consent-1').innerHTML = jeCir
+        ? '<strong class="text-slate-950">Обавезна сагласност *:</strong> Дајем сагласност Удружењу Ментална Гимнастика да загонетке и цртеже које моје дете направи користи у игри одељења и дигиталној књизи разреда, као и да их објави на платформи @Booker и у едукативним публикацијама и промотивним материјалима Удружења.'
+        : TEKSTOVI_LAT.consent1Html;
+
+      document.getElementById('lbl-consent-2').innerHTML = jeCir
+        ? '<strong class="text-slate-950">Објава имена детета (опционо):</strong> Дозвољавам да се име и презиме мог детета објави поред његове загонетке и цртежа у дигиталној књизи разреда и на платформи @Booker.'
+        : TEKSTOVI_LAT.consent2Html;
+
+      document.getElementById('lbl-extra-question').innerText = f(TEKSTOVI_LAT.extraQuestion);
+      document.getElementById('btn-creator-da').innerText = f('DA');
+      document.getElementById('btn-creator-ne').innerText = f('NE');
+      document.getElementById('btn-submit-consent').innerText = f(TEKSTOVI_LAT.submitBtn);
+      document.getElementById('lbl-card-header').innerText = f(TEKSTOVI_LAT.cardHeader);
+      document.getElementById('lbl-card-badge').innerText = f(TEKSTOVI_LAT.cardBadge);
+      document.getElementById('lbl-card-note').innerText = f(TEKSTOVI_LAT.cardNote);
+      document.getElementById('btn-open-booker-link').innerText = f(TEKSTOVI_LAT.openBookerBtn);
+      document.getElementById('lbl-teacher-tag').innerText = f(TEKSTOVI_LAT.teacherTag);
+      document.getElementById('lbl-teacher-title').innerText = f(TEKSTOVI_LAT.teacherTitle);
+      document.getElementById('btn-refresh-teacher').innerText = f(TEKSTOVI_LAT.refreshBtn);
+      document.getElementById('lbl-stat-total').innerText = f(TEKSTOVI_LAT.statTotal);
+      document.getElementById('lbl-stat-yes').innerText = f(TEKSTOVI_LAT.statYes);
+      document.getElementById('lbl-stat-no').innerText = f(TEKSTOVI_LAT.statNo);
+    };
+
+    window.promeniPismo = function() {
+      trenutnoPismo = trenutnoPismo === 'lat' ? 'cir' : 'lat';
+      window.primeniPismo();
+      if (jeUciteljPregled) window.osveziPregledUcitelja();
+    };
+
+    if (!paramUstanova) {
+      document.getElementById('manual-school-fields').classList.remove('hidden');
+    }
+    window.primeniPismo();
+
+    window.izaberiOdgovor = function(odgovor) {
+      izabraniOdgovor = odgovor;
+      const btnDa = document.getElementById('btn-choice-da');
+      const btnNe = document.getElementById('btn-choice-ne');
+      const dotDa = document.getElementById('radio-dot-da');
+      const dotNe = document.getElementById('radio-dot-ne');
+      const form = document.getElementById('consent-form');
+      const fieldsDa = document.getElementById('fields-for-da');
+
+      form.classList.remove('hidden');
+      document.getElementById('form-error-msg').classList.add('hidden');
+
+      if (odgovor === 'DA') {
+        btnDa.className = "p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/60 text-left transition flex items-center gap-4 cursor-pointer shadow-sm";
+        dotDa.className = "w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-sm";
+        dotDa.innerText = "✓";
+
+        btnNe.className = "p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white opacity-65 text-left transition flex items-center gap-4 cursor-pointer";
+        dotNe.className = "w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 font-black text-sm";
+        dotNe.innerText = "";
+
+        fieldsDa.classList.remove('hidden');
+        document.getElementById('parent-name').required = true;
+        document.getElementById('parent-email').required = true;
+      } else {
+        btnNe.className = "p-4 sm:p-5 rounded-2xl border-2 border-rose-500 bg-rose-50/60 text-left transition flex items-center gap-4 cursor-pointer shadow-sm";
+        dotNe.className = "w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0 font-black text-sm";
+        dotNe.innerText = "✕";
+
+        btnDa.className = "p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white opacity-65 text-left transition flex items-center gap-4 cursor-pointer";
+        dotDa.className = "w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0 font-black text-sm";
+        dotDa.innerText = "";
+
+        fieldsDa.classList.add('hidden');
+        document.getElementById('parent-name').required = false;
+        document.getElementById('parent-email').required = false;
+      }
+    };
+
+    window.izaberiKucnoKreiranje = function(izbor) {
+      const hiddenEl = document.getElementById('home-creator-value');
+      const btnDa = document.getElementById('btn-creator-da');
+      const btnNe = document.getElementById('btn-creator-ne');
+
+      if (hiddenEl.value === izbor) {
+        hiddenEl.value = 'mozda';
+        btnDa.className = "py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-emerald-500 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer";
+        btnNe.className = "py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-rose-400 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer";
+        return;
+      }
+
+      hiddenEl.value = izbor;
+      if (izbor === 'da') {
+        btnDa.className = "py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-600 text-white text-sm sm:text-base font-black shadow-sm transition cursor-pointer";
+        btnNe.className = "py-3 px-4 rounded-xl border-2 border-amber-200 bg-white opacity-60 text-sm sm:text-base font-black text-slate-600 transition cursor-pointer";
+      } else {
+        btnNe.className = "py-3 px-4 rounded-xl border-2 border-rose-600 bg-rose-600 text-white text-sm sm:text-base font-black shadow-sm transition cursor-pointer";
+        btnDa.className = "py-3 px-4 rounded-xl border-2 border-amber-200 bg-white opacity-60 text-sm sm:text-base font-black text-slate-600 transition cursor-pointer";
+      }
+    };
+
+    function prikaziGresku(tekst) {
+      const errEl = document.getElementById('form-error-msg');
+      errEl.innerText = trenutnoPismo === 'cir' ? latUCir(tekst) : tekst;
+      errEl.classList.remove('hidden');
+    }
+
+    document.getElementById('consent-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('form-error-msg').classList.add('hidden');
+
+      const ustanova = paramUstanova || document.getElementById('input-ustanova').value.trim();
+      const razred = paramRazred || document.getElementById('input-razred').value.trim();
+
+      if (!ustanova || !razred) {
+        prikaziGresku("Molimo upišite naziv škole/vrtića i odeljenje.");
+        return;
+      }
+
+      const childFirst = document.getElementById('child-firstname').value.trim();
+      const childLast = document.getElementById('child-lastname').value.trim();
+      if (!childFirst || !childLast) {
+        prikaziGresku("Molimo unesite ime i prezime deteta.");
+        return;
+      }
+
+      const punaGrupa = `${ustanova} • ${razred}`;
+      const btnSubmit = document.getElementById('btn-submit-consent');
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = trenutnoPismo === 'cir' ? latUCir("Čuvanje odgovora...") : "Čuvanje odgovora...";
+
+      try {
+        await signInAnonymously(auth).catch(() => {});
+
+        if (izabraniOdgovor === 'NE') {
+          const odbijenoId = `SAG-NE-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'saglasnosti', odbijenoId), {
+            id: odbijenoId,
+            odgovor: 'NE',
+            childFirstName: childFirst,
+            childLastName: childLast,
+            ustanova,
+            razred,
+            group: punaGrupa,
+            projekat: paramProjekat,
+            timestamp: new Date().toISOString()
+          });
+
+          document.getElementById('form-container').classList.add('hidden');
+          document.getElementById('success-container').classList.remove('hidden');
+          document.getElementById('success-icon').className = "w-16 h-16 mx-auto rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-3xl font-black";
+          document.getElementById('success-icon').innerText = "✓";
+          const naslovNe = "Vaš odgovor je evidentiran";
+          const opisNe = `Hvala na povratnoj informaciji za učenika/cu ${childFirst} ${childLast}. Dete će raditi redovan zadatak na času.`;
+          document.getElementById('success-title').innerText = trenutnoPismo === 'cir' ? latUCir(naslovNe) : naslovNe;
+          document.getElementById('success-desc').innerText = trenutnoPismo === 'cir' ? latUCir(opisNe) : opisNe;
+          if (jeUciteljPregled) window.osveziPregledUcitelja();
+          return;
+        }
+
+        const parentName = document.getElementById('parent-name').value.trim();
+        const parentEmail = document.getElementById('parent-email').value.trim().toLowerCase();
+        const parentPhone = document.getElementById('parent-phone').value.trim();
+        const consentMaterials = document.getElementById('cb-consent-materials').checked;
+        const consentChildName = document.getElementById('cb-consent-childname').checked;
+        const homeCreatorInterest = document.getElementById('home-creator-value').value || 'mozda';
+
+        if (!parentName || !parentEmail || !parentEmail.includes('@')) {
+          prikaziGresku("Molimo unesite ime roditelja i ispravnu email adresu.");
+          btnSubmit.disabled = false;
+          window.primeniPismo();
+          return;
+        }
+
+        if (!consentMaterials) {
+          prikaziGresku("Potrebno je da označite obaveznu saglasnost za korišćenje materijala u igri odeljenja.");
+          btnSubmit.disabled = false;
+          window.primeniPismo();
+          return;
+        }
+
+        const sad = new Date();
+        const godina = String(sad.getFullYear()).slice(-2);
+        const mesec = String(sad.getMonth() + 1).padStart(2, '0');
+        const nasumicniBroj = Math.floor(1000 + Math.random() * 9000);
+        const noviClanskiBroj = `${godina}${mesec}${nasumicniBroj}`;
+        const datumIspis = `${String(sad.getDate()).padStart(2, '0')}.${String(sad.getMonth() + 1).padStart(2, '0')}.${sad.getFullYear()}.`;
+
+        const noviClanPodaci = {
+          card: noviClanskiBroj,
+          firstName: childFirst,
+          lastName: childLast,
+          parentName: parentName,
+          phone: parentPhone,
+          email: parentEmail,
+          group: punaGrupa,
+          ustanova: ustanova,
+          razred: razred,
+          membershipStatus: 'registrovan_saglasnost',
+          isPaidMember: false,
+          freeTrialUsed: false,
+          freeTrialEventId: '',
+          consentMaterials: true,
+          consentChildName: consentChildName,
+          homeCreatorInterest: homeCreatorInterest,
+          sourceLabel: `Saglasnost (${paramProjekat})`,
+          joinedDate: datumIspis,
+          validUntil: '',
+          forceExpired: true,
+          timestamp: sad.toISOString()
+        };
+
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', noviClanskiBroj), noviClanPodaci);
+
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'saglasnosti', `SAG-DA-${noviClanskiBroj}`), {
+          id: `SAG-DA-${noviClanskiBroj}`,
+          odgovor: 'DA',
+          card: noviClanskiBroj,
+          childFirstName: childFirst,
+          childLastName: childLast,
+          parentName,
+          parentEmail,
+          ustanova,
+          razred,
+          group: punaGrupa,
+          consentChildName,
+          homeCreatorInterest,
+          projekat: paramProjekat,
+          timestamp: sad.toISOString()
+        });
+
+        try {
+          localStorage.setItem('edubooker_last_card', noviClanskiBroj);
+        } catch (err) {}
+
+        if (GOOGLE_SCRIPT_WEBHOOK_URL) {
+          fetch(GOOGLE_SCRIPT_WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tipAkcije: 'POSALJI_CLANSKE_KARTICE',
+              appUrl: window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'korisnik.html'),
+              clanovi: [{
+                card: noviClanskiBroj,
+                firstName: childFirst,
+                lastName: childLast,
+                email: parentEmail,
+                phone: parentPhone,
+                group: punaGrupa,
+                joinedDate: datumIspis,
+                validUntil: 'Čeka aktivaciju članarine (830 din)'
+              }]
+            })
+          }).catch(() => {});
+        }
+
+        document.getElementById('form-container').classList.add('hidden');
+        document.getElementById('success-container').classList.remove('hidden');
+        const naslovDa = "Saglasnost je potvrđena!";
+        const opisDa = `Hvala! Učenik/ca ${childFirst} ${childLast} je prijavljen/a za besplatnu školsku aktivnost, a članska kartica je poslata na ${parentEmail}.`;
+        document.getElementById('success-title').innerText = trenutnoPismo === 'cir' ? latUCir(naslovDa) : naslovDa;
+        document.getElementById('success-desc').innerText = trenutnoPismo === 'cir' ? latUCir(opisDa) : opisDa;
+        
+        document.getElementById('card-preview-box').classList.remove('hidden');
+        document.getElementById('issued-card-number').innerText = noviClanskiBroj;
+        document.getElementById('issued-child-name').innerText = `${childFirst} ${childLast}`;
+        document.getElementById('issued-school-info').innerText = punaGrupa;
+
+        if (jeUciteljPregled) window.osveziPregledUcitelja();
+      } catch (err) {
+        prikaziGresku("Došlo je do greške pri povezivanju sa bazom. Pokušajte ponovo.");
+        btnSubmit.disabled = false;
+        window.primeniPismo();
+      }
+    });
+
+    window.osveziPregledUcitelja = async function() {
+      const panel = document.getElementById('teacher-overview-panel');
+      const listEl = document.getElementById('teacher-responses-list');
+      if (!panel || !listEl) return;
+      panel.classList.remove('hidden');
+
+      const f = (txt) => trenutnoPismo === 'cir' ? latUCir(txt) : txt;
+
+      try {
+        await signInAnonymously(auth).catch(() => {});
+        const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'saglasnosti'));
+        const sviOdgovori = [];
+        snap.forEach(d => sviOdgovori.push(d.data()));
+
+        const filtrirani = sviOdgovori.filter(item => {
+          if (paramUstanova && (item.ustanova || '').toLowerCase() !== paramUstanova.toLowerCase()) return false;
+          if (paramRazred && (item.razred || '').toLowerCase() !== paramRazred.toLowerCase()) return false;
+          return true;
+        });
+
+        filtrirani.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+        const brDa = filtrirani.filter(x => x.odgovor === 'DA').length;
+        const brNe = filtrirani.filter(x => x.odgovor === 'NE').length;
+
+        document.getElementById('stat-total-resp').innerText = filtrirani.length;
+        document.getElementById('stat-yes-resp').innerText = brDa;
+        document.getElementById('stat-no-resp').innerText = brNe;
+
+        if (filtrirani.length === 0) {
+          listEl.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 font-bold">${f('Još uvek nema pristiglih odgovora za ovo odeljenje.')}</p>`;
+          return;
+        }
+
+        listEl.innerHTML = filtrirani.map(r => {
+          const jeDa = r.odgovor === 'DA';
+          const imeStatus = r.consentChildName ? f('DA') : f('NE (anonimno)');
+          const podnaslov = jeDa ? `${f('Ime uz rad')}: <strong>${imeStatus}</strong>` : f('Radi redovan zadatak');
+          const bedz = jeDa ? f('DA') : f('NE');
+          return `
+            <div class="bg-white p-3.5 rounded-xl border ${jeDa ? 'border-emerald-200' : 'border-rose-200'} flex items-center justify-between gap-2 text-sm">
+              <div>
+                <p class="font-black text-slate-900">${r.childFirstName} ${r.childLastName} ${r.card ? `<span class="font-mono text-indigo-600">(${r.card})</span>` : ''}</p>
+                <p class="text-xs text-slate-500 mt-0.5">${podnaslov}</p>
+              </div>
+              <span class="px-3 py-1 rounded-lg font-black ${jeDa ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${bedz}
+              </span>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        listEl.innerHTML = `<p class="text-sm text-rose-600 text-center py-4 font-bold">${f('Greška pri učitavanju spiska.')}</p>`;
+      }
+    };
+
+    if (jeUciteljPregled) {
+      window.osveziPregledUcitelja();
+    }
+  </script>
+</body>
+</html>
