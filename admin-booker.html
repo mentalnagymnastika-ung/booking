@@ -239,6 +239,9 @@
             <button onclick="window.preuzmiIzvestaj('mesecni')" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl transition border border-slate-200 cursor-pointer">
               📅 Mesečni izveštaj
             </button>
+            <button type="button" onclick="window.generisiPozivSaglasnostiUciteljici()" class="px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-black rounded-xl transition border border-emerald-200 flex items-center gap-1.5 shadow-xs cursor-pointer">
+              <span>📋</span> Poziv za saglasnost (Učiteljica)
+            </button>
             <button type="button" onclick="window.otvoriModalBekapa()" class="px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-black rounded-xl transition border border-amber-200 flex items-center gap-1.5 shadow-xs cursor-pointer">
               <span>💾</span> Bekap oglasa
             </button>
@@ -761,6 +764,7 @@
               <option value="online">3. Online susret / Edukacija na daljinu (Google Meet, Zoom, Webinar)</option>
               <option value="digitalni_resurs">4. Digitalni resurs (PDF radna sveska, flipbook, video materijal)</option>
               <option value="individualno">5. Usluga / Pregled / Konsultacije (Zakazivanje termina)</option>
+              <option value="kucni_sef">6. Kućna igra & Kućni sef (Sveska + Portal sa šifrom)</option>
             </select>
           </div>
 
@@ -933,7 +937,8 @@
               <label class="block text-sm font-bold text-slate-700 mb-1.5">Pristup programu *</label>
               <select id="event-access-target" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
                 <option value="svi" selected>Svi (Otvoreno)</option>
-                <option value="clanovi">Samo članovi</option>
+                <option value="registrovani_proba">Registrovani u bazi (Besplatna proba 1 tuđeg projekta)</option>
+                <option value="clanovi">Samo aktivni članovi (Sa uplaćenom članarinom)</option>
               </select>
             </div>
             <div>
@@ -959,6 +964,28 @@
               <p class="text-xs text-amber-800 font-semibold leading-relaxed">Prijava za 2 mesta naplaćuje se po ceni jedne karte, a druga karta je poklon.</p>
             </div>
             <input type="checkbox" id="event-promo-1plus1" class="w-6 h-6 rounded border-amber-300 text-indigo-600 pointer-events-none shrink-0 ml-3" />
+          </div>
+
+          <div id="box-kucni-sef-settings" class="hidden border-2 border-amber-300 bg-amber-50/60 rounded-2xl p-4 space-y-3">
+            <p class="text-xs font-black text-amber-950 uppercase tracking-wide">Podešavanje Kućnog sefa i pripadnosti odeljenju:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Škola i odeljenje (oznaka na kartici)</label>
+                <input id="event-school-group-tag" type="text" placeholder="npr. OŠ Petefi Šandor • 3-2" class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Tajna šifra iz sveske za otključavanje *</label>
+                <input id="event-vault-password" type="text" placeholder="npr. T20 ili PLANINA" class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm font-mono font-black text-indigo-800 uppercase" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Poruka čestitke kada dete otključa Sef</label>
+              <input id="event-vault-message" type="text" placeholder="Bravo! Otključali ste završni izazov odeljenja i poklon čestitku!" class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Link ka završnom PDF-u (GitHub) ili igri po otključavanju *</label>
+              <input id="event-vault-reward-url" type="url" placeholder="https://raw.githubusercontent.com/mentalnagymnastika-ung/nagrade_G2H/main/..." class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800" />
+            </div>
           </div>
 
           <div id="box-trail-settings" class="hidden border border-indigo-100 bg-indigo-50/50 rounded-2xl p-4 space-y-3">
@@ -1307,11 +1334,19 @@
 
     // Google prijava za Super Admina
     document.getElementById('btn-super-google-login').addEventListener('click', async () => {
-      document.getElementById('super-login-error').classList.add('hidden');
+      const errEl = document.getElementById('super-login-error');
+      errEl.classList.add('hidden');
+      if (window.location.protocol === 'file:') {
+        errEl.innerText = "Google prijava ne radi kada se fajl otvori direktno sa diska (file://). Pokrenite ga preko Live Servera ili GitHub/Firebase adrese.";
+        errEl.classList.remove('hidden');
+        return;
+      }
       try {
         const res = await signInWithPopup(auth, googleProvider);
         proveriSuperAdmina(res.user);
       } catch (err) {
+        errEl.innerText = `Greška pri prijavi: ${err.code || err.message}`;
+        errEl.classList.remove('hidden');
         showNotification("Prijava preko Google naloga nije uspela", "warning");
       }
     });
@@ -1726,6 +1761,27 @@
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id));
         showNotification("Program je obrisan", "success");
       }
+    };
+
+    window.generisiPozivSaglasnostiUciteljici = function() {
+      const ustanova = prompt("Unesite naziv škole ili vrtića (npr. OŠ Petefi Šandor):");
+      if (!ustanova || !ustanova.trim()) return;
+      const razred = prompt("Unesite odeljenje ili grupu (npr. 3-2):", "");
+      if (!razred || !razred.trim()) return;
+      const tema = prompt("Unesite temu iz gradiva (npr. Svet oko nas, Čitanka):", "Svet oko nas");
+      const rok = prompt("Unesite rok za odgovor roditelja (npr. petak 18h):", "petak do 18h");
+
+      const baza = window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'saglasnost.html');
+      const linkRoditelji = `${baza}?ustanova=${encodeURIComponent(ustanova.trim())}&razred=${encodeURIComponent(razred.trim())}`;
+      const linkUciteljica = `${linkRoditelji}&ucitelj=1`;
+
+      const poruka1 = `Poštovani roditelji,\nnaše odeljenje učestvuje u projektu „Zimski izazov“ Udruženja Mentalna Gimnastika. Na času će deca u grupama smisliti 5 zagonetki iz oblasti ${tema || 'gradiva'}, a od njih će nastati igra koju će rešavati njihovi vršnjaci u školi. Svaka grupa će smisliti i nacrtati i sopstvenu zagonetku. Sve zagonetke objavljujemo u digitalnoj knjizi razreda, a svako može da dobije i štampanu verziju.\n\nDa li želite da vaše dete učestvuje u pravljenju ove staze? Odgovorite sa da ili ne do ${rok || 'kraja nedelje'} na linku:\n${linkRoditelji}\n\nUčešće je besplatno. Odgovorom „da“ dajete saglasnost da se zagonetke koje dete smisli koriste u igri; ime deteta se objavljuje samo ako to posebno označite u obrascu. Dete koje ne učestvuje radi redovan zadatak na času.`;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(poruka1).catch(() => {});
+      }
+      alert(`Poruka 1 sa linkom za roditelje je kopirana u memoriju!\n\nLink za vaš uvid (pregled ko je odgovorio):\n${linkUciteljica}`);
+      showNotification("Poziv za saglasnost je kopiran!", "success");
     };
 
     window.kopirajLinkZaUcitelja = function() {
@@ -2161,9 +2217,10 @@
     window.prilagodiFormuObuke = function(tip) {
       napuniPocetnaVremena();
       window.osveziKalkulatorSatnice();
+      document.getElementById('box-kucni-sef-settings')?.classList.toggle('hidden', tip !== 'kucni_sef');
       document.getElementById('box-trail-settings')?.classList.toggle('hidden', tip !== 'teren');
-      document.getElementById('box-digital-resource-settings')?.classList.toggle('hidden', tip !== 'online' && tip !== 'digitalni_resurs' && tip !== 'individualno');
-      document.getElementById('box-pdf-protection-options')?.classList.toggle('hidden', tip !== 'digitalni_resurs');
+      document.getElementById('box-digital-resource-settings')?.classList.toggle('hidden', tip !== 'online' && tip !== 'digitalni_resurs' && tip !== 'individualno' && tip !== 'kucni_sef');
+      document.getElementById('box-pdf-protection-options')?.classList.toggle('hidden', tip !== 'digitalni_resurs' && tip !== 'kucni_sef');
       document.getElementById('box-service-settings')?.classList.toggle('hidden', tip !== 'individualno');
       if (tip === 'individualno') {
         window.promeniVidljivostKalkulatoraSatnice(true);
@@ -2217,6 +2274,10 @@
       document.getElementById('event-recipient-name').value = ev.recipientName || '';
       document.getElementById('event-digital-url').value = ev.digitalUrl || '';
       document.getElementById('event-trail-code').value = ev.trailCode || '';
+      document.getElementById('event-school-group-tag').value = ev.schoolGroupTag || '';
+      document.getElementById('event-vault-password').value = ev.vaultPassword || '';
+      document.getElementById('event-vault-message').value = ev.vaultMessage || '';
+      document.getElementById('event-vault-reward-url').value = ev.vaultRewardUrl || '';
       document.getElementById('event-image-preview').innerHTML = ev.image ? `<img src="${ev.image}" class="w-full h-full object-cover rounded-xl" />` : "🖼️";
 
       const imaKontakt = !!(ev.hasInstructorContact || ev.instructorPhone || ev.instructorEmail);
@@ -2293,6 +2354,10 @@
         recipientName: document.getElementById('event-recipient-name').value.trim(),
         digitalUrl: document.getElementById('event-digital-url').value.trim(),
         trailCode: document.getElementById('event-trail-code').value.trim().toUpperCase(),
+        schoolGroupTag: document.getElementById('event-school-group-tag').value.trim(),
+        vaultPassword: document.getElementById('event-vault-password').value.trim().toUpperCase(),
+        vaultMessage: document.getElementById('event-vault-message').value.trim(),
+        vaultRewardUrl: document.getElementById('event-vault-reward-url').value.trim(),
         location: document.getElementById('event-location').value.trim(),
         hasInstructorContact,
         instructorPhone: hasInstructorContact ? (document.getElementById('event-instructor-phone')?.value.trim() || '') : '',
@@ -2695,7 +2760,10 @@
               <td class="py-3 px-3 text-xs text-slate-600">${m.phone || ''} ${m.email ? `<br>${m.email}` : ''}</td>
               <td class="py-3 px-3 text-center">
                 <div class="flex flex-col items-center gap-1">
-                  <span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-700'}">${st.aktivna ? '🟢' : '🔴'} ${st.opis}</span>
+                  <span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? 'bg-emerald-50 text-emerald-800' : (m.membershipStatus === 'registrovan_saglasnost' ? 'bg-sky-50 text-sky-800 border border-sky-200' : 'bg-rose-50 text-rose-700')}">
+                    ${st.aktivna ? `🟢 ${st.opis}` : (m.membershipStatus === 'registrovan_saglasnost' ? '🔵 Saglasnost (Čeka uplatu)' : `🔴 ${st.opis}`)}
+                  </span>
+                  ${m.homeCreatorInterest === 'da' ? `<span class="text-[10px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">✨ Želi da kreira igre</span>` : ''}
                   <span class="text-[10px] font-black ${brojPoseta > 0 ? 'text-indigo-700' : 'text-slate-400'}">Preuzeto programa: ${brojPoseta}</span>
                 </div>
               </td>
