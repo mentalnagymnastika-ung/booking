@@ -367,25 +367,25 @@
 
           <div class="lg:col-span-2 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div class="flex flex-col gap-3 border-b border-slate-100 pb-3">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h3 class="font-black text-slate-900 text-lg">Zajednička baza članova mreže</h3>
                   <p class="text-xs text-slate-500 mt-0.5">Svi članovi koje su uneli Udruženje i partneri na jednom mestu</p>
                 </div>
-                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
                   <button type="button" onclick="window.otvoriModalDuplikataClanova()" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-black text-xs rounded-xl transition border border-amber-200 flex items-center gap-1.5 shadow-sm whitespace-nowrap cursor-pointer">
                     <span>🔍</span> Duplikati
                   </button>
                   <button type="button" onclick="window.otvoriModalUvozaPartnera()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-xs rounded-xl transition border border-indigo-200 flex items-center gap-1.5 shadow-sm whitespace-nowrap cursor-pointer">
                     <span>📥</span> Uvezi bazu partnera
                   </button>
-                  <select id="filter-member-group" onchange="window.promeniFilterGrupeClanova(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-800 focus:outline-none focus:border-indigo-500">
-                    <option value="all">Sva odeljenja i grupe</option>
-                  </select>
-                  <div class="w-full sm:w-52">
-                    <input id="search-member-input" type="text" placeholder="Pretraži člana..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
-                  </div>
                 </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <select id="filter-member-group" onchange="window.promeniFilterGrupeClanova(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-800 focus:outline-none focus:border-indigo-500">
+                  <option value="all">Sva odeljenja i grupe</option>
+                </select>
+                <input id="search-member-input" oninput="window.renderUI()" type="text" placeholder="Pretraži po imenu, emailu ili broju..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500" />
               </div>
               <div id="group-stats-bar" class="hidden items-center justify-between bg-indigo-50/70 border border-indigo-100 rounded-xl px-3.5 py-2 text-xs">
                 <span id="group-stats-title" class="font-black text-indigo-950">Statistika odeljenja</span>
@@ -2776,7 +2776,7 @@
         if (izabranaGrupa !== 'all') {
           list = list.filter(m => (m.group || '').trim() === izabranaGrupa);
         }
-        if (q) list = list.filter(m => String(m.card).toLowerCase().includes(q) || `${m.firstName} ${m.lastName}`.toLowerCase().includes(q) || (m.group && m.group.toLowerCase().includes(q)));
+        if (q) list = list.filter(m => String(m.card).toLowerCase().includes(q) || `${m.firstName} ${m.lastName}`.toLowerCase().includes(q) || (m.group && m.group.toLowerCase().includes(q)) || (m.email && m.email.toLowerCase().includes(q)));
 
         // Prikaz zbirne statistike odziva za izabranu školu / odeljenje
         const statsBar = document.getElementById('group-stats-bar');
