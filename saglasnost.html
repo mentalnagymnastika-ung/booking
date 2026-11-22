@@ -46,20 +46,16 @@
         <p id="lbl-intro">Učešće deteta u pravljenju i probi igre u školi je <strong>potpuno besplatno</strong>. Molimo vas da izaberete da li želite da vaše dete učestvuje u ovom projektu.</p>
       </div>
 
-      <!-- Ako link nema parametre škole/razreda, prikaži polja za unos -->
-      <div id="manual-school-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-        <div>
-          <label id="lbl-school-input" class="block text-sm font-black text-slate-700 mb-1.5">Naziv škole ili vrtića *</label>
-          <input id="input-ustanova" type="text" placeholder="npr. OŠ Petefi Šandor" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500" />
-        </div>
-        <div>
-          <label id="lbl-class-input" class="block text-sm font-black text-slate-700 mb-1.5">Odeljenje / Grupa *</label>
-          <input id="input-razred" type="text" placeholder="npr. 3-2" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-indigo-500" />
-        </div>
+      <!-- Ako link nema parametre škole/razreda, prikaži upozorenje i zaključaj prijavu -->
+      <div id="missing-link-warning" class="hidden bg-rose-50 border-2 border-rose-200 rounded-2xl p-5 text-center space-y-2">
+        <p id="lbl-missing-link-title" class="text-base font-black text-rose-900">Neispravan ili nepotpun link za prijavu</p>
+        <p id="lbl-missing-link-desc" class="text-sm text-rose-800 font-semibold leading-relaxed">
+          Molimo vas da otvorite tačan link koji ste dobili od učitelja, vaspitača ili Udruženja Mentalna Gimnastika, kako bi vaše dete bilo automatski povezano sa svojim odeljenjem.
+        </p>
       </div>
 
       <!-- Izbor DA / NE -->
-      <div class="space-y-3">
+      <div id="choice-wrapper" class="space-y-3">
         <label id="lbl-choice-title" class="block text-sm sm:text-base font-black text-slate-800 uppercase tracking-wider">Vaš odgovor za učešće deteta *</label>
         <div class="grid grid-cols-1 gap-3">
           <button type="button" id="btn-choice-da" onclick="window.izaberiOdgovor('DA')" class="p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-400 text-left transition flex items-center gap-4 cursor-pointer">
@@ -126,22 +122,6 @@
                 <strong class="text-slate-950">Objava imena deteta (opciono):</strong> Dozvoljavam da se ime i prezime mog deteta objavi pored njegove zagonetke i crteža u digitalnoj knjizi razreda i na platformi @Booker.
               </span>
             </label>
-          </div>
-
-          <!-- Dodatno pitanje za kućno kreiranje (DA / NE / podrazumevano Možda) -->
-          <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 sm:p-5 space-y-3">
-            <label id="lbl-extra-question" class="block text-sm sm:text-base font-black text-amber-950 leading-snug">
-              Dodatno pitanje: Da li biste želeli da i sami kod kuće sa detetom kreirate ovakvu igru uz pomoć naših alata (Razigravanje i Kreator Pro)?
-            </label>
-            <input type="hidden" id="home-creator-value" value="mozda" />
-            <div class="grid grid-cols-2 gap-3">
-              <button type="button" id="btn-creator-da" onclick="window.izaberiKucnoKreiranje('da')" class="py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-emerald-500 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer">
-                DA
-              </button>
-              <button type="button" id="btn-creator-ne" onclick="window.izaberiKucnoKreiranje('ne')" class="py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-rose-400 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer">
-                NE
-              </button>
-            </div>
           </div>
         </div>
 
@@ -263,12 +243,12 @@
     const TEKSTOVI_LAT = {
       orgName: 'Udruženje Mentalna Gimnastika',
       greeting: 'Poštovani roditelji,',
-      introHtml: 'Učešće deteta u pravljenju i probi igre u školi je <strong>potpuno besplatno</strong>. Molimo vas da izaberete da li želite da vaše dete učestvuje u ovom projektu.',
-      schoolInput: 'Naziv škole ili vrtića *',
-      classInput: 'Odeljenje / Grupa *',
+      introHtml: 'Učešće deteta u pravljenju i probi igre u školi je <strong>potpuno besplatno</strong>. Prijavom dete dobija status <strong>Projektnog člana</strong> Udruženja Mentalna Gimnastika i na vaš email odmah stiže njegova digitalna članska kartica.',
+      missingLinkTitle: 'Neispravan ili nepotpun link za prijavu',
+      missingLinkDesc: 'Molimo vas da otvorite tačan link koji ste dobili od učitelja, vaspitača ili Udruženja Mentalna Gimnastika, kako bi vaše dete bilo automatski povezano sa svojim odeljenjem.',
       choiceTitle: 'Vaš odgovor za učešće deteta *',
       daMain: 'DA, želim da moje dete učestvuje',
-      daSub: 'Besplatno učešće u školi i besplatna članska kartica',
+      daSub: 'Besplatno učešće u školi i status Projektnog člana',
       neMain: 'NE, moje dete neće učestvovati',
       neSub: 'Dete će raditi redovan zadatak na času',
       childFirst: 'Ime deteta *',
@@ -278,11 +258,10 @@
       parentPhone: 'Kontakt telefon (opciono)',
       consent1Html: '<strong class="text-slate-950">Obavezna saglasnost *:</strong> Dajem saglasnost Udruženju Mentalna Gimnastika da zagonetke i crteže koje moje dete napravi koristi u igri odeljenja i digitalnoj knjizi razreda, kao i da ih objavi na platformi @Booker i u edukativnim publikacijama i promotivnim materijalima Udruženja.',
       consent2Html: '<strong class="text-slate-950">Objava imena deteta (opciono):</strong> Dozvoljavam da se ime i prezime mog deteta objavi pored njegove zagonetke i crteža u digitalnoj knjizi razreda i na platformi @Booker.',
-      extraQuestion: 'Dodatno pitanje: Da li biste želeli da i sami kod kuće sa detetom kreirate ovakvu igru uz pomoć naših alata (Razigravanje i Kreator Pro)?',
       submitBtn: 'POTVRDI I POŠALJI ODGOVOR',
-      cardHeader: 'Članska kartica Podmlatka',
-      cardBadge: 'Registrovan',
-      cardNote: 'Ovaj broj vam omogućava besplatnu probu jednog tuđeg projekta u @Booker-u i služi za aktivaciju kućne igre vašeg odeljenja!',
+      cardHeader: 'Članska kartica • Projektni član',
+      cardBadge: 'Projektni član',
+      cardNote: 'Sa ovim članskim brojem pristupate platformi @Booker i aktivnostima namenjenim projektnim članovima.',
       openBookerBtn: 'Otvori @Booker aplikaciju',
       teacherTag: 'Uvid za učitelja / vaspitača',
       teacherTitle: 'Pregled odgovora odeljenja',
@@ -300,20 +279,19 @@
       document.getElementById('lbl-org-name').innerText = f(TEKSTOVI_LAT.orgName);
       document.getElementById('projekat-naslov').innerText = f(paramProjekat);
 
-      if (paramUstanova) {
-        const oznaka = paramRazred ? `${paramUstanova} • ${paramRazred}` : paramUstanova;
-        document.getElementById('skola-odeljenje-oznaka').innerText = f(oznaka);
+      if (paramUstanova && paramRazred) {
+        document.getElementById('skola-odeljenje-oznaka').innerText = f(`${paramUstanova} • ${paramRazred}`);
       } else {
-        document.getElementById('skola-odeljenje-oznaka').innerText = f('Prijava učenika za školski izazov');
+        document.getElementById('skola-odeljenje-oznaka').innerText = f('Potreban je zvaničan link odeljenja');
       }
 
       document.getElementById('lbl-greeting').innerText = f(TEKSTOVI_LAT.greeting);
       document.getElementById('lbl-intro').innerHTML = jeCir
-        ? 'Учешће детета у прављењу и проби игре у школи је <strong>потпуно бесплатно</strong>. Молимо вас да изаберете да ли желите да ваше дете учествује у овом пројекту.'
+        ? 'Учешће детета у прављењу и проби игре у школи је <strong>потпуно бесплатно</strong>. Пријавом дете добија статус <strong>Пројектног члана</strong> Удружења Ментална Гимнастика и на ваш имејл одмах стиже његова дигитална чланска картица.'
         : TEKSTOVI_LAT.introHtml;
 
-      document.getElementById('lbl-school-input').innerText = f(TEKSTOVI_LAT.schoolInput);
-      document.getElementById('lbl-class-input').innerText = f(TEKSTOVI_LAT.classInput);
+      document.getElementById('lbl-missing-link-title').innerText = f(TEKSTOVI_LAT.missingLinkTitle);
+      document.getElementById('lbl-missing-link-desc').innerText = f(TEKSTOVI_LAT.missingLinkDesc);
       document.getElementById('lbl-choice-title').innerText = f(TEKSTOVI_LAT.choiceTitle);
       document.getElementById('lbl-da-main').innerText = f(TEKSTOVI_LAT.daMain);
       document.getElementById('lbl-da-sub').innerText = f(TEKSTOVI_LAT.daSub);
@@ -333,9 +311,6 @@
         ? '<strong class="text-slate-950">Објава имена детета (опционо):</strong> Дозвољавам да се име и презиме мог детета објави поред његове загонетке и цртежа у дигиталној књизи разреда и на платформи @Booker.'
         : TEKSTOVI_LAT.consent2Html;
 
-      document.getElementById('lbl-extra-question').innerText = f(TEKSTOVI_LAT.extraQuestion);
-      document.getElementById('btn-creator-da').innerText = f('DA');
-      document.getElementById('btn-creator-ne').innerText = f('NE');
       document.getElementById('btn-submit-consent').innerText = f(TEKSTOVI_LAT.submitBtn);
       document.getElementById('lbl-card-header').innerText = f(TEKSTOVI_LAT.cardHeader);
       document.getElementById('lbl-card-badge').innerText = f(TEKSTOVI_LAT.cardBadge);
@@ -355,8 +330,9 @@
       if (jeUciteljPregled) window.osveziPregledUcitelja();
     };
 
-    if (!paramUstanova) {
-      document.getElementById('manual-school-fields').classList.remove('hidden');
+    if (!paramUstanova || !paramRazred) {
+      document.getElementById('missing-link-warning').classList.remove('hidden');
+      document.getElementById('choice-wrapper').classList.add('hidden');
     }
     window.primeniPismo();
 
@@ -399,28 +375,6 @@
       }
     };
 
-    window.izaberiKucnoKreiranje = function(izbor) {
-      const hiddenEl = document.getElementById('home-creator-value');
-      const btnDa = document.getElementById('btn-creator-da');
-      const btnNe = document.getElementById('btn-creator-ne');
-
-      if (hiddenEl.value === izbor) {
-        hiddenEl.value = 'mozda';
-        btnDa.className = "py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-emerald-500 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer";
-        btnNe.className = "py-3 px-4 rounded-xl border-2 border-amber-300 bg-white hover:border-rose-400 text-sm sm:text-base font-black text-slate-800 transition cursor-pointer";
-        return;
-      }
-
-      hiddenEl.value = izbor;
-      if (izbor === 'da') {
-        btnDa.className = "py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-600 text-white text-sm sm:text-base font-black shadow-sm transition cursor-pointer";
-        btnNe.className = "py-3 px-4 rounded-xl border-2 border-amber-200 bg-white opacity-60 text-sm sm:text-base font-black text-slate-600 transition cursor-pointer";
-      } else {
-        btnNe.className = "py-3 px-4 rounded-xl border-2 border-rose-600 bg-rose-600 text-white text-sm sm:text-base font-black shadow-sm transition cursor-pointer";
-        btnDa.className = "py-3 px-4 rounded-xl border-2 border-amber-200 bg-white opacity-60 text-sm sm:text-base font-black text-slate-600 transition cursor-pointer";
-      }
-    };
-
     function prikaziGresku(tekst) {
       const errEl = document.getElementById('form-error-msg');
       errEl.innerText = trenutnoPismo === 'cir' ? latUCir(tekst) : tekst;
@@ -431,11 +385,11 @@
       e.preventDefault();
       document.getElementById('form-error-msg').classList.add('hidden');
 
-      const ustanova = paramUstanova || document.getElementById('input-ustanova').value.trim();
-      const razred = paramRazred || document.getElementById('input-razred').value.trim();
+      const ustanova = paramUstanova;
+      const razred = paramRazred;
 
       if (!ustanova || !razred) {
-        prikaziGresku("Molimo upišite naziv škole/vrtića i odeljenje.");
+        prikaziGresku("Prijava je moguća isključivo preko zvaničnog linka koji ste dobili od učitelja ili vaspitača.");
         return;
       }
 
@@ -485,7 +439,6 @@
         const parentPhone = document.getElementById('parent-phone').value.trim();
         const consentMaterials = document.getElementById('cb-consent-materials').checked;
         const consentChildName = document.getElementById('cb-consent-childname').checked;
-        const homeCreatorInterest = document.getElementById('home-creator-value').value || 'mozda';
 
         if (!parentName || !parentEmail || !parentEmail.includes('@')) {
           prikaziGresku("Molimo unesite ime roditelja i ispravnu email adresu.");
@@ -524,7 +477,6 @@
           freeTrialEventId: '',
           consentMaterials: true,
           consentChildName: consentChildName,
-          homeCreatorInterest: homeCreatorInterest,
           sourceLabel: `Saglasnost (${paramProjekat})`,
           joinedDate: datumIspis,
           validUntil: '',
@@ -546,7 +498,6 @@
           razred,
           group: punaGrupa,
           consentChildName,
-          homeCreatorInterest,
           projekat: paramProjekat,
           timestamp: sad.toISOString()
         });
@@ -571,7 +522,7 @@
                 phone: parentPhone,
                 group: punaGrupa,
                 joinedDate: datumIspis,
-                validUntil: 'Čeka aktivaciju članarine (830 din)'
+                validUntil: 'Projektni član'
               }]
             })
           }).catch(() => {});
