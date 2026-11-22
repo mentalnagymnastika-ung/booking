@@ -2274,8 +2274,8 @@
       window.osveziKalkulatorSatnice();
       document.getElementById('box-kucni-sef-settings')?.classList.toggle('hidden', tip !== 'kucni_sef');
       document.getElementById('box-trail-settings')?.classList.toggle('hidden', tip !== 'teren');
-      document.getElementById('box-digital-resource-settings')?.classList.toggle('hidden', tip !== 'online' && tip !== 'digitalni_resurs' && tip !== 'individualno' && tip !== 'kucni_sef');
-      document.getElementById('box-pdf-protection-options')?.classList.toggle('hidden', tip !== 'digitalni_resurs' && tip !== 'kucni_sef');
+      document.getElementById('box-digital-resource-settings')?.classList.toggle('hidden', tip !== 'online' && tip !== 'digitalni_resurs' && tip !== 'individualno');
+      document.getElementById('box-pdf-protection-options')?.classList.toggle('hidden', tip !== 'digitalni_resurs');
       document.getElementById('box-service-settings')?.classList.toggle('hidden', tip !== 'individualno');
       if (tip === 'individualno') {
         window.promeniVidljivostKalkulatoraSatnice(true);
