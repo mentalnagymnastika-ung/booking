@@ -3162,6 +3162,15 @@
       const btnShareTop = document.getElementById('btn-pdf-share-top');
       const badgeProt = document.getElementById('badge-pdf-protected');
       const iframe = document.getElementById('pdf-viewer-iframe');
+      const popoutBlocker = document.getElementById('drive-popout-blocker');
+
+      if (popoutBlocker) {
+        if (prikazniUrl.includes('drive.google.com') || prikazniUrl.includes('docs.google.com')) {
+          popoutBlocker.classList.remove('hidden');
+        } else {
+          popoutBlocker.classList.add('hidden');
+        }
+      }
 
       if (btnShareTop) {
         if (dozvoliDeljenje) {
@@ -3327,7 +3336,14 @@ if (btnSadrzaj) {
             const jePdfIliFlipbook = nagradaUrl.toLowerCase().includes('.pdf') || nagradaUrl.includes('raw.githubusercontent.com') || jeDrive || nagradaUrl.includes('heyzine.com');
 
             if (jePdfIliFlipbook) {
-              const tempBooking = { ...b, digitalUrl: nagradaUrl, pdfAllowShare: false, pdfAllowDownload: false, pdfAllowPrint: false };
+              const evSef = state.events.find(e => e.id === b.eventId);
+              const tempBooking = {
+                ...b,
+                digitalUrl: nagradaUrl,
+                pdfAllowPrint: (evSef ? evSef.pdfAllowPrint : b.pdfAllowPrint) === true,
+                pdfAllowDownload: (evSef ? evSef.pdfAllowDownload : b.pdfAllowDownload) === true,
+                pdfAllowShare: (evSef ? evSef.pdfAllowShare : b.pdfAllowShare) === true
+              };
               const urlCitaca = window.sastaviCitacUrl(tempBooking, 1);
               document.getElementById('pdf-viewer-title').innerText = `${b.eventTitle} (Završni izazov)`;
               document.getElementById('pdf-viewer-license').innerText = `Licenca: ${b.id} (${b.firstName} ${b.lastName})`;
