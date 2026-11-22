@@ -1712,8 +1712,8 @@
 
       const dateChoiceWrapper = document.getElementById('wrapper-booking-date-choice');
       const dateChoiceInput = document.getElementById('booking-selected-date');
-      const tipZaDatum = event.activityType || (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica'));
-      const prikaziIzborDana = tipZaDatum !== 'digitalni_resurs' && (tipZaDatum === 'individualno' || (event.startDate && event.endDate && event.startDate !== event.endDate));
+      const tipZaDatum = event.activityType || (event.vaultPassword ? 'kucni_sef' : (event.trailCode ? 'teren' : (event.digitalUrl ? 'digitalni_resurs' : 'radionica')));
+      const prikaziIzborDana = tipZaDatum !== 'digitalni_resurs' && tipZaDatum !== 'kucni_sef' && (tipZaDatum === 'individualno' || (event.startDate && event.endDate && event.startDate !== event.endDate));
 
       if (dateChoiceInput) {
         const danasnjiDan = new Date().toISOString().split('T')[0];
@@ -2208,7 +2208,7 @@
 
       const radio2 = document.getElementById('radio-qty-2');
       const label2 = document.getElementById('label-qty-2');
-      const tipAkt = event.activityType || (event.trailCode ? 'teren' : 'radionica');
+      const tipAkt = event.activityType || (event.vaultPassword ? 'kucni_sef' : (event.trailCode ? 'teren' : 'radionica'));
       const qtyQuestionEl = document.getElementById('booking-qty-question-text');
       const qtySubtextEl = document.getElementById('booking-qty-subtext');
 
@@ -2218,10 +2218,12 @@
       const samoClanoviFlag = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
 
       if (accessSubEl) {
-        accessSubEl.innerText = samoClanoviFlag ? '[Samo za članove]' : (tipAkt === 'individualno' ? '[Zakazivanje termina]' : '[Otvoreno za sve]');
+        accessSubEl.innerText = samoClanoviFlag
+          ? '[Samo za članove]'
+          : (tipAkt === 'kucni_sef' ? '[Kućna igra • Portal sa šifrom]' : (tipAkt === 'individualno' ? '[Zakazivanje termina]' : '[Otvoreno za sve]'));
       }
       if (remLabelEl) {
-        remLabelEl.innerText = tipAkt === 'digitalni_resurs'
+        remLabelEl.innerText = (tipAkt === 'digitalni_resurs' || tipAkt === 'kucni_sef')
           ? 'Preostalo za preuzimanje:'
           : (tipAkt === 'individualno' ? 'Slobodnih termina:' : 'Slobodnih mesta:');
       }
@@ -2259,12 +2261,15 @@
         } else {
           if (qtySubtextEl) qtySubtextEl.innerHTML = maxTerminaUsluge === 2 ? `Izbor 1 ili 2 termina` : `1 vremenski termin`;
         }
+      } else if (tipAkt === 'kucni_sef') {
+        if (qtyQuestionEl) qtyQuestionEl.innerText = 'Kućni sef:';
+        if (qtySubtextEl) qtySubtextEl.innerHTML = '1 porodični pristup sa šifrom';
       } else {
         if (qtyQuestionEl) qtyQuestionEl.innerText = 'Broj mesta:';
         if (qtySubtextEl) qtySubtextEl.innerHTML = 'Maksimalno 2 po prijavi';
       }
 
-      const zabraniDvaMesta = tipAkt === 'teren' || (tipAkt === 'digitalni_resurs' && !imaDefinisanuDruguSvesku) || (tipAkt === 'individualno' && maxTerminaUsluge < 2);
+      const zabraniDvaMesta = tipAkt === 'teren' || tipAkt === 'kucni_sef' || (tipAkt === 'digitalni_resurs' && !imaDefinisanuDruguSvesku) || (tipAkt === 'individualno' && maxTerminaUsluge < 2);
 
       if (remaining < 2 || zabraniDvaMesta) {
         radio2.disabled = true;
