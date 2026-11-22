@@ -3734,22 +3734,27 @@
 
       const timerWarnEl = document.getElementById('unpaid-timer-warning');
       const timerCountEl = document.getElementById('unpaid-countdown');
+      const jeKartaUclanjenjaProvera = tipAktivnosti === 'uclanjenje' || booking.eventId === 'UCLANJENJE_PODMLATKA';
 
       if (!uplataOverena && totalPrice > 0) {
-        const vremeNastanka = booking.timestamp ? new Date(booking.timestamp).getTime() : Date.now();
-        const prosloMinuta = Math.floor((Date.now() - vremeNastanka) / (1000 * 60));
-        const preostaloMinuta = 60 - prosloMinuta;
+        if (jeKartaUclanjenjaProvera) {
+          if (timerWarnEl) timerWarnEl.classList.add('hidden');
+        } else {
+          const vremeNastanka = booking.timestamp ? new Date(booking.timestamp).getTime() : Date.now();
+          const prosloMinuta = Math.floor((Date.now() - vremeNastanka) / (1000 * 60));
+          const preostaloMinuta = 60 - prosloMinuta;
 
-        if (preostaloMinuta <= 0) {
-          showNotification("Rok od 60 minuta za uplatu je istekao. Rezervacija je poništena i mesto oslobođeno.", "warning");
-          document.getElementById('modal-ticket').classList.add('hidden');
-          ocistiIstekleRezervacije();
-          return;
-        }
+          if (preostaloMinuta <= 0) {
+            showNotification("Rok od 60 minuta za uplatu je istekao. Rezervacija je poništena i mesto oslobođeno.", "warning");
+            document.getElementById('modal-ticket').classList.add('hidden');
+            ocistiIstekleRezervacije();
+            return;
+          }
 
-        if (timerWarnEl && timerCountEl) {
-          timerWarnEl.classList.remove('hidden');
-          timerCountEl.innerText = `${preostaloMinuta} min`;
+          if (timerWarnEl && timerCountEl) {
+            timerWarnEl.classList.remove('hidden');
+            timerCountEl.innerText = `${preostaloMinuta} min`;
+          }
         }
         prikaziIpsUplatnicu();
       } else {
@@ -3832,7 +3837,7 @@
 
       const cancelContainer = document.getElementById('ticket-cancel-container');
       if (cancelContainer) {
-        if (tipAktivnosti === 'digitalni_resurs' || jeIskoriscenaKarta) {
+        if (tipAktivnosti === 'digitalni_resurs' || tipAktivnosti === 'uclanjenje' || booking.eventId === 'UCLANJENJE_PODMLATKA' || jeIskoriscenaKarta) {
           cancelContainer.innerHTML = '';
           cancelContainer.classList.add('hidden');
         } else {
@@ -4589,7 +4594,8 @@
       const zaUklanjanje = state.bookings.filter(b => {
         const vremeNastanka = b.timestamp ? new Date(b.timestamp).getTime() : sada;
 
-        const nijePlaceno = !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0;
+        const jeClanarina = b.activityType === 'uclanjenje' || b.eventId === 'UCLANJENJE_PODMLATKA';
+        const nijePlaceno = !jeClanarina && !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0;
         if (nijePlaceno && (sada - vremeNastanka >= JEDAN_SAT)) {
           return true;
         }
