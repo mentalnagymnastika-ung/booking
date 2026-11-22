@@ -997,6 +997,20 @@
       showNotification(`Status uplate za ${b.firstName} je ažuriran`, "success");
     };
 
+    // Trajno brisanje rezervacije iz baze (isključivo za ponude ovog partnera)
+    window.obrisiRezervacijuPartnera = async function(bookingId) {
+      const b = state.bookings.find(x => x.id === bookingId);
+      if (!b) return;
+      const ev = state.events.find(e => e.id === b.eventId && e.category === state.activePartner?.id);
+      if (!ev) {
+        showNotification("Nemate ovlašćenje za brisanje ove prijave.", "warning");
+        return;
+      }
+      if (!confirm(`Da li ste sigurni da želite trajno da obrišete prijavu ${b.id} (${b.firstName} ${b.lastName}) iz baze i oslobodite mesto?`)) return;
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId));
+      showNotification(`Prijava ${b.id} je obrisana iz baze`, "success");
+    };
+
     // Unos člana od strane partnera u zajedničku mrežu
     document.getElementById('form-partner-create-member').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1299,12 +1313,15 @@
                     ${jeClan ? 'Članarina' : (placeno ? '🟢 Potvrđeno' : '⏳ Čeka uplatu')}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-right">
+                <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
                   ${!jeClan && (b.totalPrice || 0) > 0 ? `
                     <button type="button" onclick="window.potvrdiUplatuPartnera('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-black border cursor-pointer ${b.isPaid ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-emerald-600 text-white'}">
                       ${b.isPaid ? 'Poništi' : '✓ Potvrdi uplatu'}
                     </button>
-                  ` : `<span class="text-xs text-slate-400 font-bold">—</span>`}
+                  ` : ''}
+                  <button type="button" onclick="window.obrisiRezervacijuPartnera('${b.id}')" title="Obriši prijavu iz baze" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-black cursor-pointer">
+                    🗑️
+                  </button>
                 </td>
               </tr>
             `;
