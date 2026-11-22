@@ -5372,12 +5372,17 @@ if (btnSadrzaj) {
             return imaTel || imaKartu || imaIme || imaEmail;
           });
         } else {
+          const cistSacuvaniTel = sacuvaniTelefon.replace(/[^0-9]/g, '');
           userBookings = state.bookings.filter(b => {
+            const matchesGoogleEmail = state.googleUser && b.email && b.email.toLowerCase() === state.googleUser.email.toLowerCase();
+            if (state.googleUser) {
+              return matchesGoogleEmail;
+            }
             const matchesLocalCache = savedTicketIds.includes(b.id);
-            const matchesGoogleEmail = state.googleUser && b.email === state.googleUser.email;
             const matchesCard = sacuvaniClanskiBroj && b.memberCode && b.memberCode.toUpperCase() === sacuvaniClanskiBroj.toUpperCase();
-            const matchesPhone = sacuvaniTelefon && b.phone && b.phone.replace(/[^0-9]/g, '') === sacuvaniTelefon.replace(/[^0-9]/g, '');
-            return matchesLocalCache || matchesGoogleEmail || matchesCard || matchesPhone;
+            const cistTelKarte = (b.phone || '').replace(/[^0-9]/g, '');
+            const matchesPhone = cistSacuvaniTel.length >= 6 && cistTelKarte === cistSacuvaniTel;
+            return matchesLocalCache || matchesCard || matchesPhone;
           });
         }
 
