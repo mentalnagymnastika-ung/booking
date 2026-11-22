@@ -198,7 +198,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
@@ -455,36 +455,71 @@
         }
 
         const sad = new Date();
-        const godina = String(sad.getFullYear()).slice(-2);
-        const mesec = String(sad.getMonth() + 1).padStart(2, '0');
-        const nasumicniBroj = Math.floor(1000 + Math.random() * 9000);
-        const noviClanskiBroj = `${godina}${mesec}${nasumicniBroj}`;
         const datumIspis = `${String(sad.getDate()).padStart(2, '0')}.${String(sad.getMonth() + 1).padStart(2, '0')}.${sad.getFullYear()}.`;
 
-        const noviClanPodaci = {
-          card: noviClanskiBroj,
-          firstName: childFirst,
-          lastName: childLast,
-          parentName: parentName,
-          phone: parentPhone,
-          email: parentEmail,
-          group: punaGrupa,
-          ustanova: ustanova,
-          razred: razred,
-          membershipStatus: 'registrovan_saglasnost',
-          isPaidMember: false,
-          freeTrialUsed: false,
-          freeTrialEventId: '',
-          consentMaterials: true,
-          consentChildName: consentChildName,
-          sourceLabel: `Saglasnost (${paramProjekat})`,
-          joinedDate: datumIspis,
-          validUntil: '',
-          forceExpired: true,
-          timestamp: sad.toISOString()
-        };
+        // Provera da li dete već postoji u bazi (po mejlu + imenu deteta ili po imenu i prezimenu u istom odeljenju)
+        const cistIme = childFirst.toLowerCase();
+        const cistPrezime = childLast.toLowerCase();
+        const cistaGrupa = punaGrupa.toLowerCase();
 
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', noviClanskiBroj), noviClanPodaci);
+        const sviClanoviSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'members'));
+        let postojeciClan = null;
+        sviClanoviSnap.forEach(d => {
+          const m = d.data();
+          const mIme = (m.firstName || '').trim().toLowerCase();
+          const mPrezime = (m.lastName || '').trim().toLowerCase();
+          const mEmail = (m.email || '').trim().toLowerCase();
+          const mGrupa = (m.group || '').trim().toLowerCase();
+
+          const istiMejlIDete = mEmail === parentEmail && mIme === cistIme;
+          const istoDeteUOdeljenju = mIme === cistIme && mPrezime === cistPrezime && mGrupa === cistaGrupa;
+          if (istiMejlIDete || istoDeteUOdeljenju) {
+            postojeciClan = m;
+          }
+        });
+
+        let noviClanskiBroj = '';
+        if (postojeciClan && postojeciClan.card) {
+          noviClanskiBroj = String(postojeciClan.card);
+          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', noviClanskiBroj), {
+            parentName: parentName,
+            phone: parentPhone || postojeciClan.phone || '',
+            email: parentEmail,
+            consentMaterials: true,
+            consentChildName: consentChildName,
+            timestamp: sad.toISOString()
+          });
+        } else {
+          const godina = String(sad.getFullYear()).slice(-2);
+          const mesec = String(sad.getMonth() + 1).padStart(2, '0');
+          const nasumicniBroj = Math.floor(1000 + Math.random() * 9000);
+          noviClanskiBroj = `${godina}${mesec}${nasumicniBroj}`;
+
+          const noviClanPodaci = {
+            card: noviClanskiBroj,
+            firstName: childFirst,
+            lastName: childLast,
+            parentName: parentName,
+            phone: parentPhone,
+            email: parentEmail,
+            group: punaGrupa,
+            ustanova: ustanova,
+            razred: razred,
+            membershipStatus: 'registrovan_saglasnost',
+            isPaidMember: false,
+            freeTrialUsed: false,
+            freeTrialEventId: '',
+            consentMaterials: true,
+            consentChildName: consentChildName,
+            sourceLabel: `Saglasnost (${paramProjekat})`,
+            joinedDate: datumIspis,
+            validUntil: '',
+            forceExpired: true,
+            timestamp: sad.toISOString()
+          };
+
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', noviClanskiBroj), noviClanPodaci);
+        }
 
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'saglasnosti', `SAG-DA-${noviClanskiBroj}`), {
           id: `SAG-DA-${noviClanskiBroj}`,
