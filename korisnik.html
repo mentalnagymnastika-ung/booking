@@ -3874,7 +3874,7 @@ if (btnSadrzaj) {
 
       const cancelContainer = document.getElementById('ticket-cancel-container');
       if (cancelContainer) {
-        if (tipAktivnosti === 'digitalni_resurs' || tipAktivnosti === 'uclanjenje' || booking.eventId === 'UCLANJENJE_PODMLATKA' || jeIskoriscenaKarta) {
+        if (tipAktivnosti === 'digitalni_resurs' || tipAktivnosti === 'kucni_sef' || tipAktivnosti === 'uclanjenje' || booking.eventId === 'UCLANJENJE_PODMLATKA' || !!booking.vaultPassword || jeIskoriscenaKarta) {
           cancelContainer.innerHTML = '';
           cancelContainer.classList.add('hidden');
         } else {
@@ -4145,7 +4145,9 @@ if (btnSadrzaj) {
         const onlineBtnEl = document.getElementById('btn-open-online-link');
         const onlineIconEl = document.getElementById('online-btn-icon');
         const onlineTextEl = document.getElementById('online-btn-text');
+        const btnCopySefEl = document.getElementById('btn-copy-online-link');
 
+        if (btnCopySefEl) btnCopySefEl.classList.add('hidden');
         if (onlineWrap) onlineWrap.classList.remove('hidden');
         if (onlineTagEl) onlineTagEl.innerText = 'KUĆNI SEF • ZAVRŠNI IZAZOV';
 
