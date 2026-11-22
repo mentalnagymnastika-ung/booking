@@ -1918,7 +1918,7 @@
             ? `${b.school} • ${b.className}`
             : b.school)
         : '';
-      const izvorClana = punNazivSkole || (partnerObj ? partnerObj.name : 'Udruženje Mentalna Gimnastika');
+      const izvorClana = punNazivSkole || (partnerObj ? partnerObj.name : 'Članarina podmlatka - pridruženi član');
       const partnerIdIzvor = partnerObj ? partnerObj.id : 'umg_admin';
 
       let pronadjen = (state.membersList || []).find(m =>
@@ -2820,7 +2820,6 @@
                   <span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? (m.validUntil && m.validUntil.startsWith('31.08.') ? 'bg-amber-50 text-amber-900 border border-amber-300' : 'bg-emerald-50 text-emerald-800') : (m.membershipStatus === 'registrovan_saglasnost' ? 'bg-sky-50 text-sky-800 border border-sky-200' : 'bg-rose-50 text-rose-700')}">
                     ${st.aktivna ? (m.validUntil && m.validUntil.startsWith('31.08.') ? `⭐ Redovan član (${m.validUntil})` : `🟢 Pridruženi član (${st.opis})`) : (m.membershipStatus === 'registrovan_saglasnost' ? '🔵 Projektni član' : `🔴 ${st.opis}`)}
                   </span>
-                  ${m.homeCreatorInterest === 'da' ? `<span class="text-[10px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">✨ Želi da kreira igre</span>` : ''}
                   <span class="text-[10px] font-black ${brojPoseta > 0 ? 'text-indigo-700' : 'text-slate-400'}">Preuzeto programa: ${brojPoseta}</span>
                 </div>
               </td>
@@ -2842,26 +2841,38 @@
         let list = state.bookings.filter(b => b.status !== 'otkazano');
         if (filterStatus === 'neplaceno') list = list.filter(b => !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0);
         else if (filterStatus === 'placeno') list = list.filter(b => b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0);
-        if (q) list = list.filter(b => (b.id && b.id.toLowerCase().includes(q)) || `${b.firstName} ${b.lastName}`.toLowerCase().includes(q));
+        if (q) {
+          list = list.filter(b =>
+            (b.id && b.id.toLowerCase().includes(q)) ||
+            `${b.firstName} ${b.lastName}`.toLowerCase().includes(q) ||
+            (b.eventTitle && b.eventTitle.toLowerCase().includes(q)) ||
+            (b.memberCode && String(b.memberCode).toLowerCase().includes(q))
+          );
+        }
 
-        prijaveBody.innerHTML = list.map(b => {
-          const placeno = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
-          return `
-            <tr class="hover:bg-slate-50">
-              <td class="py-3 px-4 font-mono font-black text-indigo-700 text-xs">${b.id}<span class="block text-[10px] text-slate-400 font-sans">${b.eventDate}</span></td>
-              <td class="py-3 px-4 font-black text-slate-900 text-xs">${b.firstName} ${b.lastName}<span class="block font-normal text-slate-500">${b.phone || ''}</span></td>
-              <td class="py-3 px-4 font-bold text-slate-700 text-xs">${b.eventTitle}</td>
-              <td class="py-3 px-4 text-center font-black text-xs">${b.totalPrice || 0} RSD</td>
-              <td class="py-3 px-4 text-center"><span class="px-2.5 py-1 rounded-xl text-[11px] font-black ${placeno ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${placeno ? '🟢 Plaćeno' : '⏳ Čeka uplatu'}</span></td>
-              <td class="py-3 px-4 text-right space-x-1">
-                ${(b.totalPrice || 0) > 0 ? `<button onclick="window.potvrdiUplatuSaSpiska('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer ${b.isPaid ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white'}">${b.isPaid ? 'Poništi' : '✓ Potvrdi uplatu'}</button>` : ''}
-                <button onclick="window.obrisiKartuTrajno('${b.id}')" class="text-rose-600 p-1.5 text-xs cursor-pointer">🗑️</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
+        if (list.length === 0) {
+          prijaveBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-xs font-bold text-slate-400">Nema prijava za izabrani filter.</td></tr>`;
+        } else {
+          prijaveBody.innerHTML = list.map(b => {
+            const placeno = b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0;
+            return `
+              <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4 font-mono font-black text-indigo-700 text-xs">${b.id}<span class="block text-[10px] text-slate-400 font-sans">${b.eventDate}</span></td>
+                <td class="py-3 px-4 font-black text-slate-900 text-xs">${b.firstName} ${b.lastName}<span class="block font-normal text-slate-500">${b.phone || ''}</span></td>
+                <td class="py-3 px-4 font-bold text-slate-700 text-xs">${b.eventTitle}</td>
+                <td class="py-3 px-4 text-center font-black text-xs">${b.totalPrice || 0} RSD</td>
+                <td class="py-3 px-4 text-center"><span class="px-2.5 py-1 rounded-xl text-[11px] font-black ${placeno ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${placeno ? '🟢 Plaćeno' : '⏳ Čeka uplatu'}</span></td>
+                <td class="py-3 px-4 text-right space-x-1">
+                  ${(b.totalPrice || 0) > 0 ? `<button onclick="window.potvrdiUplatuSaSpiska('${b.id}')" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer ${b.isPaid ? 'bg-slate-100 text-slate-700' : 'bg-emerald-600 text-white'}">${b.isPaid ? 'Poništi' : '✓ Potvrdi uplatu'}</button>` : ''}
+                  <button onclick="window.obrisiKartuTrajno('${b.id}')" class="text-rose-600 p-1.5 text-xs cursor-pointer">🗑️</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
       }
     }
+    window.renderUI = renderUI;
 
     // --- BEKAP I SELEKTIVNO VRAĆANJE OGLASA ---
     window.ucitaniOglasiIzFajla = [];
