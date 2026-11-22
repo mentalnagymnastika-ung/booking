@@ -1069,8 +1069,10 @@
         <button type="button" onclick="window.zatvoriPdfPregledac()" class="w-9 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-base flex items-center justify-center transition cursor-pointer">✕</button>
       </div>
     </div>
-    <div class="flex-1 w-full h-full relative bg-slate-900 overflow-hidden">
-      <iframe id="pdf-viewer-iframe" src="" class="w-full h-full border-0 bg-white" allow="autoplay; fullscreen"></iframe>
+    <div class="flex-1 w-full h-full relative bg-slate-900 overflow-hidden" oncontextmenu="return false;">
+      <!-- Zaštita gornjeg desnog ugla iframe-a da korisnik ne može da klikne na Google Drive 'Pop-out' ikonicu i vidi URL -->
+      <div id="drive-popout-blocker" class="hidden absolute top-0 right-0 w-20 h-16 z-20 bg-transparent cursor-default" title="Zaštićen prikaz"></div>
+      <iframe id="pdf-viewer-iframe" src="" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" class="w-full h-full border-0 bg-white" allow="autoplay; fullscreen"></iframe>
     </div>
   </div>
 
@@ -3309,19 +3311,33 @@
         const nagradaUrl = window.aktivniSefPodaci.url;
         const b = window.aktivniSefPodaci.booking;
 
-        if (btnSadrzaj) {
+if (btnSadrzaj) {
           btnSadrzaj.onclick = () => {
             window.zatvoriKucniSef();
             if (!nagradaUrl) {
               showNotification("Završni link još nije unet u podešavanjima igre.", "warning");
               return;
             }
-            const jePdf = nagradaUrl.toLowerCase().includes('.pdf') || nagradaUrl.includes('raw.githubusercontent.com');
-            if (jePdf) {
-              const tempBooking = { ...b, digitalUrl: nagradaUrl };
+            const jeDrive = nagradaUrl.includes('drive.google.com') || nagradaUrl.includes('docs.google.com');
+            const jePdfIliFlipbook = nagradaUrl.toLowerCase().includes('.pdf') || nagradaUrl.includes('raw.githubusercontent.com') || jeDrive || nagradaUrl.includes('heyzine.com');
+
+            if (jePdfIliFlipbook) {
+              const tempBooking = { ...b, digitalUrl: nagradaUrl, pdfAllowShare: false, pdfAllowDownload: false, pdfAllowPrint: false };
               const urlCitaca = window.sastaviCitacUrl(tempBooking, 1);
               document.getElementById('pdf-viewer-title').innerText = `${b.eventTitle} (Završni izazov)`;
               document.getElementById('pdf-viewer-license').innerText = `Licenca: ${b.id} (${b.firstName} ${b.lastName})`;
+
+              const btnShareTop = document.getElementById('btn-pdf-share-top');
+              if (btnShareTop) {
+                btnShareTop.classList.add('hidden');
+                btnShareTop.classList.remove('flex');
+              }
+              const popoutBlocker = document.getElementById('drive-popout-blocker');
+              if (popoutBlocker) {
+                if (jeDrive) popoutBlocker.classList.remove('hidden');
+                else popoutBlocker.classList.add('hidden');
+              }
+
               const iframe = document.getElementById('pdf-viewer-iframe');
               if (iframe) iframe.src = urlCitaca;
               document.getElementById('modal-pdf-viewer').classList.remove('hidden');
