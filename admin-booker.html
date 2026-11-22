@@ -937,8 +937,8 @@
               <label class="block text-sm font-bold text-slate-700 mb-1.5">Pristup programu *</label>
               <select id="event-access-target" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
                 <option value="svi" selected>Svi (Otvoreno)</option>
-                <option value="registrovani_proba">Registrovani u bazi (Besplatna proba 1 tuđeg projekta)</option>
-                <option value="clanovi">Samo aktivni članovi (Sa uplaćenom članarinom)</option>
+                <option value="registrovani_proba">Projektni članovi (Osnovni nivo + viši nivoi)</option>
+                <option value="clanovi">Samo Pridruženi i Redovni članovi</option>
               </select>
             </div>
             <div>
@@ -956,6 +956,14 @@
               <label class="block text-base font-bold text-slate-700 mb-1.5">Cena za članove (RSD)</label>
               <input id="event-member-price" type="number" min="0" step="50" placeholder="Prazno = isto kao redovna" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
             </div>
+          </div>
+
+          <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm cursor-pointer" onclick="document.getElementById('event-allow-user-delete').click()">
+            <div class="space-y-0.5">
+              <span class="text-sm font-black text-slate-900 flex items-center gap-1.5"><span>🗑️</span> Dozvoli korisniku brisanje svoje karte</span>
+              <p class="text-xs text-slate-600 font-semibold leading-relaxed">Kada je isključeno, ikonica kante na karti korisnika je skrivena i kartu može obrisati samo Admin.</p>
+            </div>
+            <input type="checkbox" id="event-allow-user-delete" class="w-6 h-6 rounded border-slate-300 text-indigo-600 pointer-events-none shrink-0 ml-3" />
           </div>
 
           <div class="bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm cursor-pointer" onclick="document.getElementById('event-promo-1plus1').click()">
@@ -1775,7 +1783,7 @@
       const linkRoditelji = `${baza}?ustanova=${encodeURIComponent(ustanova.trim())}&razred=${encodeURIComponent(razred.trim())}`;
       const linkUciteljica = `${linkRoditelji}&ucitelj=1`;
 
-      const poruka1 = `Poštovani roditelji,\r\nnaše odeljenje učestvuje u projektu „Zimski izazov“ Udruženja Mentalna Gimnastika. Na času će deca u grupama osmisliti zagonetke sa temom: ${tema || 'Kako učenje postaje lako'}. U saradnji sa Udruženjem Mentalna Gimnastika iz Novog Sada, od njih ćemo napraviti igru po ugledu na finski model časova Škola u pokretu, koju će prvi probati njihovi vršnjaci. Svaka grupa će osmisliti trostepenu zagonetku i izazov, kao i ilustracije uz njih. Aktivnost ću ja voditi u školi. Po završetku, sve zagonetke objavljujemo u digitalnoj knjizi razreda i škole, a radovi ostaju nama i školi kao trajno dobro.\r\n\r\nDa li želite da vaše dete učestvuje u ovoj aktivnosti? Odgovorite sa da ili ne do ${rok || 'petak do 18h'} na linku:\r\n${linkRoditelji}\r\n\r\nUčešće je potpuno besplatno i bez ikakvih obaveza. Prijavom i davanjem saglasnosti dete besplatno postaje pridruženi član Podmlatka Udruženja Mentalna Gimnastika, a na vašu email adresu odmah stiže digitalna članska kartica sa kojom možete pratiti aktivnosti i isprobati jednu igru u aplikaciji @Booker. Odgovorom „da“ dajete saglasnost da se zagonetke koje dete smisli koriste u igri, dok se ime deteta objavljuje samo ako to posebno označite u obrascu. Dete koje ne učestvuje radi redovne zadatke predviđene za oblast i čas.`;
+      const poruka1 = `Poštovani roditelji,\r\nnaše odeljenje učestvuje u projektu „Zimski izazov“ Udruženja Mentalna Gimnastika. Na času će deca u grupama osmisliti zagonetke sa temom: ${tema || 'Kako učenje postaje lako'}. U saradnji sa Udruženjem Mentalna Gimnastika iz Novog Sada, od njih ćemo napraviti igru po ugledu na finski model časova Škola u pokretu, koju će prvi probati njihovi vršnjaci. Svaka grupa će osmisliti trostepenu zagonetku i izazov, kao i ilustracije uz njih. Aktivnost ću ja voditi u školi. Po završetku, sve zagonetke objavljujemo u digitalnoj knjizi razreda i škole, a radovi ostaju nama i školi kao trajno dobro.\r\n\r\nDa li želite da vaše dete učestvuje u ovoj aktivnosti? Odgovorite sa da ili ne do ${rok || 'petak do 18h'} na linku:\r\n${linkRoditelji}\r\n\r\nUčešće je potpuno besplatno i bez ikakvih obaveza. Prijavom i davanjem saglasnosti dete dobija status Projektnog člana Udruženja Mentalna Gimnastika, a na vašu email adresu odmah stiže njegova digitalna članska kartica za pristup platformi @Booker. Odgovorom „da“ dajete saglasnost da se zagonetke koje dete smisli koriste u igri, dok se ime deteta objavljuje samo ako to posebno označite u obrascu. Dete koje ne učestvuje radi redovne zadatke predviđene za oblast i čas.`;
 
       const sadrzajDokumenta = `UPUTSTVO I PORUKA ZA UČITELJA / VASPITAČA\r\nUstanova: ${ustanova.trim()}\r\nOdeljenje / Grupa: ${razred.trim()}\r\n====================================================\r\n\r\n1. LINK ZA VAŠ UVID (SPISAK KO JE ODGOVORIO):\r\n${linkUciteljica}\r\n\r\n====================================================\r\n\r\n2. PORUKA ZA RODITELJE (KOPIRAJTE I POŠALJITE U GRUPU):\r\n\r\n${poruka1}`;
 
@@ -2312,6 +2320,7 @@
       document.getElementById('event-price').value = ev.price || 0;
       window.proveriPrikazPlacanja(ev.price || 0);
       document.getElementById('event-member-price').value = ev.memberPrice ?? '';
+      document.getElementById('event-allow-user-delete').checked = ev.allowUserDelete === true;
       document.getElementById('event-promo-1plus1').checked = ev.hasPromo1plus1 === true;
       document.getElementById('event-access-target').value = ev.accessTarget || 'svi';
       document.getElementById('event-location').value = ev.location || '';
@@ -2395,6 +2404,7 @@
         accessTarget: document.getElementById('event-access-target').value,
         price: parseFloat(document.getElementById('event-price').value) || 0,
         memberPrice: memberPriceVal !== '' ? parseFloat(memberPriceVal) : null,
+        allowUserDelete: document.getElementById('event-allow-user-delete').checked === true,
         hasPromo1plus1: document.getElementById('event-promo-1plus1').checked === true,
         paymentType: document.getElementById('event-payment-type').value,
         bankAccount: document.getElementById('event-bank-account').value.trim(),
@@ -2807,8 +2817,8 @@
               <td class="py-3 px-3 text-xs text-slate-600">${m.phone || ''} ${m.email ? `<br>${m.email}` : ''}</td>
               <td class="py-3 px-3 text-center">
                 <div class="flex flex-col items-center gap-1">
-                  <span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? 'bg-emerald-50 text-emerald-800' : (m.membershipStatus === 'registrovan_saglasnost' ? 'bg-sky-50 text-sky-800 border border-sky-200' : 'bg-rose-50 text-rose-700')}">
-                    ${st.aktivna ? `🟢 ${st.opis}` : (m.membershipStatus === 'registrovan_saglasnost' ? '🔵 Saglasnost (Čeka uplatu)' : `🔴 ${st.opis}`)}
+                  <span class="px-2 py-0.5 rounded-lg text-[11px] font-black ${st.aktivna ? (m.validUntil && m.validUntil.startsWith('31.08.') ? 'bg-amber-50 text-amber-900 border border-amber-300' : 'bg-emerald-50 text-emerald-800') : (m.membershipStatus === 'registrovan_saglasnost' ? 'bg-sky-50 text-sky-800 border border-sky-200' : 'bg-rose-50 text-rose-700')}">
+                    ${st.aktivna ? (m.validUntil && m.validUntil.startsWith('31.08.') ? `⭐ Redovan član (${m.validUntil})` : `🟢 Pridruženi član (${st.opis})`) : (m.membershipStatus === 'registrovan_saglasnost' ? '🔵 Projektni član' : `🔴 ${st.opis}`)}
                   </span>
                   ${m.homeCreatorInterest === 'da' ? `<span class="text-[10px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">✨ Želi da kreira igre</span>` : ''}
                   <span class="text-[10px] font-black ${brojPoseta > 0 ? 'text-indigo-700' : 'text-slate-400'}">Preuzeto programa: ${brojPoseta}</span>
