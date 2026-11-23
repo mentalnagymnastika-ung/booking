@@ -2482,6 +2482,12 @@
       document.getElementById('event-bank-account').value = ev.bankAccount || '';
       document.getElementById('event-recipient-name').value = ev.recipientName || '';
       document.getElementById('event-digital-url').value = ev.digitalUrl || '';
+      if (document.getElementById('event-digital-url-2')) document.getElementById('event-digital-url-2').value = ev.digitalUrl2 || '';
+      if (document.getElementById('event-pdf-max-qty')) document.getElementById('event-pdf-max-qty').value = String(ev.pdfMaxQty || '2');
+      if (document.getElementById('event-pdf-second-price')) document.getElementById('event-pdf-second-price').value = ev.pdfSecondPrice ?? '';
+      if (document.getElementById('event-pdf-allow-print-cb')) document.getElementById('event-pdf-allow-print-cb').checked = ev.pdfAllowPrint === true;
+      if (document.getElementById('event-pdf-allow-download-cb')) document.getElementById('event-pdf-allow-download-cb').checked = ev.pdfAllowDownload === true;
+      if (document.getElementById('event-pdf-allow-share-cb')) document.getElementById('event-pdf-allow-share-cb').checked = ev.pdfAllowShare === true;
       document.getElementById('event-trail-code').value = ev.trailCode || '';
       document.getElementById('event-school-group-tag').value = ev.schoolGroupTag || '';
       document.getElementById('event-vault-password').value = ev.vaultPassword || '';
@@ -2563,6 +2569,12 @@
         bankAccount: document.getElementById('event-bank-account').value.trim(),
         recipientName: document.getElementById('event-recipient-name').value.trim(),
         digitalUrl: document.getElementById('event-digital-url').value.trim(),
+        digitalUrl2: document.getElementById('event-digital-url-2')?.value.trim() || '',
+        pdfMaxQty: parseInt(document.getElementById('event-pdf-max-qty')?.value || '2', 10),
+        pdfSecondPrice: document.getElementById('event-pdf-second-price')?.value !== '' ? parseFloat(document.getElementById('event-pdf-second-price').value) : 0,
+        pdfAllowPrint: document.getElementById('event-pdf-allow-print-cb')?.checked === true,
+        pdfAllowDownload: document.getElementById('event-pdf-allow-download-cb')?.checked === true,
+        pdfAllowShare: document.getElementById('event-pdf-allow-share-cb')?.checked === true,
         trailCode: document.getElementById('event-trail-code').value.trim().toUpperCase(),
         schoolGroupTag: document.getElementById('event-school-group-tag').value.trim(),
         vaultPassword: document.getElementById('event-vault-password').value.trim().toUpperCase(),
