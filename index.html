@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>@Booker</title>
@@ -337,7 +336,7 @@
         </button>
         <div class="pr-8">
           <h2 id="my-tickets-heading" class="text-xl font-black text-slate-900">Vaše rezervisane karte</h2>
-          <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Ovde se nalaze sve karte koje ste rezervisali. Prijavite se preko Google naloga iznad da biste automatski povukli sve svoje karte.</p>
+          <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Bez prijave aplikacija radi kao porodični novčanik na ovom uređaju. Prijavite se klikom na dugme G iznad ako želite da vidite isključivo svoje lične karte.</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto pr-0 md:pr-8" id="my-tickets-search-wrapper">
           <input id="search-ticket-phone" type="text" placeholder="ČLANSKI BROJ, TEL. BROJ" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none focus:border-indigo-500 w-full md:w-64" />
@@ -396,8 +395,8 @@
         <div class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
           <span class="text-xl shrink-0 mt-0.5">📋</span>
           <div>
-            <p class="font-black text-slate-900">Preuzimanje i sekcija Moje karte (@B)</p>
-            <p class="mt-0.5 leading-relaxed">Digitalnu kartu možete preuzeti kao sliku na uređaj, a sve vaše važeće ulaznice trajno se nalaze u donjem desnom uglu na dugmetu <strong>@B</strong>.</p>
+            <p class="font-black text-slate-900">Porodični uređaj ili lični nalog (@B)</p>
+            <p class="mt-0.5 leading-relaxed">Sve preuzete karte nalaze se u donjem desnom uglu na dugmetu <strong>@B</strong>. Kada niste prijavljeni, aplikacija radi kao <strong>porodični novčanik</strong> i na tom uređaju čuva karte svih članova porodice koje ste preuzeli. Kada se prijavite preko dugmeta <strong>G</strong> u gornjem desnom uglu, prikazuju se isključivo <strong>vaše lične karte</strong> sa bilo kog uređaja.</p>
           </div>
         </div>
       </div>
@@ -1298,6 +1297,10 @@
       if (!firebaseActive) return;
       await signOut(auth);
       state.googleUser = null;
+      state.ticketSearchPhone = '';
+      safeStorage.setItem('my_user_tickets', '[]');
+      safeStorage.setItem('edubooker_last_card', '');
+      safeStorage.setItem('edubooker_last_phone', '');
       document.getElementById('btn-google-login').classList.remove('hidden');
       document.getElementById('google-user-profile').classList.add('hidden');
       renderUI();
@@ -1310,6 +1313,9 @@
 
       if (user && !user.isAnonymous) {
         state.googleUser = user;
+        safeStorage.setItem('my_user_tickets', '[]');
+        safeStorage.setItem('edubooker_last_card', '');
+        safeStorage.setItem('edubooker_last_phone', '');
         if (loginBtn) loginBtn.classList.add('hidden');
         if (profileDiv) profileDiv.classList.remove('hidden');
         if (userImg) userImg.src = user.photoURL || '';
@@ -2837,8 +2843,10 @@
       listaKreiranihRezervacija.forEach(item => myTickets.push(item.id));
       safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
 
-      if (newBooking.memberCode) safeStorage.setItem('edubooker_last_card', newBooking.memberCode);
-      if (newBooking.phone && newBooking.phone !== 'Nije traženo') safeStorage.setItem('edubooker_last_phone', newBooking.phone);
+      if (newBooking.memberCode) {
+        safeStorage.setItem('edubooker_last_card', newBooking.memberCode);
+        safeStorage.setItem('my_user_tickets', JSON.stringify([newBooking.id]));
+      }
 
       if (state.isOnline && firebaseActive) {
         try {
@@ -5375,17 +5383,19 @@ if (btnSadrzaj) {
             return imaTel || imaKartu || imaIme || imaEmail;
           });
         } else {
-          const cistSacuvaniTel = sacuvaniTelefon.replace(/[^0-9]/g, '');
           userBookings = state.bookings.filter(b => {
-            const matchesGoogleEmail = state.googleUser && b.email && b.email.toLowerCase() === state.googleUser.email.toLowerCase();
-            if (state.googleUser) {
-              return matchesGoogleEmail;
+            if (state.googleUser && state.googleUser.email) {
+              const mojEmail = state.googleUser.email.toLowerCase().trim();
+              const jeMojEmailNaKarti = b.email && b.email.toLowerCase().trim() === mojEmail;
+              const jeMojaClanskaKartica = state.membersList.some(m =>
+                m.email && m.email.toLowerCase().trim() === mojEmail &&
+                b.memberCode && String(m.card).toUpperCase() === String(b.memberCode).toUpperCase()
+              );
+              return jeMojEmailNaKarti || jeMojaClanskaKartica;
             }
             const matchesLocalCache = savedTicketIds.includes(b.id);
             const matchesCard = sacuvaniClanskiBroj && b.memberCode && b.memberCode.toUpperCase() === sacuvaniClanskiBroj.toUpperCase();
-            const cistTelKarte = (b.phone || '').replace(/[^0-9]/g, '');
-            const matchesPhone = cistSacuvaniTel.length >= 6 && cistTelKarte === cistSacuvaniTel;
-            return matchesLocalCache || matchesCard || matchesPhone;
+            return matchesLocalCache || matchesCard;
           });
         }
 
