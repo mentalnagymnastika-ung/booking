@@ -958,6 +958,7 @@
         recipientName: document.getElementById('pevent-recipient-name').value.trim() || state.activePartner.name,
         isActive: postojeci.isActive !== undefined ? postojeci.isActive : true,
         isFrozen: postojeci.isFrozen || false,
+        updatedAt: new Date().toISOString(),
         image: state.tempImageBase64 || postojeci.image || ''
       };
 
@@ -965,6 +966,20 @@
       document.getElementById('modal-partner-event').classList.add('hidden');
       showNotification("Vaša ponuda je uspešno objavljena!", "success");
     });
+
+    window.kopirajDirektanLinkPonudePartnera = function(eventId) {
+      const ev = state.events.find(e => e.id === eventId);
+      const baza = window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'index.html');
+      const link = `${baza}?ponuda=${encodeURIComponent(eventId)}`;
+      const poruka = ev ? `Pogledajte našu ponudu „${ev.title}“ na @Bookeru: ${link}` : link;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(poruka).then(() => {
+          showNotification("Direktan link ponude je kopiran! Možete ga poslati klijentima.", "success");
+        }).catch(() => prompt("Kopirajte link ponude:", link));
+      } else {
+        prompt("Kopirajte link ponude:", link);
+      }
+    };
 
     window.toggleStatusPonudePartnera = async function(eventId) {
       const ev = state.events.find(e => e.id === eventId && e.category === state.activePartner?.id);
@@ -1264,6 +1279,9 @@
                   </div>
                 </div>
                 <div class="p-3 bg-slate-50 border-t border-slate-100 grid grid-cols-2 gap-1.5 text-xs font-black">
+                  <button type="button" onclick="window.kopirajDirektanLinkPonudePartnera('${ev.id}')" class="col-span-2 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 cursor-pointer">
+                    📤 Direktan link za klijente
+                  </button>
                   <button type="button" onclick="window.toggleStatusPonudePartnera('${ev.id}')" class="py-2 rounded-xl border ${ev.isActive ? 'bg-white text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'} cursor-pointer">
                     ${ev.isActive ? '🔓 Otvoreno' : '🔒 Zatvoreno'}
                   </button>
