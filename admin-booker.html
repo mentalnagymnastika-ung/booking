@@ -283,16 +283,33 @@
                   <input id="cat-max-offers-input" type="number" min="1" max="50" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-indigo-700 focus:outline-none focus:border-indigo-500" />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">Simbol oblasti</label>
-                  <select id="cat-icon-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
-                    <option value="none">— Bez ikone —</option>
-                    <option value="medicinski_stit">Medicinski štit</option>
-                    <option value="zdrava_aktivnost">Zdrava aktivnost</option>
-                    <option value="mentalni_razvoj">Mentalni razvoj</option>
-                    <option value="postura_rast">Postura i rast</option>
-                    <option value="govor_komunikacija">Govor i komunikacija</option>
-                    <option value="edukacija">Edukacija i radionice</option>
-                  </select>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Simbol oblasti ili sopstveni logo</label>
+                  <input type="hidden" id="cat-icon-select" value="none" />
+                  <input type="file" id="cat-custom-logo-file" accept=".svg,image/*" onchange="window.ucitajCustomLogoPartnera(event)" class="hidden" />
+                  <div id="cat-icon-picker-grid" class="grid grid-cols-4 gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                    <button type="button" data-icon="none" onclick="window.izaberiSimbolPartnera('none')" title="Bez ikone" class="cat-icon-opt h-9 rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-700 font-black text-[11px] flex items-center justify-center cursor-pointer transition">Bez</button>
+                    <button type="button" data-icon="medicinski_stit" onclick="window.izaberiSimbolPartnera('medicinski_stit')" title="Medicinski štit" class="cat-icon-opt h-9 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 flex items-center justify-center cursor-pointer transition">
+                      <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11h8"/><path d="M12 7v8"/></svg>
+                    </button>
+                    <button type="button" data-icon="zdrava_aktivnost" onclick="window.izaberiSimbolPartnera('zdrava_aktivnost')" title="Zdrava aktivnost" class="cat-icon-opt h-9 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 flex items-center justify-center cursor-pointer transition">
+                      <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                    </button>
+                    <button type="button" data-icon="mentalni_razvoj" onclick="window.izaberiSimbolPartnera('mentalni_razvoj')" title="Mentalni razvoj" class="cat-icon-opt h-9 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 flex items-center justify-center cursor-pointer transition">
+                      <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.24c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.24c-.464.18-.894.527-.967 1.02Z"/></svg>
+                    </button>
+                    <button type="button" data-icon="postura_rast" onclick="window.izaberiSimbolPartnera('postura_rast')" title="Postura i rast" class="cat-icon-opt h-9 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 flex items-center justify-center cursor-pointer transition">
+                      <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
+                    </button>
+                    <button type="button" data-icon="govor_komunikacija" onclick="window.izaberiSimbolPartnera('govor_komunikacija')" title="Govor i komunikacija" class="cat-icon-opt h-9 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 flex items-center justify-center cursor-pointer transition">
+                      <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
+                    </button>
+                    <button type="button" data-icon="edukacija" onclick="window.izaberiSimbolPartnera('edukacija')" title="Edukacija i radionice" class="cat-icon-opt h-9 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 flex items-center justify-center cursor-pointer transition">
+                      <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    </button>
+                    <button type="button" id="btn-custom-logo-opt" data-icon="custom" onclick="document.getElementById('cat-custom-logo-file').click()" title="Dodaj svoj SVG ili logo" class="cat-icon-opt h-9 rounded-lg border border-dashed border-indigo-400 bg-white hover:bg-indigo-50 text-indigo-700 font-black text-[10px] flex items-center justify-center gap-0.5 cursor-pointer transition overflow-hidden px-1">
+                      <span>+ Logo</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition cursor-pointer">➕ Sačuvaj Partnera</button>
@@ -1307,8 +1324,76 @@
     ];
 
     function getSafeSvgIcon(iconKey) {
-      return (iconKey && iconKey !== 'none' && ICONS_LIBRARY[iconKey]) ? ICONS_LIBRARY[iconKey] : '';
+      if (!iconKey || iconKey === 'none') return '';
+      if (iconKey.startsWith('data:image/')) {
+        return `<img src="${iconKey}" alt="Logo" class="w-6 h-6 object-contain shrink-0" />`;
+      }
+      if (iconKey.trim().startsWith('<svg')) {
+        return iconKey;
+      }
+      return ICONS_LIBRARY[iconKey] || '';
     }
+
+    window.izaberiSimbolPartnera = function(val) {
+      const hiddenInput = document.getElementById('cat-icon-select');
+      if (hiddenInput) hiddenInput.value = val;
+      document.querySelectorAll('.cat-icon-opt').forEach(btn => {
+        const key = btn.getAttribute('data-icon');
+        const jeIzabran = key === val || (key === 'custom' && (val.startsWith('data:image/') || val.trim().startsWith('<svg')));
+        if (jeIzabran) {
+          btn.classList.remove('border', 'border-slate-200', 'border-dashed');
+          btn.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50');
+        } else {
+          btn.classList.remove('border-2', 'border-indigo-600', 'bg-indigo-50');
+          btn.classList.add('border', key === 'custom' ? 'border-dashed' : 'border-slate-200');
+        }
+      });
+    };
+
+    window.ucitajCustomLogoPartnera = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const btnCustom = document.getElementById('btn-custom-logo-opt');
+
+      if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          let svgText = String(ev.target.result || '').trim();
+          const startIdx = svgText.indexOf('<svg');
+          if (startIdx !== -1) svgText = svgText.slice(startIdx);
+          svgText = svgText.replace(/<svg\b([^>]*)>/i, (m, attrs) => {
+            const cistiAtributi = attrs.replace(/\s*(width|height|class)="[^"]*"/gi, '');
+            return `<svg class="w-5 h-5 text-slate-700 shrink-0"${cistiAtributi}>`;
+          });
+          if (btnCustom) btnCustom.innerHTML = svgText;
+          window.izaberiSimbolPartnera(svgText);
+          showNotification("SVG logo je učitan!", "success");
+        };
+        reader.readAsText(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxDim = 96;
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+              else { w = Math.round((w * maxDim) / h); h = maxDim; }
+            }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/png');
+            if (btnCustom) btnCustom.innerHTML = `<img src="${dataUrl}" class="w-6 h-6 object-contain" />`;
+            window.izaberiSimbolPartnera(dataUrl);
+            showNotification("Logo je učitan!", "success");
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
     let state = {
       isSuperAdmin: false,
@@ -1454,6 +1539,9 @@
 
       document.getElementById('form-create-category').reset();
       if (document.getElementById('cat-max-offers-input')) document.getElementById('cat-max-offers-input').value = '1';
+      const btnCustom = document.getElementById('btn-custom-logo-opt');
+      if (btnCustom) btnCustom.innerHTML = '<span>+ Logo</span>';
+      window.izaberiSimbolPartnera('none');
       showNotification(`Partner "${name}" je sačuvan (Limit: ${maxOffers} ponuda, Kod: ${accessCode})!`, "success");
     });
 
