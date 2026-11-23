@@ -2725,11 +2725,12 @@
       const urlParametri = new URLSearchParams(window.location.search);
       const linkUstanova = urlParametri.get('ustanova') ? decodeURIComponent(urlParametri.get('ustanova')).trim() : '';
       const linkRazred = urlParametri.get('razred') ? decodeURIComponent(urlParametri.get('razred')).trim() : '';
+      const linkAmbasador = urlParametri.get('amb') ? decodeURIComponent(urlParametri.get('amb')).trim() : '';
 
-      const punaSkolaIzLinka = linkUstanova ? (linkRazred ? `${linkUstanova} • ${linkRazred}` : linkUstanova) : '';
+      const oznakaGrupeIliAmb = linkAmbasador || (linkUstanova ? (linkRazred ? `${linkUstanova} • ${linkRazred}` : linkUstanova) : '');
       const finalSchool = aktivniClan 
-        ? (state.activeMembership.group || punaSkolaIzLinka || 'Član udruženja') 
-        : (punaSkolaIzLinka || 'Bez ustanove');
+        ? (state.activeMembership.group || oznakaGrupeIliAmb || 'Član udruženja') 
+        : (oznakaGrupeIliAmb || 'Bez ustanove');
 
       const finalClass = aktivniClan 
         ? 'Članska evidencija' 
@@ -2831,6 +2832,7 @@
         phone: finalPhone,
         address: finalAddress,
         school: finalSchool,
+        ambassador: linkAmbasador || oznakaGrupeIliAmb || '',
         className: finalClass,
         memberRole: clanskiStatus,
         note: document.getElementById('booking-note') ? document.getElementById('booking-note').value.trim() : '',
@@ -5808,6 +5810,25 @@ if (btnSadrzaj) {
             handleUserProfileUI(user);
             processSyncQueue();
             startRealtimeSync();
+
+            const urlAmbParams = new URLSearchParams(window.location.search);
+            const ambIme = urlAmbParams.get('amb') ? decodeURIComponent(urlAmbParams.get('amb')).trim() : '';
+            const ambPonudaId = (urlAmbParams.get('ponuda') || urlAmbParams.get('top') || '').trim();
+            if (ambIme && ambPonudaId && !sessionStorage.getItem(`amb_hit_${ambPonudaId}_${ambIme}`)) {
+              sessionStorage.setItem(`amb_hit_${ambPonudaId}_${ambIme}`, '1');
+              const kljucDoc = `${ambPonudaId}_${ambIme.toLowerCase().replace(/[^a-z0-9čćžšđ]+/g, '_')}`;
+              const refLinka = doc(db, 'artifacts', appId, 'public', 'data', 'ambassador_links', kljucDoc);
+              getDoc(refLinka).then(snap => {
+                const stari = snap.exists() ? snap.data() : {};
+                setDoc(refLinka, {
+                  eventId: ambPonudaId,
+                  ambassador: ambIme,
+                  clicks: (stari.clicks || 0) + 1,
+                  firstOpenedAt: stari.firstOpenedAt || new Date().toISOString(),
+                  lastOpenedAt: new Date().toISOString()
+                }, { merge: true }).catch(() => {});
+              }).catch(() => {});
+            }
           } else {
             try {
               await signInAnonymously(auth);
