@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pregled prodatih ulaznica • @Booker</title>
+  <link rel="icon" type="image/png" href="logo%20EduBook.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-900 min-h-screen pb-12">
+
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 py-3 shadow-sm">
+    <div class="max-w-2xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-sm">E</div>
+        <div>
+          <span class="block text-[10px] font-black uppercase tracking-wider text-indigo-600 leading-none">@Booker • Uvid u prodaju</span>
+          <h1 id="uvid-event-title" class="text-sm sm:text-base font-black text-slate-950 leading-tight mt-0.5 truncate max-w-[230px] sm:max-w-md">Učitavanje programa...</h1>
+        </div>
+      </div>
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-black">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Uživo
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto p-4 space-y-5">
+
+    <div id="uvid-error-box" class="hidden bg-white rounded-3xl p-8 text-center border-2 border-rose-200 shadow-xl space-y-2 mt-8">
+      <p class="text-lg font-black text-rose-700">Pristup pregledu nije validan</p>
+      <p class="text-sm text-slate-600">Molimo zatražite važeći link od administratora (@Booker).</p>
+    </div>
+
+    <div id="uvid-data-container" class="hidden space-y-5">
+
+      <div class="bg-slate-800/90 border border-slate-700 rounded-2xl px-4 py-3 text-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-bold">
+        <span id="uvid-event-date">📅 Datum</span>
+        <span id="uvid-event-location">📍 Lokacija</span>
+      </div>
+
+      <!-- 3 velika brojača za salu -->
+      <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <div class="bg-white rounded-3xl p-4 text-center border-2 border-indigo-200 shadow-md">
+          <span class="block text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-500">Zauzeto mesta</span>
+          <span id="stat-ukupno" class="block text-2xl sm:text-4xl font-black text-indigo-700 mt-1">0</span>
+          <span id="stat-kapacitet" class="block text-[10px] sm:text-xs font-bold text-slate-400 mt-0.5">od 0</span>
+        </div>
+
+        <div class="bg-white rounded-3xl p-4 text-center border-2 border-emerald-300 shadow-md">
+          <span class="block text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-700">Uplaćeno</span>
+          <span id="stat-potvrdjeno" class="block text-2xl sm:text-4xl font-black text-emerald-600 mt-1">0</span>
+          <span class="block text-[10px] sm:text-xs font-bold text-emerald-700/70 mt-0.5">potvrđeno</span>
+        </div>
+
+        <div class="bg-white rounded-3xl p-4 text-center border-2 border-amber-300 shadow-md">
+          <span class="block text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-700">Rezervisano</span>
+          <span id="stat-ceka" class="block text-2xl sm:text-4xl font-black text-amber-600 mt-1">0</span>
+          <span class="block text-[10px] sm:text-xs font-bold text-amber-700/70 mt-0.5">čeka uplatu</span>
+        </div>
+      </div>
+
+      <!-- Status po vaspitačicama / grupama (ko je poslao, ko je otvorio, ko je platio) -->
+      <section class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base sm:text-lg font-black text-slate-950">Praćenje po vaspitačicama i grupama</h2>
+          <span id="stat-broj-grupa" class="text-xs font-black bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-xl border border-indigo-100">0 linkova</span>
+        </div>
+        <div id="uvid-grupe-lista" class="space-y-2.5"></div>
+      </section>
+
+      <!-- Spisak ulaznica za proveru na vratima -->
+      <section class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-lg space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h2 class="text-base sm:text-lg font-black text-slate-950">Spisak ulaznica (<span id="stat-broj-prijava">0</span>)</h2>
+          <input id="uvid-search-input" type="text" placeholder="Pretraži ime deteta ili vaspitačicu..." class="bg-slate-50 border-2 border-slate-200 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 w-full sm:w-64" />
+        </div>
+        <div id="uvid-spisak-prijava" class="divide-y divide-slate-100"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3Eit8Rh8Zyy5x80MwWQH3Nhv98a6puIk",
+      authDomain: "edubooker-umg.firebaseapp.com",
+      projectId: "edubooker-umg",
+      storageBucket: "edubooker-umg.firebasestorage.app",
+      messagingSenderId: "406523647165",
+      appId: "1:406523647165:web:d4ec882a22f152aeec53d4"
+    };
+
+    const appId = 'booking-master-html-app';
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    function izracunajSigurnosniKljuc(eventId) {
+      let hash = 0;
+      const str = `${eventId}_UMG_UVID_2026`;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return String(Math.abs(hash)).slice(0, 5).padStart(5, '0');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const eventId = (params.get('event') || '').trim();
+    const kljuc = (params.get('k') || '').trim();
+
+    const errorBox = document.getElementById('uvid-error-box');
+    const dataContainer = document.getElementById('uvid-data-container');
+
+    if (!eventId || kljuc !== izracunajSigurnosniKljuc(eventId)) {
+      errorBox.classList.remove('hidden');
+    } else {
+      dataContainer.classList.remove('hidden');
+      let trenutniDogadjaj = null;
+      let sveRezervacije = [];
+      let sviLinkoviAmbasadora = [];
+
+      const osveziPrikaz = () => {
+        const pretraga = (document.getElementById('uvid-search-input')?.value || '').toLowerCase().trim();
+        const aktivne = sveRezervacije.filter(b => b.eventId === eventId && b.status !== 'otkazano');
+
+        let ukupnoMesta = 0;
+        let potvrdjenoMesta = 0;
+        let cekaMesta = 0;
+        const mapaGrupa = {};
+
+        // Prvo ubacujemo sve kreirane linkove vaspitačica (čak i ako još imaju 0 prijava)
+        sviLinkoviAmbasadora.filter(l => l.eventId === eventId).forEach(l => {
+          const ime = l.ambassador || 'Nepoznata grupa';
+          mapaGrupa[ime] = {
+            naziv: ime,
+            klikovi: Number(l.clicks || 0),
+            ukupno: 0,
+            potvrdjeno: 0,
+            ceka: 0
+          };
+        });
+
+        aktivne.forEach(b => {
+          const br = Number(b.ticketsCount || 1);
+          const placeno = b.isPaid === true || b.paymentType === 'clanarina_pokriveno' || Number(b.totalPrice || 0) === 0;
+          ukupnoMesta += br;
+          if (placeno) potvrdjenoMesta += br;
+          else cekaMesta += br;
+
+          const nazivGrupe = (b.ambassador && b.ambassador.trim() !== '')
+            ? b.ambassador.trim()
+            : ((b.school && b.school !== 'Bez ustanove' && b.school !== 'Član udruženja') ? b.school : 'Direktne prijave (opšti link)');
+
+          if (!mapaGrupa[nazivGrupe]) {
+            mapaGrupa[nazivGrupe] = { naziv: nazivGrupe, klikovi: 0, ukupno: 0, potvrdjeno: 0, ceka: 0 };
+          }
+          mapaGrupa[nazivGrupe].ukupno += br;
+          if (placeno) mapaGrupa[nazivGrupe].potvrdjeno += br;
+          else mapaGrupa[nazivGrupe].ceka += br;
+        });
+
+        document.getElementById('stat-ukupno').innerText = ukupnoMesta;
+        document.getElementById('stat-kapacitet').innerText = trenutniDogadjaj ? `od ${trenutniDogadjaj.totalSeats}` : 'ulaznica';
+        document.getElementById('stat-potvrdjeno').innerText = potvrdjenoMesta;
+        document.getElementById('stat-ceka').innerText = cekaMesta;
+
+        const grupeNiz = Object.values(mapaGrupa).sort((a, b) => b.ukupno - a.ukupno || b.klikovi - a.klikovi);
+        document.getElementById('stat-broj-grupa').innerText = `${grupeNiz.length} ${grupeNiz.length === 1 ? 'grupa' : 'grupe'}`;
+
+        const grupeListaEl = document.getElementById('uvid-grupe-lista');
+        if (grupeNiz.length === 0) {
+          grupeListaEl.innerHTML = `<p class="text-xs sm:text-sm text-slate-400 font-bold py-3 text-center">Još uvek nema kreiranih linkova niti prijava.</p>`;
+        } else {
+          grupeListaEl.innerHTML = grupeNiz.map(g => {
+            const jePoslato = g.klikovi > 0 || g.ukupno > 0;
+            const statusLinkaHtml = jePoslato
+              ? `<span class="inline-block text-[11px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">✓ Prosleđeno (${g.klikovi} pregleda)</span>`
+              : `<span class="inline-block text-[11px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">⏳ Još nije otvoreno (0 pregleda)</span>`;
+
+            return `
+              <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                <div class="min-w-0 space-y-1">
+                  <p class="text-sm sm:text-base font-black text-slate-900 truncate">${g.naziv}</p>
+                  <div>${statusLinkaHtml}</div>
+                  <p class="text-xs font-bold text-slate-600">
+                    Uplaćeno: <span class="text-emerald-700 font-black">${g.potvrdjeno}</span>
+                    ${g.ceka > 0 ? ` • Čeka uplatu: <span class="text-amber-700 font-black">${g.ceka}</span>` : ''}
+                  </p>
+                </div>
+                <div class="text-center shrink-0">
+                  <div class="px-3.5 py-2 rounded-2xl bg-indigo-600 text-white font-black text-base sm:text-lg shadow-xs">
+                    ${g.ukupno}
+                  </div>
+                  <span class="block text-[9px] font-black text-slate-400 uppercase mt-0.5">karata</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        const filtrirane = aktivne.filter(b => {
+          if (!pretraga) return true;
+          const punoIme = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase();
+          const grupa = `${b.ambassador || ''} ${b.school || ''}`.toLowerCase();
+          const kod = (b.id || '').toLowerCase();
+          return punoIme.includes(pretraga) || grupa.includes(pretraga) || kod.includes(pretraga);
+        }).sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
+
+        document.getElementById('stat-broj-prijava').innerText = filtrirane.length;
+        const spisakEl = document.getElementById('uvid-spisak-prijava');
+        if (filtrirane.length === 0) {
+          spisakEl.innerHTML = `<p class="text-xs sm:text-sm text-slate-400 font-bold py-4 text-center">Nema rezultata za prikaz.</p>`;
+        } else {
+          spisakEl.innerHTML = filtrirane.map(b => {
+            const placeno = b.isPaid === true || b.paymentType === 'clanarina_pokriveno' || Number(b.totalPrice || 0) === 0;
+            const br = Number(b.ticketsCount || 1);
+            const grupaPrikaz = b.ambassador || ((b.school && b.school !== 'Bez ustanove' && b.school !== 'Član udruženja') ? b.school : '');
+            return `
+              <div class="py-3 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-black text-slate-900 truncate">
+                    ${b.firstName} ${b.lastName || ''}
+                    <span class="ml-1.5 text-xs font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">${br} ${br === 1 ? 'mesto' : 'mesta'}</span>
+                  </p>
+                  <p class="text-xs font-bold text-slate-500 mt-0.5 truncate">
+                    ${grupaPrikaz ? `${grupaPrikaz} • ` : ''}<span class="font-mono">${b.id}</span>
+                  </p>
+                </div>
+                <span class="px-2.5 py-1 rounded-xl text-xs font-black shrink-0 ${placeno ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                  ${placeno ? '✓ Uplaćeno' : '⏳ Čeka uplatu'}
+                </span>
+              </div>
+            `;
+          }).join('');
+        }
+      };
+
+      document.getElementById('uvid-search-input')?.addEventListener('input', osveziPrikaz);
+
+      signInAnonymously(auth).then(() => {
+        onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'events', eventId), (snap) => {
+          if (snap.exists()) {
+            trenutniDogadjaj = snap.data();
+            document.getElementById('uvid-event-title').innerText = trenutniDogadjaj.title || 'Predstava';
+            const datum = trenutniDogadjaj.startDate || trenutniDogadjaj.date || '';
+            const vreme = trenutniDogadjaj.time ? ` u ${trenutniDogadjaj.time}h` : '';
+            document.getElementById('uvid-event-date').innerText = `📅 ${datum}${vreme}`;
+            document.getElementById('uvid-event-location').innerText = `📍 ${trenutniDogadjaj.location || ''}`;
+            osveziPrikaz();
+          }
+        });
+
+        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'ambassador_links'), (snap) => {
+          const lista = [];
+          snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
+          sviLinkoviAmbasadora = lista;
+          osveziPrikaz();
+        });
+
+        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), (snap) => {
+          const lista = [];
+          snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
+          sveRezervacije = lista;
+          osveziPrikaz();
+        });
+      });
+    }
+  </script>
+</body>
+</html>
