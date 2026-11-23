@@ -3141,10 +3141,12 @@
         return cistUrl;
       }
 
-      const licTekst = `${b.id} (${b.firstName} ${b.lastName})`;
+      const punoImeVlasnika = `${b.firstName || ''} ${b.lastName || ''}`.trim() || b.id;
+      const emailVlasnika = (b.email && b.email !== 'Nije uneto' && b.email !== 'Nije traženo') ? b.email : '';
+      const licTekst = `${b.id} (${punoImeVlasnika})`;
       const naslovDokumenta = (b.ticketsCount > 1) ? `${b.eventTitle || 'Časopis'} - PDF ${redniBrojPdf}` : (b.eventTitle || 'Časopis');
       const bazaPutanje = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-      return `${bazaPutanje}citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(naslovDokumenta)}&lic=${encodeURIComponent(licTekst)}&print=${printParam}&download=${downParam}&share=${shareParam}`;
+      return `${bazaPutanje}citac.html?pdf=${encodeURIComponent(cistUrl)}&title=${encodeURIComponent(naslovDokumenta)}&code=${encodeURIComponent(b.id)}&lic=${encodeURIComponent(licTekst)}&ime=${encodeURIComponent(punoImeVlasnika)}&email=${encodeURIComponent(emailVlasnika)}&print=${printParam}&download=${downParam}&share=${shareParam}`;
     };
 
     window.otvoriPdfPregledac = async function(bookingId, redniBrojPdf = 1) {
