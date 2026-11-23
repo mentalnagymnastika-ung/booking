@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="sr">
 <head>
   <meta charset="UTF-8">
@@ -175,6 +175,33 @@
     .sef-shake {
       animation: sefShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
     }
+    @keyframes sefInputBlink {
+      0%, 100% {
+        background-color: #fef9c3;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+      }
+      50% {
+        background-color: #ffffff;
+        border-color: #fbbf24;
+        box-shadow: 0 0 18px 3px rgba(251, 191, 36, 0.85);
+      }
+    }
+    .sef-input-blink {
+      animation: sefInputBlink 1.5s infinite ease-in-out;
+    }
+    @keyframes svetlosnaKuglaAura {
+      0%, 100% {
+        box-shadow: 0 0 25px 6px rgba(99, 102, 241, 0.65), 0 0 60px 15px rgba(251, 191, 36, 0.35);
+      }
+      50% {
+        box-shadow: 0 0 38px 12px rgba(56, 189, 248, 0.85), 0 0 85px 24px rgba(129, 140, 248, 0.55);
+      }
+    }
+    .top-kartica-svetlosna-kugla {
+      border-radius: 1.65rem;
+      animation: svetlosnaKuglaAura 2.8s infinite ease-in-out;
+    }
 
     /* Kompaktni klizači za pregled karata u @B */
     .wallet-row-title {
@@ -343,7 +370,7 @@
         </button>
         <div class="pr-8">
           <h2 id="my-tickets-heading" class="text-xl font-black text-slate-900">Vaše rezervisane karte</h2>
-          <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Bez prijave aplikacija radi kao porodični novčanik na ovom uređaju, a prijavom preko dugmeta G vidite isključivo svoje lične karte. Karte i PDF materijali čuvaju se još 30 dana nakon završetka programa.</p>
+          <p id="my-tickets-desc" class="text-slate-500 text-sm mt-1">Bez prijave aplikacija radi kao porodični novčanik na ovom uređaju, a prijavom preko dugmeta G vidite isključivo svoje lične karte. Karte i PDF materijali čuvaju se još 35 dana nakon završetka programa.</p>
         </div>
         <div class="flex gap-2 w-full md:w-auto pr-0 md:pr-8" id="my-tickets-search-wrapper">
           <input id="search-ticket-phone" type="text" placeholder="ČLANSKI BROJ, TEL. BROJ" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none focus:border-indigo-500 w-full md:w-64" />
@@ -372,7 +399,7 @@
           <div>
             <p class="text-base sm:text-lg font-black text-slate-950">Porodični uređaj ili lični nalog (@B)</p>
             <p class="mt-1 leading-relaxed">Sve preuzete karte nalaze se u donjem desnom uglu na dugmetu <strong>@B</strong>. Kada niste prijavljeni, aplikacija radi kao <strong>porodični novčanik</strong> i na tom uređaju čuva karte svih članova porodice koje ste preuzeli. Kada se prijavite preko dugmeta <strong>G</strong> u gornjem desnom uglu, prikazuju se isključivo <strong>vaše lične karte</strong> sa bilo kog uređaja.</p>
-            <p class="mt-1.5 leading-relaxed text-slate-600">Radi optimalnog rada platforme, rezervisane karte i digitalni sadržaji (PDF izdanja, Kućni sef, vaučeri) čuvaju se u vašem novčaniku <strong>sve do održavanja programa i još 30 dana nakon njegovog završetka</strong>, pa vas molimo da do tog roka preuzmete sve materijale na svoj uređaj. Članske kartice ostaju sačuvane tokom celog trajanja članarine.</p>
+            <p class="mt-1.5 leading-relaxed text-slate-600">Radi optimalnog rada platforme, rezervisane karte i digitalni sadržaji (PDF izdanja, Kućni sef, vaučeri) čuvaju se u vašem novčaniku <strong>sve do održavanja programa i još 35 dana nakon njegovog završetka</strong>, pa vas molimo da do tog roka preuzmete sve materijale na svoj uređaj. Članske kartice ostaju sačuvane tokom celog trajanja članarine.</p>
           </div>
         </div>
 
@@ -1019,11 +1046,12 @@
           <p class="text-xs text-slate-400 font-semibold mt-0.5">Šifra se dobija rešavanjem zadataka iz vaše sveske</p>
         </div>
 
-        <!-- Rotirajući točak brave -->
-        <div id="kucni-sef-tocak" class="kucni-sef-tocak w-28 h-28 rounded-full border-4 border-amber-400/70 bg-slate-800 flex items-center justify-center shadow-xl relative my-2">
-          <div class="absolute w-full h-2.5 bg-slate-600"></div>
-          <div class="absolute h-full w-2.5 bg-slate-600"></div>
-          <div class="w-14 h-14 rounded-full border-4 border-amber-400/80 bg-slate-900 z-10 flex items-center justify-center">
+        <!-- Rotirajući točak brave sa 6 podeoka -->
+        <div id="kucni-sef-tocak" class="kucni-sef-tocak w-32 h-32 rounded-full border-4 border-amber-400/85 bg-slate-800 flex items-center justify-center shadow-xl relative my-2 overflow-hidden">
+          <div class="absolute w-full h-2 bg-amber-400/40"></div>
+          <div class="absolute w-full h-2 bg-amber-400/40 rotate-60" style="transform: rotate(60deg);"></div>
+          <div class="absolute w-full h-2 bg-amber-400/40 -rotate-60" style="transform: rotate(-60deg);"></div>
+          <div class="w-14 h-14 rounded-full border-4 border-amber-400 bg-slate-900 z-10 flex items-center justify-center shadow-inner">
             <span id="sef-katanac-ikona" class="text-xl">🔒</span>
           </div>
         </div>
@@ -1033,7 +1061,7 @@
           <div id="sef-blokada-poruka" class="hidden bg-rose-950/90 border border-rose-500 text-rose-200 p-3 rounded-xl text-xs font-bold text-center leading-relaxed"></div>
 
           <div id="sef-unos-blok" class="space-y-3">
-            <input id="sef-sifra-input" type="text" maxlength="20" placeholder="UNESI ŠIFRU IZ SVESKE" class="w-full h-14 rounded-xl bg-emerald-950/70 border-2 border-emerald-500/40 text-emerald-300 font-mono text-xl font-black text-center tracking-widest uppercase focus:outline-none focus:border-amber-400" />
+            <input id="sef-sifra-input" type="text" maxlength="20" placeholder="UNESI ŠIFRU IZ SVESKE" class="sef-input-blink w-full h-14 rounded-xl bg-amber-50 border-2 border-amber-400 text-slate-950 placeholder-slate-500 font-mono text-xl font-black text-center tracking-widest uppercase focus:outline-none" />
             <p id="sef-pokusaji-info" class="text-center text-xs font-bold text-slate-400">Imate 3 pokušaja za otključavanje</p>
             <div class="grid grid-cols-2 gap-2.5">
               <button type="button" onclick="document.getElementById('sef-sifra-input').value=''; document.getElementById('sef-sifra-input').focus();" class="py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 font-black text-xs sm:text-sm border border-slate-700 cursor-pointer">
@@ -1081,6 +1109,16 @@
       <!-- Zaštita gornjeg desnog ugla iframe-a da korisnik ne može da klikne na Google Drive 'Pop-out' ikonicu i vidi URL -->
       <div id="drive-popout-blocker" class="hidden absolute top-0 right-0 w-20 h-16 z-20 bg-transparent cursor-default" title="Zaštićen prikaz"></div>
       <iframe id="pdf-viewer-iframe" src="" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" class="w-full h-full border-0 bg-white" allow="autoplay; fullscreen"></iframe>
+    </div>
+  </div>
+
+  <!-- Istaknuta originalna kartica sa svetlosnom kuglom preko ostalih (bez zamračivanja pozadine) -->
+  <div id="modal-top-ponuda" onclick="if (event.target === this) window.zatvoriTopPonudu()" class="hidden fixed inset-0 z-[105] bg-transparent flex items-center justify-center p-4 pointer-events-auto">
+    <div class="relative w-full max-w-sm fade-in">
+      <button type="button" onclick="window.zatvoriTopPonudu()" title="Zatvori i prikaži sve ponude" class="absolute -top-3.5 -right-3.5 z-40 w-10 h-10 rounded-full bg-white hover:bg-rose-50 text-rose-600 border-2 border-rose-200 flex items-center justify-center text-lg font-black shadow-xl transition active:scale-95 cursor-pointer">
+        ✕
+      </button>
+      <div id="top-ponuda-card-slot" class="top-kartica-svetlosna-kugla w-full"></div>
     </div>
   </div>
 
@@ -1636,8 +1674,9 @@
       const ev = state.events.find(e => e.id === eventId);
       if (eventId) window.zabeleziInterakciju(eventId, 'share');
       const naslov = ev ? ev.title : "Program";
-      const linkAplikacije = window.location.origin + window.location.pathname;
-      const tekstPoruke = `Meni se ovo dopada! Pogledaj program "${naslov}" na @Bookeru, mogli bismo da dođemo zajedno: ${linkAplikacije}`;
+      const osnovniLink = window.location.origin + window.location.pathname;
+      const linkAplikacije = eventId ? `${osnovniLink}?ponuda=${encodeURIComponent(eventId)}` : osnovniLink;
+      const tekstPoruke = `Pogledaj program "${naslov}" na @Bookeru i prijavi se direktno putem linka: ${linkAplikacije}`;
 
       if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
         try {
@@ -2581,13 +2620,9 @@
       });
 
       if (postojecaRezervacija) {
-        showNotification(`Već imate aktivnu kartu ${postojecaRezervacija.id} za ovaj program!`, "warning");
-        setTimeout(() => {
-          if (confirm(`Želite li da otvorite postojeću kartu ${postojecaRezervacija.id}?`)) {
-            document.getElementById('modal-booking').classList.add('hidden');
-            window.viewTicket(postojecaRezervacija.id);
-          }
-        }, 400);
+        showNotification(`Otvara se već preuzeta karta (${postojecaRezervacija.id})...`, "info");
+        document.getElementById('modal-booking').classList.add('hidden');
+        window.viewTicket(postojecaRezervacija.id);
         return;
       }
 
@@ -3340,6 +3375,17 @@
         safeStorage.setItem(kljucBlokade, '0');
         if (tocak) tocak.style.transform = 'rotate(-90deg)';
         if (katanac) katanac.innerText = '🔓';
+
+        const bSef = window.aktivniSefPodaci.booking;
+        if (bSef && !bSef.vaultOpened) {
+          bSef.vaultOpened = true;
+          safeStorage.setItem(`sef_otvoren_${bSef.id}`, '1');
+          safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+          if (state.isOnline && firebaseActive) {
+            updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bSef.id), { vaultOpened: true }).catch(() => {});
+          }
+          renderUI();
+        }
 
         const btnSadrzaj = document.getElementById('btn-sef-otvori-sadrzaj');
         const nagradaUrl = window.aktivniSefPodaci.url;
@@ -5551,23 +5597,38 @@ if (btnSadrzaj) {
             `;
           };
 
-          const jeZavrsenaKarta = (b) => b.status === 'otkazano' || b.status === 'iskorišćena' || (b.scannedCount || 0) >= (b.ticketsCount || 1);
+          const jeOtvorenPdfIliSef = (b) => {
+            const pdf1Otvoren = safeStorage.getItem(`preuzet_pdf1_${b.id}`) === '1';
+            const pdf2Otvoren = safeStorage.getItem(`preuzet_pdf2_${b.id}`) === '1';
+            const sefOtvoren = b.vaultOpened === true || safeStorage.getItem(`sef_otvoren_${b.id}`) === '1';
+            return pdf1Otvoren || pdf2Otvoren || sefOtvoren || (b.scannedCount || 0) > 0;
+          };
+          const jeZavrsenaKarta = (b) => b.status === 'otkazano' || b.status === 'iskorišćena' || (b.ticketsCount && (b.scannedCount || 0) >= b.ticketsCount);
           const jePlacenaKarta = (b) => b.isPaid === true || b.paymentType === 'clanarina_pokriveno' || Number(b.totalPrice || 0) === 0;
+          const sortirajPoNovijem = (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime();
 
-          const aktivneKarte = userBookings.filter(b => !jeZavrsenaKarta(b) && jePlacenaKarta(b));
-          const cekajuUplatuKarte = userBookings.filter(b => !jeZavrsenaKarta(b) && !jePlacenaKarta(b));
-          const zavrseneKarte = userBookings.filter(b => jeZavrsenaKarta(b));
+          const najnovijeNeotvorene = userBookings
+            .filter(b => !jeZavrsenaKarta(b) && jePlacenaKarta(b) && !jeOtvorenPdfIliSef(b))
+            .sort(sortirajPoNovijem);
+
+          const otvoreneIIskoriscene = userBookings
+            .filter(b => jeZavrsenaKarta(b) || (jePlacenaKarta(b) && jeOtvorenPdfIliSef(b)))
+            .sort(sortirajPoNovijem);
+
+          const cekajuUplatuKarte = userBookings
+            .filter(b => !jeZavrsenaKarta(b) && !jePlacenaKarta(b))
+            .sort(sortirajPoNovijem);
 
           let htmlRows = '';
-          if (aktivneKarte.length > 0) {
+          if (najnovijeNeotvorene.length > 0) {
             htmlRows += `
               <div>
                 <div class="wallet-row-title text-emerald-300">
-                  <span>✓ Aktivne i potvrđene (${aktivneKarte.length})</span>
+                  <span>✨ Najnovije i neotvorene (${najnovijeNeotvorene.length})</span>
                   <span class="text-[10px] text-slate-300 font-bold">Prevucite levo-desno ›</span>
                 </div>
                 <div class="wallet-slider">
-                  ${aktivneKarte.map(b => iscrtajKompaktnuKarticu(b)).join('')}
+                  ${najnovijeNeotvorene.map(b => iscrtajKompaktnuKarticu(b)).join('')}
                 </div>
               </div>
             `;
@@ -5584,14 +5645,14 @@ if (btnSadrzaj) {
               </div>
             `;
           }
-          if (zavrseneKarte.length > 0) {
+          if (otvoreneIIskoriscene.length > 0) {
             htmlRows += `
               <div>
-                <div class="wallet-row-title text-slate-400">
-                  <span>📁 Iskorišćene i otkazane (${zavrseneKarte.length})</span>
+                <div class="wallet-row-title text-slate-300">
+                  <span>📖 Otvorene i iskorišćene (${otvoreneIIskoriscene.length})</span>
                 </div>
                 <div class="wallet-slider">
-                  ${zavrseneKarte.map(b => iscrtajKompaktnuKarticu(b)).join('')}
+                  ${otvoreneIIskoriscene.map(b => iscrtajKompaktnuKarticu(b)).join('')}
                 </div>
               </div>
             `;
@@ -5599,7 +5660,80 @@ if (btnSadrzaj) {
           myTicketsGrid.innerHTML = htmlRows;
         }
       }
+
+      window.prikaziTopPonuduAkoTreba();
     }
+
+    window.zatvoriTopPonudu = function() {
+      const modal = document.getElementById('modal-top-ponuda');
+      if (modal) modal.classList.add('hidden');
+      window._topPonudaZatvorena = true;
+    };
+
+    window.prikaziTopPonuduAkoTreba = function() {
+      if (window._topPonudaZatvorena || window._topPonudaPrikazana) return;
+      if (!state.events || state.events.length === 0) return;
+
+      const urlP = new URLSearchParams(window.location.search);
+      if (urlP.get('gift_ticket')) return;
+
+      const ciljaniId = (urlP.get('ponuda') || urlP.get('top') || '').trim();
+      const linkUstanova = urlP.get('ustanova') ? decodeURIComponent(urlP.get('ustanova')).trim().toLowerCase() : '';
+      const linkRazred = urlP.get('razred') ? decodeURIComponent(urlP.get('razred')).trim().toLowerCase() : '';
+
+      let izabrani = null;
+
+      // 1. Direktan link ka konkretnoj ponudi (?ponuda=ID)
+      if (ciljaniId) {
+        izabrani = state.events.find(e => e.id === ciljaniId && !e.isFrozen);
+      }
+
+      // 2. Link od učiteljice za konkretnu ustanovu/razred (?ustanova=...&razred=...)
+      if (!izabrani && linkUstanova) {
+        izabrani = state.events.find(e => {
+          if (e.isFrozen || !e.isActive || !e.schoolGroupTag) return false;
+          const tag = e.schoolGroupTag.toLowerCase();
+          return tag.includes(linkUstanova) && (!linkRazred || tag.includes(linkRazred));
+        });
+      }
+
+      // 3. Zakačena ponuda (isPinned) ili najnovija aktivna ponuda
+      if (!izabrani) {
+        const aktivniProgrami = state.events.filter(e => !e.isFrozen && e.isActive);
+        const zakaceni = aktivniProgrami.filter(e => e.isPinned === true);
+        if (zakaceni.length > 0) {
+          izabrani = zakaceni[0];
+        } else if (aktivniProgrami.length > 0) {
+          izabrani = [...aktivniProgrami].sort((a, b) => {
+            const tA = new Date(a.updatedAt || a.createdAt || a.startDate || 0).getTime();
+            const tB = new Date(b.updatedAt || b.createdAt || b.startDate || 0).getTime();
+            return tB - tA;
+          })[0];
+        }
+      }
+
+      if (!izabrani) return;
+
+      const modal = document.getElementById('modal-top-ponuda');
+      const slot = document.getElementById('top-ponuda-card-slot');
+      if (!modal || !slot) return;
+
+      // Pronalazimo već iscrtanu originalnu karticu u #events-grid po njenom ID-u
+      const ciljniStage = document.getElementById(`card-back-stage-${izabrani.id}`);
+      const originalnaKartica = ciljniStage ? ciljniStage.closest('.flip-card') : null;
+      if (!originalnaKartica) return;
+
+      window._topPonudaPrikazana = true;
+      slot.innerHTML = originalnaKartica.outerHTML;
+      slot.querySelectorAll('button, [onclick]').forEach(el => {
+        const stariOnclick = el.getAttribute('onclick') || '';
+        if (stariOnclick.includes('openBookingModal') || stariOnclick.includes('openInfoModal')) {
+          el.addEventListener('click', () => window.zatvoriTopPonudu(), true);
+        }
+      });
+
+      modal.classList.remove('hidden');
+    };
 
     window.switchTab = function(tabId) {
       state.currentTab = tabId;
