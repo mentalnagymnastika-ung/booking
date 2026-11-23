@@ -466,13 +466,19 @@
             <h3 class="text-xl font-black text-slate-900">Sve prispele prijave i uplate</h3>
             <p class="text-xs text-slate-500 font-bold mt-0.5">Potvrdite uplatu jednim klikom kako bi se karta aktivirala i poslala na stazu</p>
           </div>
-          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="filter-prijave-event" onchange="renderUI()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500 max-w-[200px]">
+              <option value="all">Svi programi</option>
+            </select>
             <select id="filter-prijave-status" onchange="renderUI()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
               <option value="all">Sve prijave</option>
               <option value="neplaceno" selected>⏳ Čeka potvrdu uplate</option>
               <option value="placeno">🟢 Potvrđene i članarine</option>
             </select>
-            <input id="search-prijave-input" oninput="renderUI()" type="text" placeholder="Pretraži po imenu ili kodu..." class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-indigo-500 w-full sm:w-56" />
+            <input id="search-prijave-input" oninput="renderUI()" type="text" placeholder="Ime ili kod..." class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-indigo-500 w-full sm:w-44" />
+            <button type="button" onclick="window.obrisiPrikazanePrijaveGrupno()" class="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-black transition cursor-pointer shrink-0" title="Obriši sve trenutno filtrirane prijave iz baze">
+              🧹 Očisti prikazane
+            </button>
           </div>
         </div>
 
@@ -2084,6 +2090,46 @@
       showNotification("Rezervacija je obrisana", "info");
     };
 
+    window.automatskiOcistiIstekleKarte = async function() {
+      if (window._autoCleanBookingsDone || !state.bookings.length || !state.events.length) return;
+      window._autoCleanBookingsDone = true;
+
+      const GRANICA_DANA = 30;
+      const granicaMs = Date.now() - (GRANICA_DANA * 86400000);
+      const dogadjajiMapa = new Map(state.events.map(e => [e.id, e]));
+      let obrisano = 0;
+
+      for (const b of state.bookings) {
+        if (b.activityType === 'uclanjenje') continue;
+        const ev = dogadjajiMapa.get(b.eventId);
+        const referentniDatumStr = (ev && (ev.endDate || ev.startDate || ev.date)) || b.eventDate;
+        if (!referentniDatumStr) continue;
+
+        const datumMs = new Date(referentniDatumStr).getTime();
+        if (!isNaN(datumMs) && datumMs < granicaMs) {
+          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', b.id)).catch(() => {});
+          obrisano++;
+        }
+      }
+
+      if (obrisano > 0) {
+        showNotification(`Automatsko održavanje: očišćeno ${obrisano} isteklih karata starijih od ${GRANICA_DANA} dana.`, "info");
+      }
+    };
+
+    window.obrisiPrikazanePrijaveGrupno = async function() {
+      const ids = window.trenutnoPrikazanePrijaveIds || [];
+      if (ids.length === 0) {
+        showNotification("Nema prijava za brisanje u trenutnom prikazu.", "warning");
+        return;
+      }
+      if (!confirm(`Da li ste sigurni da želite trajno da obrišete svih ${ids.length} prikazanih prijava iz baze? (Preporuka: preuzmite CSV izveštaj pre brisanja).`)) return;
+      for (const id of ids) {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id)).catch(() => {});
+      }
+      showNotification(`Uspešno očišćeno ${ids.length} prijava iz baze!`, "success");
+    };
+
     window.obrisiClana = async function(card) {
       if (!confirm(`Obrisati člana ${card}?`)) return;
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', card));
@@ -2940,12 +2986,23 @@
         }).join('');
       }
 
+      window.automatskiOcistiIstekleKarte();
+
       // 5. Prijave i uplate
       const prijaveBody = document.getElementById('admin-prijave-table-body');
+      const filterEventSelect = document.getElementById('filter-prijave-event');
       if (prijaveBody) {
+        const izabraniEventId = filterEventSelect?.value || 'all';
+        if (filterEventSelect) {
+          const jedinstveniProgrami = Array.from(new Map(state.bookings.map(b => [b.eventId, b.eventTitle])).entries()).filter(([id, title]) => id && title);
+          filterEventSelect.innerHTML = `<option value="all">Svi programi (${state.bookings.length})</option>` +
+            jedinstveniProgrami.map(([id, title]) => `<option value="${id}" ${izabraniEventId === id ? 'selected' : ''}>${title}</option>`).join('');
+        }
+
         const filterStatus = document.getElementById('filter-prijave-status')?.value || 'all';
         const q = (document.getElementById('search-prijave-input')?.value || '').toLowerCase().trim();
         let list = state.bookings.filter(b => b.status !== 'otkazano');
+        if (izabraniEventId !== 'all') list = list.filter(b => b.eventId === izabraniEventId);
         if (filterStatus === 'neplaceno') list = list.filter(b => !b.isPaid && b.paymentType !== 'clanarina_pokriveno' && (b.totalPrice || 0) > 0);
         else if (filterStatus === 'placeno') list = list.filter(b => b.isPaid || b.paymentType === 'clanarina_pokriveno' || (b.totalPrice || 0) === 0);
         if (q) {
@@ -2956,6 +3013,7 @@
             (b.memberCode && String(b.memberCode).toLowerCase().includes(q))
           );
         }
+        window.trenutnoPrikazanePrijaveIds = list.map(b => b.id);
 
         if (list.length === 0) {
           prijaveBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-xs font-bold text-slate-400">Nema prijava za izabrani filter.</td></tr>`;
