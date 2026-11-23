@@ -1843,7 +1843,7 @@
       const nazivUstanove = prompt("Unesite tačan naziv škole ili vrtića:");
       if (!nazivUstanove || !nazivUstanove.trim()) return;
       const odeljenje = prompt("Unesite razred ili odeljenje:", "");
-      const baza = window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'korisnik.html');
+      const baza = window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'index.html');
       const link = `${baza}?ustanova=${encodeURIComponent(nazivUstanove.trim())}${odeljenje ? `&razred=${encodeURIComponent(odeljenje.trim())}` : ''}`;
       navigator.clipboard?.writeText(link);
       showNotification("Link za školu je kopiran!", "success");
@@ -1866,7 +1866,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             tipAkcije: 'POSALJI_CLANSKE_KARTICE',
-            appUrl: window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'korisnik.html'),
+            appUrl: window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'index.html'),
             clanovi: validni.map(m => ({
               card: m.card,
               firstName: m.firstName || 'Član',
