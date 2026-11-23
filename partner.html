@@ -358,6 +358,8 @@
               <select id="pevent-sub-category" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
                 <option value="medicinski_stit">Medicinski štit</option>
                 <option value="aktivan_odmor">Aktivan odmor</option>
+                <option value="online_susret">OnLine</option>
+                <option value="digitalne_sveske">Radne sveske i PDF izdanja</option>
                 <option value="edukacija">Edukacija i predavanja</option>
                 <option value="mentalni_razvoj">Mentalni razvoj društva</option>
                 <option value="socijalizacija">Socijalizacija</option>
@@ -551,7 +553,7 @@
     const appId = 'booking-master-html-app';
     const googleProvider = new GoogleAuthProvider();
 
-    const SUPER_ADMIN_EMAILS = ['brzak.goran@gmail.com', 'mentalne.gymnastike@gmail.com'];
+    const SUPER_ADMIN_EMAILS = ['brzak.goran@gmail.com', 'mentalna.gymnastika@gmail.com'];
 
     const safeStorage = {
       getItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
@@ -760,6 +762,17 @@
     });
 
     window.prilagodiFormuPartnera = function(tip) {
+      const mapaOblastiPartnera = {
+        individualno: 'medicinski_stit',
+        radionica: 'edukacija',
+        online: 'online_susret',
+        digitalni_resurs: 'digitalne_sveske'
+      };
+      const katSel = document.getElementById('pevent-sub-category');
+      if (katSel && mapaOblastiPartnera[tip]) {
+        katSel.value = mapaOblastiPartnera[tip];
+      }
+
       const dBox = document.getElementById('pevent-digital-box');
       if (dBox) {
         if (tip === 'online' || tip === 'digitalni_resurs') dBox.classList.remove('hidden');
