@@ -3120,9 +3120,9 @@
         cistUrl = cistUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
       }
 
-      const dozvoliStampu = (ev ? ev.pdfAllowPrint : b.pdfAllowPrint) === true;
-      const dozvoliPreuzimanje = (ev ? ev.pdfAllowDownload : b.pdfAllowDownload) === true;
-      const dozvoliDeljenje = (ev ? ev.pdfAllowShare : b.pdfAllowShare) === true;
+      const dozvoliStampu = ev ? (ev.pdfAllowPrint === true) : (b.pdfAllowPrint === true);
+      const dozvoliPreuzimanje = ev ? (ev.pdfAllowDownload === true) : (b.pdfAllowDownload === true);
+      const dozvoliDeljenje = ev ? (ev.pdfAllowShare === true) : (b.pdfAllowShare === true);
 
       const printParam = dozvoliStampu ? '1' : '0';
       const downParam = dozvoliPreuzimanje ? '1' : '0';
