@@ -155,7 +155,7 @@
       </div>
 
       <div class="pt-2">
-        <a id="btn-open-booker-link" href="korisnik.html" class="inline-block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base font-black shadow-md transition">
+        <a id="btn-open-booker-link" href="index.html" class="inline-block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base font-black shadow-md transition">
           Otvori @Booker aplikaciju
         </a>
       </div>
@@ -548,7 +548,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               tipAkcije: 'POSALJI_CLANSKE_KARTICE',
-              appUrl: window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'korisnik.html'),
+              appUrl: window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'index.html'),
               clanovi: [{
                 card: noviClanskiBroj,
                 firstName: childFirst,
