@@ -4956,6 +4956,11 @@ if (btnSadrzaj) {
 
     window.klikDugmePojedinacne = function() {
       window.otvorenMeniPojedinacnih = !window.otvorenMeniPojedinacnih;
+      if (window.otvorenMeniPojedinacnih) {
+        state.activeCategory = 'izbor_oblasti';
+      } else if (state.activeCategory === 'izbor_oblasti') {
+        state.activeCategory = 'all';
+      }
       renderUI();
     };
 
@@ -5119,13 +5124,19 @@ if (btnSadrzaj) {
       }
 
       let filteredEvents = state.events.filter(e => !e.isFrozen);
-      if (state.activeCategory === 'kucni_sef_sekcija') {
+      if (state.activeCategory === 'izbor_oblasti' || window.otvorenMeniPojedinacnih) {
+        filteredEvents = [];
+      } else if (state.activeCategory === 'kucni_sef_sekcija') {
         filteredEvents = filteredEvents.filter(e => e.activityType === 'kucni_sef' || !!(e.vaultPassword && e.vaultPassword.trim() !== ''));
       } else if (state.activeCategory !== 'all') {
         filteredEvents = filteredEvents.filter(e => {
           const jeSef = e.activityType === 'kucni_sef' || !!(e.vaultPassword && e.vaultPassword.trim() !== '');
           if (jeSef) return false;
-          const kat = e.activityType === 'digitalni_resurs' ? 'digitalne_sveske' : (e.subCategory || 'single_default');
+          let kat = e.subCategory || 'edukacija';
+          if (e.activityType === 'online') kat = 'online_susret';
+          else if (e.activityType === 'digitalni_resurs') kat = 'digitalne_sveske';
+          else if (e.activityType === 'teren' || e.trailCode) kat = 'aktivan_odmor';
+          else if (e.activityType === 'individualno') kat = 'medicinski_stit';
           return kat === state.activeCategory;
         });
       }
