@@ -1112,8 +1112,8 @@
     </div>
   </div>
 
-  <!-- Istaknuta originalna kartica sa svetlosnom kuglom preko ostalih (bez zamračivanja pozadine) -->
-  <div id="modal-top-ponuda" onclick="if (event.target === this) window.zatvoriTopPonudu()" class="hidden fixed inset-0 z-[105] bg-transparent flex items-center justify-center p-4 pointer-events-auto">
+  <!-- Istaknuta originalna kartica sa svetlosnom kuglom preko ostalih -->
+  <div id="modal-top-ponuda" onclick="if (event.target === this) window.zatvoriTopPonudu()" class="hidden fixed inset-0 z-[105] bg-slate-950/45 flex items-center justify-center p-4 pointer-events-auto">
     <div class="relative w-full max-w-sm fade-in">
       <button type="button" onclick="window.zatvoriTopPonudu()" title="Zatvori i prikaži sve ponude" class="absolute -top-3.5 -right-3.5 z-40 w-10 h-10 rounded-full bg-white hover:bg-rose-50 text-rose-600 border-2 border-rose-200 flex items-center justify-center text-lg font-black shadow-xl transition active:scale-95 cursor-pointer">
         ✕
@@ -5668,6 +5668,13 @@ if (btnSadrzaj) {
       const modal = document.getElementById('modal-top-ponuda');
       if (modal) modal.classList.add('hidden');
       window._topPonudaZatvorena = true;
+      if (window._istaknutaPonudaId) {
+        const ciljniStage = document.getElementById(`card-back-stage-${window._istaknutaPonudaId}`);
+        const karticaUMrezi = ciljniStage ? ciljniStage.closest('.flip-card') : null;
+        if (karticaUMrezi) {
+          karticaUMrezi.classList.add('top-kartica-svetlosna-kugla');
+        }
+      }
     };
 
     window.prikaziTopPonuduAkoTreba = function() {
@@ -5724,6 +5731,12 @@ if (btnSadrzaj) {
       if (!originalnaKartica) return;
 
       window._topPonudaPrikazana = true;
+      window._istaknutaPonudaId = izabrani.id;
+      originalnaKartica.classList.add('top-kartica-svetlosna-kugla');
+      const mreza = document.getElementById('events-grid');
+      if (mreza && mreza.firstChild !== originalnaKartica) {
+        mreza.insertBefore(originalnaKartica, mreza.firstChild);
+      }
       slot.innerHTML = originalnaKartica.outerHTML;
       slot.querySelectorAll('button, [onclick]').forEach(el => {
         const stariOnclick = el.getAttribute('onclick') || '';
