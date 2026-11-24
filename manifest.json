@@ -8,14 +8,14 @@
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "logo%20EduBook.png",
+      "src": "logo EduBook.png?v=2",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     
     {
-      "src": "logo%20EduBook.png",
+      "src": "logo EduBook.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
