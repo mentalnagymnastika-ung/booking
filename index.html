@@ -611,7 +611,7 @@
             </div>
 
             <div class="flex items-center gap-2" id="membership-input-row">
-              <input id="booking-member-code" type="text" placeholder="UNESITE BROJ" class="flex-1 min-w-0 bg-white border-2 border-indigo-200 rounded-2xl px-3.5 py-3 text-sm font-black text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 uppercase" />
+              <input id="booking-member-code" type="password" inputmode="numeric" autocomplete="off" placeholder="UNESITE BROJ" class="flex-1 min-w-0 bg-white border-2 border-indigo-200 rounded-2xl px-3.5 py-3 text-sm font-black text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 tracking-widest" />
               
               <button type="button" id="btn-apply-membership" title="Potvrdi članski broj" class="w-14 h-12 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-2xl flex items-center justify-center shadow-md transition shrink-0 cursor-pointer">
                 <svg class="w-7 h-7 stroke-[3.2] text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -1468,6 +1468,28 @@
           return vremeNastanka > granicaVremena;
         });
 
+        const mojUredjajId = window.uzmiIdOvogUredjaja();
+        let myTicketsLokalno = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+        let listaZaMojeKarteIzmenjena = false;
+
+        list.forEach(b => {
+          if (b.activeDeviceId && b.activeDeviceId !== mojUredjajId && myTicketsLokalno.includes(b.id)) {
+            myTicketsLokalno = myTicketsLokalno.filter(id => id !== b.id);
+            listaZaMojeKarteIzmenjena = true;
+            if (state.activeViewingTicket && state.activeViewingTicket.id === b.id) {
+              document.getElementById('modal-ticket')?.classList.add('hidden');
+            }
+            showNotification(`Karta (${b.id}) je prebačena na drugi uređaj.`, "info");
+          }
+        });
+
+        if (listaZaMojeKarteIzmenjena) {
+          safeStorage.setItem('my_user_tickets', JSON.stringify(myTicketsLokalno));
+          if (myTicketsLokalno.length === 0) {
+            safeStorage.setItem('edubooker_last_card', '');
+          }
+        }
+
         state.bookings = [...list, ...stvarneNesacuvane];
         safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
         renderUI();
@@ -1700,6 +1722,133 @@
       } else {
         prompt("Kopirajte ovu poruku i pošaljite prijatelju:", tekstPoruke);
       }
+    };
+
+    window.uzmiIdOvogUredjaja = function() {
+      let devId = safeStorage.getItem('edubooker_device_id');
+      if (!devId) {
+        devId = 'DEV-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+        safeStorage.setItem('edubooker_device_id', devId);
+      }
+      return devId;
+    };
+
+    window.maskirajImeIPrezimeClana = function(ime, prezime) {
+      const maskirajJednuRec = (rec, otkrijPrvo) => {
+        const cista = (rec || '').trim();
+        if (!cista) return '';
+        if (cista.length <= 2) {
+          return otkrijPrvo ? cista[0] + '*' : '*' + cista[cista.length - 1];
+        }
+        if (otkrijPrvo) {
+          return cista[0] + '*'.repeat(cista.length - 1);
+        }
+        const indeksUnutra = Math.floor(Math.random() * (cista.length - 2)) + 1;
+        return '*'.repeat(indeksUnutra) + cista[indeksUnutra] + '*'.repeat(cista.length - indeksUnutra - 1);
+      };
+
+      const prvoSlovoNaPrvojReci = Math.random() < 0.5;
+      const mIme = maskirajJednuRec(ime, prvoSlovoNaPrvojReci);
+      const mPrezime = maskirajJednuRec(prezime, !prvoSlovoNaPrvojReci);
+      return `${mIme} ${mPrezime}`.trim();
+    };
+
+    window.izvrsiPrenosKarteNaOvajUredjaj = async function(rezervacija, googleEmail) {
+      const noviUredjajId = window.uzmiIdOvogUredjaja();
+      const noviBrojPrenosa = (rezervacija.transferCount || 0) + 1;
+      const vremePrenosa = new Date().toISOString();
+      const tragPrenosa = `Prebačeno na uređaj ${noviUredjajId} (${googleEmail}) dana ${new Date().toLocaleString('sr-RS')}`;
+
+      rezervacija.activeDeviceId = noviUredjajId;
+      rezervacija.transferCount = noviBrojPrenosa;
+      rezervacija.lastTransferredAt = vremePrenosa;
+      rezervacija.lastTransferNote = tragPrenosa;
+      rezervacija.googleVerified = true;
+
+      state.bookings = state.bookings.map(b => b.id === rezervacija.id ? { ...rezervacija } : b);
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+      let myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+      if (!myTickets.includes(rezervacija.id)) {
+        myTickets.push(rezervacija.id);
+      }
+      safeStorage.setItem('my_user_tickets', JSON.stringify(myTickets));
+
+      if (state.isOnline && firebaseActive) {
+        try {
+          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', rezervacija.id), {
+            activeDeviceId: noviUredjajId,
+            transferCount: noviBrojPrenosa,
+            lastTransferredAt: vremePrenosa,
+            lastTransferNote: tragPrenosa,
+            googleVerified: true
+          });
+        } catch (err) {
+          console.warn("Greška pri beleženju prenosa u bazi:", err);
+        }
+      }
+
+      document.getElementById('modal-google-transfer-guard')?.remove();
+      document.getElementById('modal-booking')?.classList.add('hidden');
+      showNotification("Karta je prebačena na ovaj uređaj i uklonjena sa prethodnog!", "success");
+      renderUI();
+      window.viewTicket(rezervacija.id);
+    };
+
+    window.prikaziZahtevZaGooglePrenos = function(rezervacija) {
+      document.getElementById('modal-google-transfer-guard')?.remove();
+      const jeVecPrijavljenPogresnim = state.googleUser && state.googleUser.email;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'modal-google-transfer-guard';
+      overlay.className = 'fixed inset-0 z-[130] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 fade-in';
+      overlay.innerHTML = `
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border-2 border-indigo-200 text-center space-y-4">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-2xl">🔐</div>
+          <h3 class="text-lg sm:text-xl font-black text-slate-950 leading-snug">Karta je već preuzeta sa drugog uređaja</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+            ${jeVecPrijavljenPogresnim
+              ? `Trenutno ste prijavljeni nalogom <strong>${state.googleUser.email}</strong>, koji ne pripada nosiocu ove karte. Prijavite se putem Google naloga kojim je karta registrovana da biste je prebacili na ovaj uređaj.`
+              : `Radi zaštite vaših podataka, postojeća karta se ne može otvoriti bez potvrde identiteta. Prijavite se putem svog <strong>Google naloga</strong> da biste prebacili kartu na ovaj uređaj (sa prethodnog uređaja biće automatski uklonjena).`}
+          </p>
+          <div class="space-y-2 pt-1">
+            <button type="button" id="btn-guard-google-login" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black shadow-lg flex items-center justify-center gap-2.5 transition cursor-pointer">
+              <svg class="w-5 h-5 bg-white rounded-full p-0.5 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              <span>Prijavi se putem Google naloga</span>
+            </button>
+            <button type="button" onclick="document.getElementById('modal-google-transfer-guard').remove()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
+              Odustani
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      document.getElementById('btn-guard-google-login').onclick = async () => {
+        if (!firebaseActive) return;
+        try {
+          if (state.googleUser) {
+            await signOut(auth);
+          }
+          const result = await signInWithPopup(auth, googleProvider);
+          const noviEmail = (result.user?.email || '').toLowerCase().trim();
+          const emailRez = (rezervacija.email || '').toLowerCase().trim();
+          const emailClan = (state.activeMembership?.email || '').toLowerCase().trim();
+
+          if (noviEmail && ((emailRez && noviEmail === emailRez) || (emailClan && noviEmail === emailClan))) {
+            await window.izvrsiPrenosKarteNaOvajUredjaj(rezervacija, noviEmail);
+          } else {
+            showNotification("Prijavljeni Google nalog se ne poklapa sa nalogom nosioca ove karte.", "warning");
+          }
+        } catch (err) {
+          showNotification("Prijava putem Google naloga nije uspela.", "warning");
+        }
+      };
     };
 
     window.prebaciNaModalUclanjenja = function() {
@@ -2101,7 +2250,7 @@
             if (state.activeMembership.isMembershipActive) {
               priceCalc.innerHTML = `<span class="text-emerald-700 font-black">✓ Aktivna članarina (još ${state.activeMembership.daysRemaining} dana) — Za člana: ${clanskiTotal} din</span>`;
             } else {
-              priceCalc.innerHTML = `<span class="text-amber-700 font-black">⚠️ Članarina (30 dana) je istekla — ${oznakaDrugeCene}: ${redovniTotal} din (zadržavate broj ${state.activeMembership.card})</span>`;
+              priceCalc.innerHTML = `<span class="text-amber-700 font-black">⚠️ Članarina (30 dana) je istekla — ${oznakaDrugeCene}: ${redovniTotal} din</span>`;
             }
           }
         } else {
@@ -2163,12 +2312,14 @@
             daysRemaining: status30Dana.preostaloDana
           };
 
+          const maskiranoImeClana = window.maskirajImeIPrezimeClana(pronadjenClan.firstName, pronadjenClan.lastName);
+
           if (inputRow) inputRow.classList.add('hidden');
           if (confirmedCard) {
             confirmedCard.classList.remove('hidden');
             const nameEl = document.getElementById('membership-member-name');
             const infoEl = document.getElementById('membership-member-info');
-            if (nameEl) nameEl.innerText = `${pronadjenClan.firstName} ${pronadjenClan.lastName} (${pronadjenClan.card})`;
+            if (nameEl) nameEl.innerText = maskiranoImeClana;
             if (infoEl) {
               const jeRedovanClan = status30Dana.aktivna && pronadjenClan.validUntil && pronadjenClan.validUntil.startsWith('31.08.');
               let statusTekst = '';
@@ -2189,7 +2340,7 @@
 
           if (regularFields) regularFields.classList.add('hidden');
 
-          showNotification(`Član prepoznat: ${pronadjenClan.firstName} ${pronadjenClan.lastName}`, "success");
+          showNotification(`Član prepoznat: ${maskiranoImeClana}`, "success");
           window.azurirajPrikazCeneRezervacije();
         };
       }
@@ -2620,9 +2771,33 @@
       });
 
       if (postojecaRezervacija) {
-        showNotification(`Otvara se već preuzeta karta (${postojecaRezervacija.id})...`, "info");
-        document.getElementById('modal-booking').classList.add('hidden');
-        window.viewTicket(postojecaRezervacija.id);
+        const mojUredjajId = window.uzmiIdOvogUredjaja();
+        const myTickets = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+        const jeVecNaOvomUredjaju = myTickets.includes(postojecaRezervacija.id) &&
+          (!postojecaRezervacija.activeDeviceId || postojecaRezervacija.activeDeviceId === mojUredjajId);
+
+        if (jeVecNaOvomUredjaju) {
+          showNotification(`Otvara se već preuzeta karta (${postojecaRezervacija.id})...`, "info");
+          document.getElementById('modal-booking').classList.add('hidden');
+          window.viewTicket(postojecaRezervacija.id);
+          return;
+        }
+
+        const googleEmail = (state.googleUser && state.googleUser.email) ? state.googleUser.email.toLowerCase().trim() : '';
+        const emailNaRezervaciji = (postojecaRezervacija.email || '').toLowerCase().trim();
+        const emailClana = (aktivniClan && state.activeMembership.email) ? state.activeMembership.email.toLowerCase().trim() : '';
+
+        const vlasnikPotvrdjenGooglom = googleEmail && (
+          (emailNaRezervaciji && googleEmail === emailNaRezervaciji) ||
+          (emailClana && googleEmail === emailClana)
+        );
+
+        if (!vlasnikPotvrdjenGooglom) {
+          window.prikaziZahtevZaGooglePrenos(postojecaRezervacija);
+          return;
+        }
+
+        await window.izvrsiPrenosKarteNaOvajUredjaj(postojecaRezervacija, googleEmail);
         return;
       }
 
@@ -2837,6 +3012,8 @@
         memberRole: clanskiStatus,
         note: document.getElementById('booking-note') ? document.getElementById('booking-note').value.trim() : '',
         googleVerified: state.googleUser ? true : false,
+        activeDeviceId: window.uzmiIdOvogUredjaja(),
+        transferCount: 0,
         timestamp: new Date().toISOString(),
         status: 'aktivna'
       };
@@ -5482,8 +5659,8 @@ if (btnSadrzaj) {
               return jeMojEmailNaKarti || jeMojaClanskaKartica;
             }
             const matchesLocalCache = savedTicketIds.includes(b.id);
-            const matchesCard = sacuvaniClanskiBroj && b.memberCode && b.memberCode.toUpperCase() === sacuvaniClanskiBroj.toUpperCase();
-            return matchesLocalCache || matchesCard;
+            const pripadaOvomUredjaju = !b.activeDeviceId || b.activeDeviceId === window.uzmiIdOvogUredjaja();
+            return matchesLocalCache && pripadaOvomUredjaju;
           });
         }
 
