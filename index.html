@@ -1479,7 +1479,8 @@
             if (state.activeViewingTicket && state.activeViewingTicket.id === b.id) {
               document.getElementById('modal-ticket')?.classList.add('hidden');
             }
-            showNotification(`Karta (${b.id}) je prebačena na drugi uređaj.`, "info");
+            const primalacInfo = b.transferredToLabel || b.lastTransferNote || 'drugi porodični uređaj';
+            showNotification(`Karta (${b.id}) je prebačena na: ${primalacInfo}.`, "info");
           }
         });
 
@@ -1757,11 +1758,16 @@
       const noviUredjajId = window.uzmiIdOvogUredjaja();
       const noviBrojPrenosa = (rezervacija.transferCount || 0) + 1;
       const vremePrenosa = new Date().toISOString();
-      const tragPrenosa = `Prebačeno na uređaj ${noviUredjajId} (${googleEmail}) dana ${new Date().toLocaleString('sr-RS')}`;
+      const vremeTekst = new Date().toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
+      const oznakaPrimaoca = (state.googleUser && state.googleUser.email)
+        ? `${state.googleUser.displayName || state.googleUser.email} (${state.googleUser.email}) u ${vremeTekst}h`
+        : `${googleEmail} (uređaj ${noviUredjajId.slice(-4).toUpperCase()}) u ${vremeTekst}h`;
+      const tragPrenosa = `Prebačeno na: ${oznakaPrimaoca} (${new Date().toLocaleDateString('sr-RS')})`;
 
       rezervacija.activeDeviceId = noviUredjajId;
       rezervacija.transferCount = noviBrojPrenosa;
       rezervacija.lastTransferredAt = vremePrenosa;
+      rezervacija.transferredToLabel = oznakaPrimaoca;
       rezervacija.lastTransferNote = tragPrenosa;
       rezervacija.googleVerified = true;
 
@@ -1780,6 +1786,7 @@
             activeDeviceId: noviUredjajId,
             transferCount: noviBrojPrenosa,
             lastTransferredAt: vremePrenosa,
+            transferredToLabel: oznakaPrimaoca,
             lastTransferNote: tragPrenosa,
             googleVerified: true
           });
