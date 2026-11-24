@@ -1795,25 +1795,53 @@
       window.viewTicket(rezervacija.id);
     };
 
-    window.prikaziZahtevZaGooglePrenos = function(rezervacija) {
+window.prikaziProveruPrenosaKarte = function(rezervacija) {
       document.getElementById('modal-google-transfer-guard')?.remove();
-      const jeVecPrijavljenPogresnim = state.googleUser && state.googleUser.email;
+      const kljucGresaka = `transfer_fail_${rezervacija.id}`;
+      const lokalneGreske = parseInt(sessionStorage.getItem(kljucGresaka) || '0', 10);
+      const bazneGreske = Number(rezervacija.failedNameAttempts || 0);
+      let brojGresaka = Math.max(lokalneGreske, bazneGreske);
+
+      const previsePrenosa = (rezervacija.transferCount || 0) >= 3;
+      const trajnoZakljucanoNaGoogle = rezervacija.transferLockedToGoogle === true || brojGresaka >= 3 || previsePrenosa;
+
+      const normalizujTekst = (str) => (str || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ')
+        .replace(/č/g, 'c').replace(/ć/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z').replace(/đ/g, 'dj');
+
+      const ocekivanoIme = normalizujTekst(`${rezervacija.firstName || ''} ${rezervacija.lastName || ''}`);
 
       const overlay = document.createElement('div');
       overlay.id = 'modal-google-transfer-guard';
-      overlay.className = 'fixed inset-0 z-[130] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 fade-in';
+      overlay.className = 'fixed inset-0 z-[130] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 fade-in';
       overlay.innerHTML = `
-        <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border-2 border-indigo-200 text-center space-y-4">
-          <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-2xl">🔐</div>
-          <h3 class="text-lg sm:text-xl font-black text-slate-950 leading-snug">Karta je već preuzeta sa drugog uređaja</h3>
-          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-            ${jeVecPrijavljenPogresnim
-              ? `Trenutno ste prijavljeni nalogom <strong>${state.googleUser.email}</strong>, koji ne pripada nosiocu ove karte. Prijavite se putem Google naloga kojim je karta registrovana da biste je prebacili na ovaj uređaj.`
-              : `Radi zaštite vaših podataka, postojeća karta se ne može otvoriti bez potvrde identiteta. Prijavite se putem svog <strong>Google naloga</strong> da biste prebacili kartu na ovaj uređaj (sa prethodnog uređaja biće automatski uklonjena).`}
-          </p>
-          <div class="space-y-2 pt-1">
-            <button type="button" id="btn-guard-google-login" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black shadow-lg flex items-center justify-center gap-2.5 transition cursor-pointer">
-              <svg class="w-5 h-5 bg-white rounded-full p-0.5 shrink-0" viewBox="0 0 24 24">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 sm:p-7 shadow-2xl border-2 border-indigo-200 text-center space-y-5">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 border-2 border-indigo-200 flex items-center justify-center text-3xl">🔐</div>
+          <h3 class="text-2xl sm:text-[26px] font-black text-slate-950 leading-tight">Karta je već preuzeta sa drugog uređaja</h3>
+
+          <!-- 1. STEPEN: Provera imena i prezimena nosioca članske kartice -->
+          <div id="guard-step-1-name" class="${trajnoZakljucanoNaGoogle ? 'hidden' : 'space-y-4'}">
+            <p class="text-base sm:text-lg text-slate-700 leading-relaxed font-semibold">
+              Da biste prebacili postojeću kartu na ovaj uređaj (sa prethodnog uređaja biće uklonjena), upišite <strong class="text-slate-950 font-black">tačno ime i prezime nosioca članskog broja</strong> na koji je karta izdata:
+            </p>
+            <input id="guard-input-holder-name" type="text" autocomplete="off" placeholder="IME I PREZIME NOSIOCA" class="w-full bg-slate-50 border-2 border-indigo-300 rounded-2xl px-4 py-4 text-lg sm:text-xl font-black text-slate-950 text-center focus:outline-none focus:border-indigo-600" />
+            <p id="guard-name-attempts-msg" class="text-sm sm:text-base font-extrabold text-amber-700">Preostalo pokušaja: ${Math.max(1, 3 - brojGresaka)} od 3</p>
+            <button type="button" id="btn-guard-confirm-name" class="w-full py-4 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-base sm:text-lg font-black shadow-lg transition cursor-pointer">
+              PREBACI KARTU NA OVAJ UREĐAJ
+            </button>
+          </div>
+
+          <!-- 2. STEPEN: Trajno zaključano na originalni Google nalog -->
+          <div id="guard-step-2-google" class="${trajnoZakljucanoNaGoogle ? 'space-y-4' : 'hidden'}">
+            <p id="guard-google-reason-text" class="text-base sm:text-lg text-slate-700 leading-relaxed font-semibold">
+              ${previsePrenosa
+                ? 'Ova karta je već prebacivana više puta. Radi trajne zaštite, prijavite se isključivo putem originalnog <strong class="text-slate-950 font-black">Google naloga</strong> nosioca karte.'
+                : 'Pristup putem imena je trajno zaključan nakon 3 neuspela pokušaja. Prijavite se isključivo putem originalnog <strong class="text-slate-950 font-black">Google naloga</strong> kojim je karta registrovana.'}
+            </p>
+            <button type="button" id="btn-guard-google-login" class="w-full py-4 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base sm:text-lg font-black shadow-lg flex items-center justify-center gap-3 transition cursor-pointer">
+              <svg class="w-6 h-6 bg-white rounded-full p-0.5 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
@@ -1821,36 +1849,95 @@
               </svg>
               <span>Prijavi se putem Google naloga</span>
             </button>
-            <button type="button" onclick="document.getElementById('modal-google-transfer-guard').remove()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer">
-              Odustani
-            </button>
           </div>
+
+          <button type="button" onclick="document.getElementById('modal-google-transfer-guard').remove()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-sm sm:text-base font-black transition cursor-pointer">
+            Odustani
+          </button>
         </div>
       `;
       document.body.appendChild(overlay);
 
-      document.getElementById('btn-guard-google-login').onclick = async () => {
-        if (!firebaseActive) return;
-        try {
-          if (state.googleUser) {
-            await signOut(auth);
-          }
-          const result = await signInWithPopup(auth, googleProvider);
-          const noviEmail = (result.user?.email || '').toLowerCase().trim();
-          const emailRez = (rezervacija.email || '').toLowerCase().trim();
-          const emailClan = (state.activeMembership?.email || '').toLowerCase().trim();
+      const inputIme = document.getElementById('guard-input-holder-name');
+      if (inputIme && !trajnoZakljucanoNaGoogle) {
+        setTimeout(() => inputIme.focus(), 80);
+      }
 
-          if (noviEmail && ((emailRez && noviEmail === emailRez) || (emailClan && noviEmail === emailClan))) {
-            await window.izvrsiPrenosKarteNaOvajUredjaj(rezervacija, noviEmail);
+      const btnConfirmName = document.getElementById('btn-guard-confirm-name');
+      if (btnConfirmName) {
+        btnConfirmName.onclick = async () => {
+          const unetoNormalizovano = normalizujTekst(inputIme?.value || '');
+          if (!unetoNormalizovano) {
+            showNotification("Unesite ime i prezime nosioca kartice.", "warning");
+            return;
+          }
+
+          if (unetoNormalizovano === ocekivanoIme) {
+            sessionStorage.removeItem(kljucGresaka);
+            rezervacija.failedNameAttempts = 0;
+            const identifikatorPrenosa = rezervacija.email || rezervacija.memberCode || 'Potvrđeno imenom';
+            await window.izvrsiPrenosKarteNaOvajUredjaj(rezervacija, identifikatorPrenosa);
           } else {
-            showNotification("Prijavljeni Google nalog se ne poklapa sa nalogom nosioca ove karte.", "warning");
-          }
-        } catch (err) {
-          showNotification("Prijava putem Google naloga nije uspela.", "warning");
-        }
-      };
-    };
+            brojGresaka += 1;
+            sessionStorage.setItem(kljucGresaka, String(brojGresaka));
+            rezervacija.failedNameAttempts = brojGresaka;
+            const trebaZakljucati = brojGresaka >= 3;
+            if (trebaZakljucati) rezervacija.transferLockedToGoogle = true;
 
+            state.bookings = state.bookings.map(b => b.id === rezervacija.id ? { ...rezervacija } : b);
+            safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+
+            if (state.isOnline && firebaseActive) {
+              updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', rezervacija.id), {
+                failedNameAttempts: brojGresaka,
+                transferLockedToGoogle: trebaZakljucati,
+                lastFailedAttemptAt: new Date().toISOString()
+              }).catch(() => {});
+            }
+
+            if (inputIme) inputIme.value = '';
+
+            if (trebaZakljucati) {
+              document.getElementById('guard-step-1-name')?.classList.add('hidden');
+              document.getElementById('guard-step-2-google')?.classList.remove('hidden');
+              showNotification("Karta je trajno zaključana na originalni Google nalog nosioca.", "warning");
+            } else {
+              const preostalo = 3 - brojGresaka;
+              const msgEl = document.getElementById('guard-name-attempts-msg');
+              if (msgEl) msgEl.innerText = `Ime se ne poklapa. Preostalo pokušaja: ${preostalo} od 3`;
+              showNotification(`Ime i prezime se ne poklapaju (preostalo pokušaja: ${preostalo}).`, "warning");
+            }
+          }
+        };
+      }
+
+      const btnGoogleLogin = document.getElementById('btn-guard-google-login');
+      if (btnGoogleLogin) {
+        btnGoogleLogin.onclick = async () => {
+          if (!firebaseActive) return;
+          try {
+            if (state.googleUser) {
+              await signOut(auth);
+            }
+            const result = await signInWithPopup(auth, googleProvider);
+            const noviEmail = (result.user?.email || '').toLowerCase().trim();
+            const emailRez = (rezervacija.email || '').toLowerCase().trim();
+            const emailClan = (state.activeMembership?.email || '').toLowerCase().trim();
+
+            if (noviEmail && ((emailRez && noviEmail === emailRez) || (emailClan && noviEmail === emailClan))) {
+              sessionStorage.removeItem(kljucGresaka);
+              rezervacija.failedNameAttempts = 0;
+              rezervacija.transferLockedToGoogle = false;
+              await window.izvrsiPrenosKarteNaOvajUredjaj(rezervacija, noviEmail);
+            } else {
+              showNotification("Prijavljeni Google nalog se ne poklapa sa originalnim nalogom nosioca ove karte.", "warning");
+            }
+          } catch (err) {
+            showNotification("Prijava putem Google naloga nije uspela.", "warning");
+          }
+        };
+      }
+    };
     window.prebaciNaModalUclanjenja = function() {
       const memberStep = document.getElementById('booking-step-member-view');
       const regularFields = document.getElementById('regular-user-fields');
@@ -2793,7 +2880,7 @@
         );
 
         if (!vlasnikPotvrdjenGooglom) {
-          window.prikaziZahtevZaGooglePrenos(postojecaRezervacija);
+          window.prikaziProveruPrenosaKarte(postojecaRezervacija);
           return;
         }
 
