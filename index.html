@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="sr">
 <head>
   <meta charset="UTF-8">
@@ -4091,8 +4091,22 @@ if (btnSadrzaj) {
             }
           }
         } else if (tipAktivnosti === 'radionica') {
-          if (ticketCanvas) ticketCanvas.classList.remove('hidden');
-          if (nonQrWrapper) nonQrWrapper.classList.add('hidden');
+          if (!uplataOverena && !jeNevazecaKarta) {
+            if (ticketCanvas) ticketCanvas.classList.add('hidden');
+            if (nonQrWrapper) {
+              nonQrWrapper.className = "w-full bg-slate-100 border-2 border-slate-300 rounded-3xl p-5 text-center space-y-2 shadow-inner";
+              nonQrWrapper.classList.remove('hidden');
+            }
+            if (badgeTypeLabel) badgeTypeLabel.innerText = "Ulaznica za događaj";
+            if (badgeMainCode) {
+              badgeMainCode.className = "text-2xl sm:text-3xl font-black text-amber-800 tracking-wide";
+              badgeMainCode.innerText = "🔒 ČEKA UPLATU";
+            }
+            if (badgeSubtext) badgeSubtext.innerText = "QR kod ulaznice postaje vidljiv odmah nakon potvrde uplate";
+          } else {
+            if (ticketCanvas) ticketCanvas.classList.remove('hidden');
+            if (nonQrWrapper) nonQrWrapper.classList.add('hidden');
+          }
         } else {
           if (ticketCanvas) ticketCanvas.classList.add('hidden');
           if (nonQrWrapper) nonQrWrapper.classList.remove('hidden');
@@ -4168,7 +4182,9 @@ if (btnSadrzaj) {
       }
 
       setTimeout(() => {
-        if (ticketCanvas) new QRious({ element: ticketCanvas, value: booking.id, size: 200, background: '#ffffff', foreground: '#4f46e5', level: 'H' });
+        if (ticketCanvas && uplataOverena) {
+          new QRious({ element: ticketCanvas, value: booking.id, size: 200, background: '#ffffff', foreground: '#4f46e5', level: 'H' });
+        }
         if (totalPrice > 0 && booking.bankAccount && ipsCanvas) {
           const ipsString = generateNbsIpsString(booking);
           new QRious({ element: ipsCanvas, value: ipsString, size: 200, background: '#ffffff', foreground: '#0f172a', level: 'M' });
