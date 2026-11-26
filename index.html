@@ -392,6 +392,36 @@
       </div>
 
       <div class="overflow-y-auto no-scrollbar space-y-4 text-sm sm:text-base text-slate-700 pr-1">
+        <div class="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-2.5">
+          <p class="text-base sm:text-lg font-black text-indigo-950">Šta znače ikonice u uglu kartice i u meniju?</p>
+          <div class="grid grid-cols-1 gap-2 text-xs sm:text-sm">
+            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-900 border border-sky-200 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              </span>
+              <span><strong>Projektni programi:</strong> Školske i vrtićke aktivnosti za Projektne članove i članove kluba.</span>
+            </div>
+            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              </span>
+              <span><strong>Članski klub:</strong> Ekskluzivne sveske, staze i radionice (0 din za Pridružene i Redovne članove).</span>
+            </div>
+            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </span>
+              <span><strong>Partnerske ponude:</strong> Usluge i događaji naših partnera uz posebne pogodnosti za članove.</span>
+            </div>
+            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 border border-slate-200 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </span>
+              <span><strong>Otvoreno za sve:</strong> Javni programi i dešavanja dostupna svim posetiocima.</span>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-start gap-3.5 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
           <span class="text-2xl shrink-0 mt-0.5">📋</span>
           <div>
@@ -1691,8 +1721,9 @@
       const domen = ev?.accessTarget || 'svi';
       if (domen === 'registrovani_proba') {
         return {
-          ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+          ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
           naziv: 'Projektni program',
+          opis: 'Projektni program — za decu u projektima (Projektni članovi) i članove kluba',
           karticaKlasa: 'bg-sky-50 text-sky-900 border-sky-200',
           modalKlasa: 'bg-sky-950/90 text-sky-100 border-sky-400/50'
         };
@@ -1701,6 +1732,7 @@
         return {
           ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
           naziv: 'Članski klub',
+          opis: 'Članski klub — besplatno (0 din) za Pridružene i Redovne članove',
           karticaKlasa: 'bg-emerald-50 text-emerald-900 border-emerald-200',
           modalKlasa: 'bg-emerald-950/90 text-emerald-100 border-emerald-400/50'
         };
@@ -1709,6 +1741,7 @@
         return {
           ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
           naziv: 'Partnerska ponuda',
+          opis: 'Partnerska ponuda — redovna cena ili popust uz članski broj',
           karticaKlasa: 'bg-amber-50 text-amber-900 border-amber-200',
           modalKlasa: 'bg-amber-950/90 text-amber-100 border-amber-400/50'
         };
@@ -1716,6 +1749,7 @@
       return {
         ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
         naziv: 'Otvoreno za sve',
+        opis: 'Otvoreno za sve — javni program dostupan svim posetiocima',
         karticaKlasa: 'bg-slate-100 text-slate-700 border-slate-200',
         modalKlasa: 'bg-slate-900/85 text-white border-white/25'
       };
@@ -5499,33 +5533,22 @@ if (btnSadrzaj) {
       return { danDatum, odbrojavanje, jeIsteklo, jeAktivno, jeNajava, bojaKlase };
     }
 
-    window.otvorenMeniPojedinacnih = false;
+    state.activeDomain = 'all';
+    window.otvorenPodmeniOblasti = false;
 
-    window.klikSvePonude = function() {
-      state.activeCategory = 'all';
-      window.otvorenMeniPojedinacnih = false;
-      renderUI();
-    };
-
-    window.klikKucniSefSekcija = function() {
-      state.activeCategory = 'kucni_sef_sekcija';
-      window.otvorenMeniPojedinacnih = false;
-      renderUI();
-    };
-
-    window.klikDugmePojedinacne = function() {
-      window.otvorenMeniPojedinacnih = !window.otvorenMeniPojedinacnih;
-      if (window.otvorenMeniPojedinacnih) {
-        state.activeCategory = 'izbor_oblasti';
-      } else if (state.activeCategory === 'izbor_oblasti') {
+    window.izaberiGlavniDomenMenija = function(domen) {
+      if (state.activeDomain === domen && domen !== 'all' && domen !== 'kucni_sef_sekcija') {
+        window.otvorenPodmeniOblasti = !window.otvorenPodmeniOblasti;
+      } else {
+        state.activeDomain = domen;
         state.activeCategory = 'all';
+        window.otvorenPodmeniOblasti = (domen !== 'all' && domen !== 'kucni_sef_sekcija');
       }
       renderUI();
     };
 
-    window.izaberiPojedinacnuKategoriju = function(catId) {
-      state.activeCategory = catId;
-      window.otvorenMeniPojedinacnih = false;
+    window.izaberiPodmeniOblast = function(catId) {
+      state.activeCategory = (state.activeCategory === catId) ? 'all' : catId;
       renderUI();
     };
 
@@ -5620,6 +5643,17 @@ if (btnSadrzaj) {
         };
 
         const jeKucniSefDogadjaj = (e) => e.activityType === 'kucni_sef' || !!(e.vaultPassword && e.vaultPassword.trim() !== '');
+        const pripadaDomenu = (e, domenKey) => {
+          if (domenKey === 'all') return true;
+          if (domenKey === 'kucni_sef_sekcija') return jeKucniSefDogadjaj(e);
+          if (jeKucniSefDogadjaj(e)) return false;
+          const t = e.accessTarget || 'svi';
+          if (domenKey === 'registrovani_proba') return t === 'registrovani_proba';
+          if (domenKey === 'clanovi') return t === 'clanovi' || (!e.accessTarget && e.paymentType === 'clanarina');
+          if (domenKey === 'partnerski') return t === 'partnerski' || t === 'svi';
+          return true;
+        };
+
         const efektivnaKategorija = (e) => {
           if (e.activityType === 'online') return 'online_susret';
           if (e.activityType === 'digitalni_resurs') return 'digitalne_sveske';
@@ -5628,34 +5662,52 @@ if (btnSadrzaj) {
           return e.subCategory || 'edukacija';
         };
 
+        const dogadjajiUDomenu = state.events.filter(e => !e.isFrozen && pripadaDomenu(e, state.activeDomain));
         const aktivneKategorije = KATEGORIJE_AKTIVNOSTI.filter(cat =>
-          state.events.some(e => !e.isFrozen && !jeKucniSefDogadjaj(e) && efektivnaKategorija(e) === cat.id)
+          dogadjajiUDomenu.some(e => !jeKucniSefDogadjaj(e) && efektivnaKategorija(e) === cat.id)
         );
 
-        if (state.activeCategory !== 'all' && state.activeCategory !== 'kucni_sef_sekcija' && state.activeCategory !== 'izbor_oblasti' && !aktivneKategorije.some(c => c.id === state.activeCategory)) {
+        if (state.activeCategory !== 'all' && !aktivneKategorije.some(c => c.id === state.activeCategory)) {
           state.activeCategory = 'all';
         }
-        const isAllActive = state.activeCategory === 'all';
-        const isKucniSefActive = state.activeCategory === 'kucni_sef_sekcija';
-        const isSingleActive = (!isAllActive && !isKucniSefActive) || window.otvorenMeniPojedinacnih;
 
-        const ikonaDrugogDugmeta = (!isAllActive && !isKucniSefActive && VELIKE_IKONE_KATEGORIJA[state.activeCategory])
-          ? VELIKE_IKONE_KATEGORIJA[state.activeCategory]
-          : VELIKE_IKONE_KATEGORIJA.single_default;
-
-        const nazivDrugogDugmeta = !isAllActive
-          ? (KATEGORIJE_AKTIVNOSTI.find(k => k.id === state.activeCategory)?.name || 'Pojedinačne ponude')
-          : 'Pojedinačne ponude';
+        const GLAVNA_DUGMAD_MENIJA = [
+          {
+            id: 'all',
+            title: 'Sve ponude',
+            icon: VELIKE_IKONE_KATEGORIJA.all
+          },
+          {
+            id: 'registrovani_proba',
+            title: 'Projektni programi',
+            icon: `<svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`
+          },
+          {
+            id: 'clanovi',
+            title: 'Članski klub',
+            icon: `<svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`
+          },
+          {
+            id: 'partnerski',
+            title: 'Partnerske i javne ponude',
+            icon: `<svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+          },
+          {
+            id: 'kucni_sef_sekcija',
+            title: 'Kućni sef',
+            icon: `<svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/><circle cx="12" cy="11" r="1.5"/></svg>`
+          }
+        ];
 
         let podmeniHtml = '';
-        if (window.otvorenMeniPojedinacnih && aktivneKategorije.length > 0) {
+        if (window.otvorenPodmeniOblasti && aktivneKategorije.length > 0) {
           podmeniHtml = `
-            <div class="grid grid-cols-3 gap-2.5 pt-3 mt-3 border-t border-slate-700 slide-down">
+            <div class="grid grid-cols-3 gap-2 pt-2.5 mt-2.5 border-t border-slate-700 slide-down">
               ${aktivneKategorije.map(cat => {
                 const jeIzabrana = state.activeCategory === cat.id;
                 const ikona = VELIKE_IKONE_KATEGORIJA[cat.id] || VELIKE_IKONE_KATEGORIJA.edukacija;
                 return `
-                  <button type="button" onclick="window.izaberiPojedinacnuKategoriju('${cat.id}')" title="${cat.name}" class="h-16 rounded-2xl transition-all flex items-center justify-center border active:scale-95 cursor-pointer ${jeIzabrana ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg' : 'bg-slate-900/90 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
+                  <button type="button" onclick="window.izaberiPodmeniOblast('${cat.id}')" title="${cat.name}" class="h-14 rounded-2xl transition-all flex items-center justify-center border active:scale-95 cursor-pointer ${jeIzabrana ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg' : 'bg-slate-900/90 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
                     ${ikona}
                   </button>
                 `;
@@ -5665,35 +5717,46 @@ if (btnSadrzaj) {
         }
 
         filterContainer.innerHTML = `
-          <div class="grid grid-cols-3 gap-2.5 w-full">
-            <button type="button" onclick="window.klikSvePonude()" title="Sve ponude zajedno" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer ${isAllActive && !window.otvorenMeniPojedinacnih ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30' : 'bg-slate-700/80 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
-              ${VELIKE_IKONE_KATEGORIJA.all}
-            </button>
-
-            <button type="button" onclick="window.klikKucniSefSekcija()" title="Kućni sef" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer ${isKucniSefActive ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-lg shadow-amber-500/30' : 'bg-slate-700/80 text-amber-300 border-slate-600 hover:bg-slate-700'}">
-              <svg class="w-9 h-9 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/>
-                <circle cx="12" cy="11" r="1.5"/>
-              </svg>
-            </button>
-
-            <button type="button" onclick="window.klikDugmePojedinacne()" title="${nazivDrugogDugmeta}" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer relative ${isSingleActive ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30' : 'bg-slate-700/80 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
-              ${ikonaDrugogDugmeta}
-            </button>
+          <div class="grid grid-cols-5 gap-1.5 w-full">
+            ${GLAVNA_DUGMAD_MENIJA.map(btn => {
+              const jeAktivan = state.activeDomain === btn.id;
+              const jeSefDugme = btn.id === 'kucni_sef_sekcija';
+              const klasaAktivnog = jeSefDugme
+                ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-lg shadow-amber-500/30'
+                : 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30';
+              const klasaNeaktivnog = jeSefDugme
+                ? 'bg-slate-700/80 text-amber-300 border-slate-600 hover:bg-slate-700'
+                : 'bg-slate-700/80 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white';
+              return `
+                <button type="button" onclick="window.izaberiGlavniDomenMenija('${btn.id}')" title="${btn.title}" class="h-14 sm:h-16 w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer ${jeAktivan ? klasaAktivnog : klasaNeaktivnog}">
+                  ${btn.icon}
+                </button>
+              `;
+            }).join('')}
           </div>
           ${podmeniHtml}
         `;
       }
 
+      const jeKucniSefEvt = (e) => e.activityType === 'kucni_sef' || !!(e.vaultPassword && e.vaultPassword.trim() !== '');
       let filteredEvents = state.events.filter(e => !e.isFrozen);
-      if (state.activeCategory === 'izbor_oblasti' || window.otvorenMeniPojedinacnih) {
-        filteredEvents = [];
-      } else if (state.activeCategory === 'kucni_sef_sekcija') {
-        filteredEvents = filteredEvents.filter(e => e.activityType === 'kucni_sef' || !!(e.vaultPassword && e.vaultPassword.trim() !== ''));
-      } else if (state.activeCategory !== 'all') {
+
+      if (state.activeDomain === 'kucni_sef_sekcija') {
+        filteredEvents = filteredEvents.filter(e => jeKucniSefEvt(e));
+      } else if (state.activeDomain !== 'all') {
         filteredEvents = filteredEvents.filter(e => {
-          const jeSef = e.activityType === 'kucni_sef' || !!(e.vaultPassword && e.vaultPassword.trim() !== '');
-          if (jeSef) return false;
+          if (jeKucniSefEvt(e)) return false;
+          const t = e.accessTarget || 'svi';
+          if (state.activeDomain === 'registrovani_proba') return t === 'registrovani_proba';
+          if (state.activeDomain === 'clanovi') return t === 'clanovi' || (!e.accessTarget && e.paymentType === 'clanarina');
+          if (state.activeDomain === 'partnerski') return t === 'partnerski' || t === 'svi';
+          return true;
+        });
+      }
+
+      if (state.activeCategory !== 'all' && state.activeDomain !== 'kucni_sef_sekcija') {
+        filteredEvents = filteredEvents.filter(e => {
+          if (jeKucniSefEvt(e)) return false;
           let kat = e.subCategory || 'edukacija';
           if (e.activityType === 'online') kat = 'online_susret';
           else if (e.activityType === 'digitalni_resurs') kat = 'digitalne_sveske';
@@ -5896,16 +5959,16 @@ if (btnSadrzaj) {
 
                     ${gornjiBedzHtml}
 
-                    <div class="absolute top-3 right-3 z-20 flex items-start gap-2 select-none pointer-events-none">
+                    <div class="absolute top-3 right-3 z-20 flex items-start gap-2 select-none">
                       ${(jeAktivno && evt.hasPromo1plus1) ? `
-                        <div class="bg-white text-amber-950 border-2 border-amber-400 px-3 py-2 rounded-2xl shadow-xl flex flex-col items-center justify-center leading-none">
+                        <div class="bg-white text-amber-950 border-2 border-amber-400 px-3 py-2 rounded-2xl shadow-xl flex flex-col items-center justify-center leading-none pointer-events-none">
                           <span class="text-2xl">🎁</span>
                           <span class="text-xs font-black tracking-widest text-amber-950 mt-1">1+1</span>
                         </div>
                       ` : ''}
-                      <div title="${domenInfoKartica.naziv}" class="w-12 h-12 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 shadow-xl flex items-center justify-center">
+                      <button type="button" onclick="event.stopPropagation(); showNotification('${domenInfoKartica.opis}', 'info')" title="${domenInfoKartica.naziv}" class="w-12 h-12 rounded-2xl bg-white hover:bg-indigo-50 border-2 border-slate-200 text-slate-900 shadow-xl flex items-center justify-center transition active:scale-90 cursor-pointer">
                         <span class="scale-150 flex items-center justify-center">${domenInfoKartica.ikonica}</span>
-                      </div>
+                      </button>
                     </div>
                   </div>
 
