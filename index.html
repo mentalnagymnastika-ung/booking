@@ -1120,12 +1120,94 @@
     </div>
   </div>
 
-  <!-- Plutajuća dugmad za sve ekrane (Levo Kalendar, Desno @B Moje karte, providna pri skrolovanju) -->
-  <nav id="mobile-floating-nav" class="fixed bottom-5 inset-x-5 sm:inset-x-8 z-40 flex items-center justify-between pointer-events-none transition-opacity duration-300 opacity-100">
+  <!-- Modal: Centralno učlanjenje (Projektni član ili Članarina podmlatka) -->
+  <div id="modal-central-membership" class="hidden fixed inset-0 z-[118] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl border-2 border-indigo-200 space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar fade-in">
+      <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-indigo-600">Udruženje Mentalna Gimnastika</span>
+          <h3 class="text-xl font-black text-slate-950 leading-tight">Priključi se i koristi pogodnosti</h3>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-central-membership').classList.add('hidden')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-black text-base flex items-center justify-center cursor-pointer">✕</button>
+      </div>
+
+      <div id="central-membership-choice-cards" class="grid grid-cols-1 gap-3">
+        <button type="button" onclick="window.izaberiTipCentralnogUclanjenja('projektni')" id="btn-choice-projektni" class="text-left p-4 rounded-2xl border-2 border-sky-200 bg-sky-50/70 hover:border-sky-500 transition cursor-pointer space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-sm sm:text-base font-black text-sky-950">🔵 Priključi se projektu</span>
+            <span class="text-xs font-black bg-white text-sky-800 px-2.5 py-0.5 rounded-lg border border-sky-200">0 RSD</span>
+          </div>
+          <p class="text-xs text-slate-700 font-medium leading-relaxed">Za decu i učenike u školskim/vrtićkim projektima. Dobijate članski broj <strong>Projektnog člana</strong> za osnovne projektne aktivnosti.</p>
+        </button>
+
+        <button type="button" onclick="window.izaberiTipCentralnogUclanjenja('podmladak')" id="btn-choice-podmladak" class="text-left p-4 rounded-2xl border-2 border-emerald-400 bg-emerald-50/80 hover:border-emerald-600 transition cursor-pointer space-y-1 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-sm sm:text-base font-black text-emerald-950">🟢 Članarina podmlatka (30 dana)</span>
+            <span class="text-xs font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-lg">500 / 850 RSD</span>
+          </div>
+          <p class="text-xs text-slate-700 font-medium leading-relaxed">Pridruženi član: otključava sve klupske sveske, kućne sefove, staze i popuste kod partnera (<strong>500 RSD</strong> ako već imate projektni broj, <strong>850 RSD</strong> za nove).</p>
+        </button>
+      </div>
+
+      <form id="form-central-membership" class="hidden space-y-3.5 pt-2 border-t border-slate-100">
+        <div class="flex items-center justify-between bg-slate-100 px-3.5 py-2 rounded-xl">
+          <span id="central-form-mode-label" class="text-xs font-black text-indigo-950 uppercase">Članarina podmlatka</span>
+          <button type="button" onclick="window.vratiNaIzborCentralnogUclanjenja()" class="text-xs font-black text-indigo-600 underline cursor-pointer">← Promeni izbor</button>
+        </div>
+
+        <div id="central-existing-card-box" class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3 space-y-2">
+          <label class="block text-[11px] font-black text-amber-950 uppercase">Imate li već projektni članski broj? (Popust na 500 RSD)</label>
+          <div class="flex gap-2">
+            <input id="central-existing-code-input" type="text" placeholder="Unesite postojeći broj (opciono)" class="flex-1 bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-black uppercase focus:outline-none focus:border-indigo-500" />
+            <button type="button" onclick="window.proveriPostojeciBrojZaNadogradnju()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-black cursor-pointer">Proveri</button>
+          </div>
+          <p id="central-upgrade-status-msg" class="text-[11px] font-bold text-slate-600">Bez postojećeg broja: redovna članarina podmlatka (850 RSD).</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-black text-slate-800 mb-1">Ime deteta *</label>
+            <input id="central-first-name" type="text" required placeholder="Ime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-black text-slate-800 mb-1">Prezime deteta *</label>
+            <input id="central-last-name" type="text" required placeholder="Prezime" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-black text-slate-800 mb-1">Email roditelja (za dostavu kartice) *</label>
+          <input id="central-email" type="email" required placeholder="roditelj@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-black text-slate-800 mb-1">Telefon *</label>
+            <input id="central-phone" type="tel" required placeholder="06X XXX XXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-black text-slate-800 mb-1">Škola / Vrtić / Grad</label>
+            <input id="central-group" type="text" placeholder="Novi Sad / OŠ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold" />
+          </div>
+        </div>
+
+        <div class="bg-slate-100 border-2 border-slate-200 rounded-2xl p-3 text-center">
+          <span id="central-final-price-pill" class="text-base sm:text-lg font-black text-slate-950">Iznos članarine: 850 RSD</span>
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-base font-black uppercase shadow-lg cursor-pointer">
+          POTVRDI PRIJAVU
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Plutajuća dugmad za sve ekrane (Levo Kalendar, Sredina Učlanjenje, Desno @B Moje karte) -->
+  <nav id="mobile-floating-nav" class="fixed bottom-5 inset-x-4 sm:inset-x-8 z-40 flex items-center justify-between pointer-events-none transition-opacity duration-300 opacity-100">
     
     <!-- 1. LEVI ĆOŠAK: Veliko plutajuće dugme za Kalendar (Ponude) -->
-    <button id="nav-events-mobile" type="button" title="Kalendar ponuda" class="nav-btn-mobile pointer-events-auto w-20 h-20 rounded-full bg-indigo-600 text-white border-4 border-white/90 shadow-[0_10px_30px_rgba(79,70,229,0.6)] flex items-center justify-center transition-all active:scale-90 cursor-pointer">
-      <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+    <button id="nav-events-mobile" type="button" title="Kalendar ponuda" class="nav-btn-mobile pointer-events-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-600 text-white border-4 border-white/90 shadow-[0_10px_30px_rgba(79,70,229,0.6)] flex items-center justify-center transition-all active:scale-90 cursor-pointer">
+      <svg class="w-8 h-8 sm:w-9 sm:h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="16" y1="2" x2="16" y2="6"></line>
         <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -1133,8 +1215,14 @@
       </svg>
     </button>
 
-    <!-- 2. DESNI ĆOŠAK: Veliko plutajuće dugme @B za Moje karte -->
-    <button id="nav-my-tickets-mobile" type="button" title="Moje karte" class="nav-btn-mobile pointer-events-auto relative w-20 h-20 rounded-full bg-slate-700/95 backdrop-blur-md text-amber-400 border-4 border-slate-500 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90 cursor-pointer">
+    <!-- 2. SREDINA: Centralno lebdeće dugme UČLANJENJE -->
+    <button type="button" onclick="window.otvoriCentralnoUclanjenje()" title="Priključi se projektu ili uplati Članarinu podmlatka" class="pointer-events-auto px-5 py-3.5 sm:px-6 sm:py-4 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 border-4 border-white shadow-[0_10px_30px_rgba(245,158,11,0.55)] flex items-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider transition-all active:scale-95 cursor-pointer">
+      <span class="text-base sm:text-lg leading-none">👑</span>
+      <span>Učlanjenje</span>
+    </button>
+
+    <!-- 3. DESNI ĆOŠAK: Veliko plutajuće dugme @B za Moje karte -->
+    <button id="nav-my-tickets-mobile" type="button" title="Moje karte" class="nav-btn-mobile pointer-events-auto relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-700/95 backdrop-blur-md text-amber-400 border-4 border-slate-500 shadow-[0_10px_30px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all active:scale-90 cursor-pointer">
       <span id="nav-my-tickets-atb-icon" class="flex items-center justify-center"></span>
       <span id="badge-my-tickets-count" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-black shadow-md border-2 border-white">0</span>
     </button>
@@ -1617,7 +1705,8 @@
 
       const infoPriceBox = document.getElementById('modal-info-price-box');
       if (infoPriceBox) {
-        const jeSamoZaClanove = event.accessTarget === 'clanovi' || (!event.accessTarget && event.paymentType === 'clanarina');
+        const domen = event.accessTarget || 'svi';
+        const jeSamoZaClanove = domen === 'clanovi' || domen === 'registrovani_proba' || (!event.accessTarget && event.paymentType === 'clanarina');
         const sirovaRedovna = Number(event.price || 0);
         const sirovaClanska = (event.memberPrice !== null && event.memberPrice !== undefined && event.memberPrice !== '')
           ? Number(event.memberPrice)
@@ -1625,28 +1714,35 @@
         const jeModelClanarine = event.paymentType === 'clanarina' || event.activityType === 'teren' || !!event.trailCode;
 
         const clanskaCena = (jeModelClanarine && sirovaRedovna === 0 && sirovaClanska > 0) ? 0 : sirovaClanska;
+        const redovnaZaPrikaz = sirovaRedovna > 0 ? sirovaRedovna : ((jeModelClanarine && sirovaClanska > 0) ? sirovaClanska : 0);
 
         const dodatniTag = event.hasPromo1plus1
-          ? `<span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300 text-[10px] font-black">🎁 +1 Poklon gratis</span>`
+          ? `<span class="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300 text-[9px] font-black">🎁 1+1 Gratis</span>`
+          : '';
+
+        const redovnaLinijaHtml = redovnaZaPrikaz > 0
+          ? `<span class="block text-[11px] font-black text-slate-500 mt-1 border-t border-slate-100 pt-0.5 w-full">Redovno: <span class="text-slate-800">${redovnaZaPrikaz} din</span></span>`
           : '';
 
         infoPriceBox.innerHTML = `
-          <div class="h-full w-full bg-white border-2 border-slate-200 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden select-none">
+          <div class="h-full w-full bg-white border-2 border-slate-200 rounded-2xl p-2 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden select-none">
             <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-            <div class="flex items-center justify-center gap-1.5 text-slate-700 mb-0.5">
-              <svg class="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <div class="flex items-center justify-center gap-1 text-slate-700 mb-0.5">
+              <svg class="w-3.5 h-3.5 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
               </svg>
-              <span class="text-[11px] font-black uppercase tracking-wider text-slate-600">Za člana</span>
+              <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Za člana</span>
             </div>
-            <span class="block text-xl sm:text-2xl font-black text-emerald-700 leading-none">
+            <span class="block text-lg sm:text-xl font-black text-emerald-700 leading-none">
               ${clanskaCena === 0 ? '0 din' : `${clanskaCena} din`}
             </span>
+            ${redovnaLinijaHtml}
             ${dodatniTag}
           </div>
 
-          <button type="button" ${mozePrijava ? `onclick="window.otvoriUclanjenjeIzDetalja('${eventId}')"` : 'disabled'} class="h-full w-full ${mozePrijava ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 cursor-pointer shadow-md' : 'bg-slate-300 border-slate-300 cursor-not-allowed opacity-70'} border-2 border-indigo-500 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center transition select-none">
-            <span class="block text-sm sm:text-base font-black text-white uppercase tracking-wider">UČLANJENJE</span>
+          <button type="button" onclick="document.getElementById('modal-info').classList.add('hidden'); window.otvoriCentralnoUclanjenje();" class="h-full w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 cursor-pointer shadow-md border-2 border-indigo-500 rounded-2xl p-2 flex flex-col items-center justify-center text-center transition select-none">
+            <span class="block text-xs sm:text-sm font-black text-white uppercase tracking-wider">UČLANJENJE</span>
+            <span class="block text-[9px] font-bold text-indigo-200 mt-0.5">Projekat / Podmladak</span>
           </button>
         `;
       }
@@ -2295,7 +2391,17 @@ window.prikaziProveruPrenosaKarte = function(rezervacija) {
         const priceCalc = document.getElementById('modal-booking-price-calc');
         const pillEl = document.getElementById('modal-booking-enrollment-pill');
 
-        const jeOtvorenPartnerskiProgram = event.accessTarget === 'svi' && !jeModelClanarine;
+        const domenAkt = event.accessTarget || 'svi';
+        const jeOtvorenPartnerskiProgram = (domenAkt === 'partnerski' || domenAkt === 'svi') && !jeModelClanarine;
+        const bMode = event.projectBonusMode || (domenAkt === 'svi' ? 'all' : 'none');
+        const bLimit = Number(event.projectBonusLimit || 10);
+        const vecPodeljeno = state.bookings.filter(b =>
+          b.eventId === event.id &&
+          b.status !== 'otkazano' &&
+          b.memberRole && b.memberRole.includes('Projektni član')
+        ).length;
+        const imaSlobodnogBonusa = bMode === 'all' || (bMode === 'limited' && vecPodeljeno < bLimit);
+
         if (priceType) {
           priceType.innerText = jeOtvorenPartnerskiProgram ? 'PRIJAVA ZA PROGRAM' : 'UČLANJENJE';
         }
@@ -2343,13 +2449,14 @@ window.prikaziProveruPrenosaKarte = function(rezervacija) {
 
         if (pillEl) {
           if (jeOtvorenPartnerskiProgram) {
+            const bonusLinija = imaSlobodnogBonusa
+              ? `<span class="block text-sm sm:text-base font-extrabold text-indigo-700 mt-1.5 leading-snug">🎁 Bonus uz kartu: status Projektnog člana Udruženja Mentalne Gimnastike</span>`
+              : '';
             pillEl.innerHTML = `
               <span class="block text-base sm:text-lg font-black text-slate-900">
                 ${qty > 1 ? `Ulaznice (${qty} mesta): ${redovniTotal} din` : `Ulaznica (1 mesto): ${redovniTotal} din`}
               </span>
-<span class="block text-sm sm:text-base font-extrabold text-indigo-700 mt-1.5 leading-snug">
-                🎁 Bonus uz kartu: status Projektnog člana Udruženja Mentalne Gimnastike
-              </span>
+              ${bonusLinija}
             `;
           } else {
             pillEl.innerText = `Učlanjenje: ${redovniTotal} din`;
@@ -2402,11 +2509,15 @@ window.prikaziProveruPrenosaKarte = function(rezervacija) {
           });
 
           const usageCount = previousUsages.length;
-          const probneIgreUMesecu = previousUsages.filter(b => b.paymentType === 'besplatna_proba_saglasnost');
-          const iskoristioMesecnuProbu = probneIgreUMesecu.length > 0;
-          const jeOtvorenoZaProbu = event.accessTarget === 'registrovani_proba';
-          const jeSopstvenoOdeljenje = pronadjenClan.group && event.schoolGroupTag && pronadjenClan.group.toLowerCase().trim() === event.schoolGroupTag.toLowerCase().trim();
-          const imaPravoNaProbu = status30Dana.registrovanSaglasnost && jeOtvorenoZaProbu && !iskoristioMesecnuProbu && !jeSopstvenoOdeljenje;
+          const jeProjektniSamo = status30Dana.registrovanSaglasnost === true;
+          const jeProjektniDomen = event.accessTarget === 'registrovani_proba';
+          const jeClanskiDomen = event.accessTarget === 'clanovi';
+
+          if (jeClanskiDomen && jeProjektniSamo) {
+            showNotification("Vaša kartica je na nivou Projektnog člana. Aktivirajte Članarinu podmlatka (500 RSD) za pristup ovom sadržaju!", "warning");
+          }
+
+          const imaPravoNaProbu = jeProjektniSamo && jeProjektniDomen;
 
           state.activeMembership = {
             card: pronadjenClan.card,
@@ -2471,12 +2582,24 @@ window.prikaziProveruPrenosaKarte = function(rezervacija) {
       if (memberStepEl) memberStepEl.classList.remove('hidden');
       if (regularFields) regularFields.classList.add('hidden');
 
+      const plusAddMemberBtn = document.querySelector('#membership-input-row button[onclick*="prebaciNaModalUclanjenja"]');
+      const domenPrograma = event.accessTarget || 'svi';
+      const jeIskljucivoClanskiIliProjektni = domenPrograma === 'clanovi' || domenPrograma === 'registrovani_proba';
+
       if (toggleNonMemberBtn) {
-        const jeOtvorenZaSve = event.accessTarget === 'svi' && event.paymentType !== 'clanarina';
-        toggleNonMemberBtn.innerText = jeOtvorenZaSve ? 'Prijava bez kartice' : 'Učlani me';
-        toggleNonMemberBtn.onclick = () => {
-          window.prebaciNaModalUclanjenja();
-        };
+        if (jeIskljucivoClanskiIliProjektni) {
+          toggleNonMemberBtn.classList.add('hidden');
+        } else {
+          toggleNonMemberBtn.classList.remove('hidden');
+          const jeOtvorenIliPartnerski = domenPrograma === 'partnerski' || (domenPrograma === 'svi' && event.paymentType !== 'clanarina');
+          toggleNonMemberBtn.innerText = jeOtvorenIliPartnerski ? 'Prijava bez kartice' : 'Učlani me';
+          toggleNonMemberBtn.onclick = () => {
+            window.prebaciNaModalUclanjenja();
+          };
+        }
+      }
+      if (plusAddMemberBtn) {
+        plusAddMemberBtn.classList.toggle('hidden', jeIskljucivoClanskiIliProjektni);
       }
 
       window.azurirajPrikazCeneRezervacije();
@@ -3024,10 +3147,28 @@ window.prikaziProveruPrenosaKarte = function(rezervacija) {
         ? 'Članska evidencija' 
         : (linkRazred || 'Nije navedeno');
 
-      const jeOtvorenPartnerski = event.accessTarget === 'svi' && !jeModelClanarine;
+      const domenDogadjaja = event.accessTarget || 'svi';
+      const jePartnerskiIliOstalo = (domenDogadjaja === 'partnerski' || domenDogadjaja === 'svi') && !jeModelClanarine;
+      const bonusMode = event.projectBonusMode || (domenDogadjaja === 'svi' ? 'all' : 'none');
+      const bonusLimit = Number(event.projectBonusLimit || 10);
+
+      let dodelitiProjektniBonus = false;
+      if (!aktivniClan && jePartnerskiIliOstalo) {
+        if (bonusMode === 'all') {
+          dodelitiProjektniBonus = true;
+        } else if (bonusMode === 'limited') {
+          const vecDodeljenoZaOvajProgram = state.bookings.filter(b =>
+            b.eventId === event.id &&
+            b.status !== 'otkazano' &&
+            b.memberRole && b.memberRole.includes('Projektni član')
+          ).length;
+          dodelitiProjektniBonus = vecDodeljenoZaOvajProgram < bonusLimit;
+        }
+      }
+
       const clanskiStatus = aktivniClan
         ? 'Redovan član'
-        : (jeOtvorenPartnerski ? 'Projektni član (osnovni nivo)' : 'Korisnik usluge');
+        : (dodelitiProjektniBonus ? 'Projektni član (osnovni nivo)' : 'Korisnik usluge');
 
       if (aktivniClan) {
         finalFirstName = state.activeMembership.firstName;
@@ -5936,7 +6077,7 @@ if (btnSadrzaj) {
             htmlRows += `
               <div>
                 <div class="wallet-row-title text-emerald-300">
-                  <span>✨ Najnovije i neotvorene (${najnovijeNeotvorene.length})</span>
+                  <span> Najnovije i neotvorene (${najnovijeNeotvorene.length})</span>
                   <span class="text-[10px] text-slate-300 font-bold">Prevucite levo-desno ›</span>
                 </div>
                 <div class="wallet-slider">
@@ -6059,6 +6200,168 @@ if (btnSadrzaj) {
 
       modal.classList.remove('hidden');
     };
+
+    window.centralMembershipState = { mode: 'podmladak', existingCard: null, amount: 850 };
+
+    window.otvoriCentralnoUclanjenje = function() {
+      window.vratiNaIzborCentralnogUclanjenja();
+      document.getElementById('modal-central-membership')?.classList.remove('hidden');
+    };
+
+    window.vratiNaIzborCentralnogUclanjenja = function() {
+      document.getElementById('central-membership-choice-cards')?.classList.remove('hidden');
+      document.getElementById('form-central-membership')?.classList.add('hidden');
+    };
+
+    window.izaberiTipCentralnogUclanjenja = function(mode) {
+      window.centralMembershipState = { mode, existingCard: null, amount: mode === 'projektni' ? 0 : 850 };
+      document.getElementById('central-membership-choice-cards')?.classList.add('hidden');
+      document.getElementById('form-central-membership')?.classList.remove('hidden');
+
+      const labelEl = document.getElementById('central-form-mode-label');
+      const existingBox = document.getElementById('central-existing-card-box');
+      const pillEl = document.getElementById('central-final-price-pill');
+      const statusMsg = document.getElementById('central-upgrade-status-msg');
+      const codeInput = document.getElementById('central-existing-code-input');
+
+      if (codeInput) codeInput.value = '';
+      if (mode === 'projektni') {
+        if (labelEl) labelEl.innerText = 'Priključi se projektu (Projektni član)';
+        if (existingBox) existingBox.classList.add('hidden');
+        if (pillEl) pillEl.innerText = 'Projektni pristup: 0 RSD (Besplatno)';
+      } else {
+        if (labelEl) labelEl.innerText = 'Članarina podmlatka (30 dana)';
+        if (existingBox) existingBox.classList.remove('hidden');
+        if (statusMsg) statusMsg.innerText = 'Bez postojećeg broja: redovna članarina podmlatka (850 RSD).';
+        if (pillEl) pillEl.innerText = 'Iznos članarine: 850 RSD';
+      }
+    };
+
+    window.proveriPostojeciBrojZaNadogradnju = function() {
+      const code = (document.getElementById('central-existing-code-input')?.value || '').trim().toUpperCase();
+      const statusMsg = document.getElementById('central-upgrade-status-msg');
+      const pillEl = document.getElementById('central-final-price-pill');
+      if (!code) {
+        showNotification("Unesite postojeći članski broj iz projekta", "warning");
+        return;
+      }
+      const pronadjen = (state.membersList || []).find(m => String(m.card).toUpperCase() === code);
+      if (!pronadjen) {
+        window.centralMembershipState.existingCard = null;
+        window.centralMembershipState.amount = 850;
+        if (statusMsg) statusMsg.innerText = 'Broj nije pronađen — obračunava se puna članarina (850 RSD).';
+        if (pillEl) pillEl.innerText = 'Iznos članarine: 850 RSD';
+        showNotification("Članski broj nije pronađen u bazi", "warning");
+        return;
+      }
+
+      window.centralMembershipState.existingCard = pronadjen;
+      window.centralMembershipState.amount = 500;
+      document.getElementById('central-first-name').value = pronadjen.firstName || '';
+      document.getElementById('central-last-name').value = pronadjen.lastName || '';
+      if (pronadjen.email) document.getElementById('central-email').value = pronadjen.email;
+      if (pronadjen.phone) document.getElementById('central-phone').value = pronadjen.phone;
+      if (pronadjen.group) document.getElementById('central-group').value = pronadjen.group;
+
+      if (statusMsg) statusMsg.innerHTML = `<span class="text-emerald-700">✓ Prepoznat projektni broj (${pronadjen.card}) — ostvaren popust!</span>`;
+      if (pillEl) pillEl.innerText = 'Povlašćena članarina podmlatka: 500 RSD';
+      showNotification("Odobrena povlašćena cena nadogradnje od 500 RSD!", "success");
+    };
+
+    safeAddEventListener('form-central-membership', 'submit', async (e) => {
+      e.preventDefault();
+      const ime = document.getElementById('central-first-name')?.value.trim() || '';
+      const prezime = document.getElementById('central-last-name')?.value.trim() || '';
+      const email = document.getElementById('central-email')?.value.trim().toLowerCase() || '';
+      const telefon = document.getElementById('central-phone')?.value.trim() || '';
+      const grupa = document.getElementById('central-group')?.value.trim() || 'Udruženje Mentalna Gimnastika';
+
+      if (!ime || !prezime || !email.includes('@')) {
+        showNotification("Unesite ime, prezime i ispravnu email adresu.", "warning");
+        return;
+      }
+
+      const sad = new Date();
+      const dan = String(sad.getDate()).padStart(2, '0');
+      const mesec = String(sad.getMonth() + 1).padStart(2, '0');
+      const godina = sad.getFullYear();
+      const datumTekst = `${dan}.${mesec}.${godina}.`;
+      const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
+      const existing = window.centralMembershipState.existingCard;
+      const clanskiBroj = existing ? String(existing.card) : `${String(godina).slice(-2)}${mesec}${Math.floor(100 + Math.random() * 900)}`;
+
+      if (window.centralMembershipState.mode === 'projektni') {
+        const noviProjektniClan = {
+          card: clanskiBroj,
+          firstName: ime,
+          lastName: prezime,
+          email,
+          phone: telefon,
+          group: grupa,
+          membershipStatus: 'registrovan_saglasnost',
+          isPaidMember: false,
+          forceExpired: true,
+          joinedDate: datumTekst
+        };
+        state.membersList = [noviProjektniClan, ...(state.membersList || [])];
+        safeStorage.setItem('edubooker_members', JSON.stringify(state.membersList));
+        if (state.isOnline && firebaseActive) {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', clanskiBroj), noviProjektniClan).catch(() => {});
+        }
+        document.getElementById('modal-central-membership')?.classList.add('hidden');
+        showNotification(`Uspešno ste postali Projektni član! Vaš broj kartice je: ${clanskiBroj}`, "success");
+        return;
+      }
+
+      const iznos = window.centralMembershipState.amount || 850;
+      const poziv = `${dan}${mesec}${bookingId.replace(/\D/g, '')}`;
+      const novaUplatnica = {
+        id: bookingId,
+        eventId: 'UCLANJENJE_PODMLATKA',
+        eventTitle: existing ? 'Nadogradnja u Pridruženog člana (30 dana)' : 'Članarina podmlatka - pridruženi član',
+        eventLocation: grupa,
+        eventDate: sad.toISOString().split('T')[0],
+        selectedDate: sad.toISOString().split('T')[0],
+        eventTime: '',
+        ticketsCount: 1,
+        pricePerTicket: iznos,
+        totalPrice: iznos,
+        originalPrice: iznos,
+        paymentReference: poziv,
+        paymentType: 'clanarina',
+        memberCode: clanskiBroj,
+        bankAccount: '160-0000000000000-00',
+        recipientName: 'Udruženje Mentalna Gimnastika',
+        activityType: 'uclanjenje',
+        packageType: 1,
+        isPaid: false,
+        scannedCount: 0,
+        firstName: ime,
+        lastName: prezime,
+        email,
+        phone: telefon,
+        address: grupa,
+        school: grupa,
+        className: 'Članarina podmlatka',
+        memberRole: 'Pridruženi član',
+        timestamp: sad.toISOString(),
+        status: 'aktivna'
+      };
+
+      state.bookings = [novaUplatnica, ...state.bookings];
+      safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+      const myT = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+      myT.push(novaUplatnica.id);
+      safeStorage.setItem('my_user_tickets', JSON.stringify(myT));
+
+      if (state.isOnline && firebaseActive) {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', novaUplatnica.id), novaUplatnica).catch(() => {});
+      }
+
+      document.getElementById('modal-central-membership')?.classList.add('hidden');
+      renderUI();
+      openTicketModal(novaUplatnica);
+    });
 
     window.switchTab = function(tabId) {
       state.currentTab = tabId;
