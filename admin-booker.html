@@ -230,6 +230,13 @@
             <p class="text-xs text-slate-500 font-bold mt-0.5" id="admin-analytics-visits-badge">👀 Ukupno poseta aplikaciji: 0</p>
           </div>
           <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <select id="admin-domain-filter" onchange="window.promeniDomenFilter(this.value)" class="bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-3 text-xs font-black text-indigo-950 focus:outline-none focus:border-indigo-500">
+              <option value="all">Svi domeni (4)</option>
+              <option value="projektni">1. Projektni programi</option>
+              <option value="clanski">2. Članski klub (Podmladak)</option>
+              <option value="partnerski">3. Partnerske ponude</option>
+              <option value="ostalo">4. Ostale ponude</option>
+            </select>
             <select id="admin-partner-filter" onchange="window.promeniPartnerFilter(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-black text-slate-800 focus:outline-none focus:border-indigo-500">
               <option value="all">Svi partneri i oblasti</option>
             </select>
@@ -957,11 +964,12 @@
               <select id="event-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:bg-white"></select>
             </div>
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">Pristup programu *</label>
-              <select id="event-access-target" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
-                <option value="svi" selected>Svi (Otvoreno)</option>
-                <option value="registrovani_proba">Projektni članovi (Osnovni nivo + viši nivoi)</option>
-                <option value="clanovi">Samo Pridruženi i Redovni članovi</option>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">Domen i krug pristupa *</label>
+              <select id="event-access-target" onchange="window.prilagodiDomenPonude(this.value)" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                <option value="partnerski">3. Partnerska ponuda (Redovna / Članska cena)</option>
+                <option value="clanovi" selected>2. Članski klub (Samo Pridruženi i Redovni)</option>
+                <option value="registrovani_proba">1. Projektni program (Projektni + viši nivoi)</option>
+                <option value="svi">4. Ostale ponude (Otvoreno za sve)</option>
               </select>
             </div>
             <div>
@@ -970,9 +978,27 @@
             </div>
           </div>
 
+          <div id="box-partner-project-quota" class="hidden border-2 border-sky-200 bg-sky-50/70 rounded-2xl p-4 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <p class="text-xs font-black text-sky-950 uppercase tracking-wide">Veza sa UMG: Dodela statusa Projektnog člana kupcima</p>
+                <p class="text-[11px] text-sky-800 font-semibold">Odredite koliko kupaca ove ponude dobija probni projektni pristup platformi @Booker</p>
+              </div>
+              <select id="event-project-bonus-mode" onchange="window.promeniRezimProjektneKvote(this.value)" class="bg-white border border-sky-300 rounded-xl px-3 py-2 text-xs font-black text-sky-950">
+                <option value="none" selected>Niko (0 kartica)</option>
+                <option value="limited">Ograničen broj (po dogovoru)</option>
+                <option value="all">Svi kupci ove ponude</option>
+              </select>
+            </div>
+            <div id="wrapper-project-bonus-limit" class="hidden flex items-center justify-between bg-white p-3 rounded-xl border border-sky-200">
+              <label class="text-xs font-black text-slate-800">Maksimalan broj projektnih kartica po dogovoru sa partnerom:</label>
+              <input id="event-project-bonus-limit" type="number" min="1" max="500" value="10" class="w-24 bg-slate-50 border border-sky-300 rounded-lg px-3 py-1.5 text-sm font-black text-sky-900 text-center" />
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-base font-bold text-slate-700 mb-1.5">Redovna cena / Učlanjenje (RSD) *</label>
+              <label id="label-event-regular-price" class="block text-base font-bold text-slate-700 mb-1.5">Redovna cena (RSD) *</label>
               <input id="event-price" type="number" min="0" step="50" oninput="window.proveriPrikazPlacanja(this.value)" placeholder="0 = Besplatno" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-indigo-500 focus:bg-white" />
             </div>
             <div>
@@ -1407,6 +1433,7 @@
       isOnline: true,
       adminSoundEnabled: false,
       adminSubTab: 'scanner',
+      adminDomainFilter: 'all',
       adminPartnerFilter: 'all',
       calendarViewDate: new Date(),
       selectedScanDateKey: null,
@@ -1850,6 +1877,32 @@
     // Upravljanje događajima
     window.promeniFilterGrupeClanova = function(val) { state.activeMemberGroup = val; renderUI(); };
     window.promeniPartnerFilter = function(val) { state.adminPartnerFilter = val; renderUI(); };
+    window.promeniDomenFilter = function(val) { state.adminDomainFilter = val; renderUI(); };
+
+    window.prilagodiDomenPonude = function(domen) {
+      const boxQuota = document.getElementById('box-partner-project-quota');
+      const labelPrice = document.getElementById('label-event-regular-price');
+      const jePartnerskiIliOstalo = domen === 'partnerski' || domen === 'svi';
+      if (boxQuota) boxQuota.classList.toggle('hidden', !jePartnerskiIliOstalo);
+      if (labelPrice) {
+        labelPrice.innerText = domen === 'partnerski'
+          ? 'Redovna cena partnera (RSD) *'
+          : (domen === 'clanovi' ? 'Referentna / Redovna vrednost (RSD) *' : 'Redovna cena (RSD) *');
+      }
+    };
+
+    window.promeniRezimProjektneKvote = function(rezim) {
+      const wrapLimit = document.getElementById('wrapper-project-bonus-limit');
+      if (wrapLimit) {
+        if (rezim === 'limited') {
+          wrapLimit.classList.remove('hidden');
+          wrapLimit.classList.add('flex');
+        } else {
+          wrapLimit.classList.add('hidden');
+          wrapLimit.classList.remove('flex');
+        }
+      }
+    };
     window.toggleEventStatus = async function(id) {
       const ev = state.events.find(e => e.id === id);
       if (ev) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'events', id), { isActive: !ev.isActive });
@@ -1875,25 +1928,54 @@
       showNotification(noviStatus ? `„${ev.title}“ je postavljena kao Top ponuda dana!` : "Uklonjeno sa vrha ponude", "success");
     };
 
-    window.kopirajDirektanLinkPonude = function(id) {
+    window.kopirajDirektanLinkPonude = async function(id) {
       const ev = state.events.find(e => e.id === id);
       const baza = window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'index.html');
-      let ustanova = (ev && ev.schoolGroupTag) ? ev.schoolGroupTag.trim() : '';
-      if (!ustanova) {
-        const unos = prompt("Unesite naziv vrtića ili škole za ovaj link (ostavite prazno ako je opšti link):", "");
-        if (unos === null) return;
-        ustanova = unos.trim();
+      const podrazumevanaUstanova = (ev && ev.schoolGroupTag) ? ev.schoolGroupTag.trim() : '';
+      const unosVaspitacice = prompt("Unesite ime vaspitačice ili naziv grupe (npr. Vaspitačica Ivana - PU Cvrčak).\nOstavite prazno za opšti link:", podrazumevanaUstanova);
+      if (unosVaspitacice === null) return;
+      const ambIme = unosVaspitacice.trim();
+
+      let link = `${baza}?ponuda=${encodeURIComponent(id)}`;
+      if (ambIme) {
+        link += `&amb=${encodeURIComponent(ambIme)}`;
+        const kljucDoc = `${id}_${ambIme.toLowerCase().replace(/[^a-z0-9čćžšđ]+/g, '_')}`;
+        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ambassador_links', kljucDoc), {
+          eventId: id,
+          ambassador: ambIme,
+          createdAt: new Date().toISOString()
+        }, { merge: true }).catch(() => {});
       }
-      const link = ustanova
-        ? `${baza}?ponuda=${encodeURIComponent(id)}&ustanova=${encodeURIComponent(ustanova)}`
-        : `${baza}?ponuda=${encodeURIComponent(id)}`;
-      const poruka = ev ? `Pogledaj ponudu „${ev.title}“ na @Bookeru: ${link}` : link;
+
+      const poruka = ev ? `Pogledajte ponudu „${ev.title}“ na @Bookeru: ${link}` : link;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(poruka).then(() => {
-          showNotification(ustanova ? `Direktan link za „${ustanova}“ je kopiran!` : "Direktan link za ponudu je kopiran!", "success");
+          showNotification(ambIme ? `Link za „${ambIme}“ je kopiran i evidentiran!` : "Direktan link za ponudu je kopiran!", "success");
         }).catch(() => prompt("Kopirajte link ponude:", link));
       } else {
         prompt("Kopirajte link ponude:", link);
+      }
+    };
+
+    window.kopirajLinkZaUvidOrganizatora = function(id) {
+      const ev = state.events.find(e => e.id === id);
+      let hash = 0;
+      const str = `${id}_UMG_UVID_2026`;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      const kljuc = String(Math.abs(hash)).slice(0, 5).padStart(5, '0');
+      const baza = window.location.origin + window.location.pathname.replace(/[^\/]*$/, 'uvid.html');
+      const link = `${baza}?event=${encodeURIComponent(id)}&k=${kljuc}`;
+      const poruka = ev ? `Uvid u prodate ulaznice i status vaspitačica za „${ev.title}“:\n${link}` : link;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(poruka).then(() => {
+          showNotification("Link za uvid organizatora je kopiran!", "success");
+        }).catch(() => prompt("Kopirajte link za uvid:", link));
+      } else {
+        prompt("Kopirajte link za uvid:", link);
       }
     };
 
@@ -2503,6 +2585,8 @@
       document.getElementById('event-sub-category').innerHTML = KATEGORIJE_AKTIVNOSTI.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
       document.getElementById('event-category').innerHTML = state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       window.prilagodiFormuObuke('radionica');
+      window.prilagodiDomenPonude('clanovi');
+      window.promeniRezimProjektneKvote('none');
       document.getElementById('event-image-preview').innerHTML = "🖼️";
       window.resetujKalkulatorNaPodrazumevano();
       window.promeniVidljivostSekcijePredavaca(false);
@@ -2532,7 +2616,13 @@
       document.getElementById('event-member-price').value = ev.memberPrice ?? '';
       document.getElementById('event-allow-user-delete').checked = ev.allowUserDelete === true;
       document.getElementById('event-promo-1plus1').checked = ev.hasPromo1plus1 === true;
-      document.getElementById('event-access-target').value = ev.accessTarget || 'svi';
+      const domenVal = ev.accessTarget || 'svi';
+      document.getElementById('event-access-target').value = domenVal;
+      window.prilagodiDomenPonude(domenVal);
+      const bonusMode = ev.projectBonusMode || 'none';
+      document.getElementById('event-project-bonus-mode').value = bonusMode;
+      document.getElementById('event-project-bonus-limit').value = ev.projectBonusLimit || 10;
+      window.promeniRezimProjektneKvote(bonusMode);
       document.getElementById('event-location').value = ev.location || '';
       document.getElementById('event-start-date').value = ev.startDate || ev.date || '';
       document.getElementById('event-end-date').value = ev.endDate || '';
@@ -2618,6 +2708,8 @@
         subCategory: document.getElementById('event-sub-category').value,
         totalSeats: parseInt(document.getElementById('event-total-seats').value, 10) || 10,
         accessTarget: document.getElementById('event-access-target').value,
+        projectBonusMode: document.getElementById('event-project-bonus-mode')?.value || 'none',
+        projectBonusLimit: Math.max(1, parseInt(document.getElementById('event-project-bonus-limit')?.value || '10', 10)),
         price: parseFloat(document.getElementById('event-price').value) || 0,
         memberPrice: memberPriceVal !== '' ? parseFloat(memberPriceVal) : null,
         allowUserDelete: document.getElementById('event-allow-user-delete').checked === true,
@@ -2912,6 +3004,16 @@
       }
 
       let prikazDogadjaja = [...state.events];
+      if (state.adminDomainFilter !== 'all') {
+        prikazDogadjaja = prikazDogadjaja.filter(e => {
+          const t = e.accessTarget || 'svi';
+          if (state.adminDomainFilter === 'projektni') return t === 'registrovani_proba';
+          if (state.adminDomainFilter === 'clanski') return t === 'clanovi';
+          if (state.adminDomainFilter === 'partnerski') return t === 'partnerski';
+          if (state.adminDomainFilter === 'ostalo') return t === 'svi';
+          return true;
+        });
+      }
       if (state.adminPartnerFilter !== 'all') {
         prikazDogadjaja = prikazDogadjaja.filter(e => e.category === state.adminPartnerFilter);
       }
@@ -2924,17 +3026,26 @@
           const bookedCount = rez.reduce((s, b) => s + (b.ticketsCount || 1), 0);
           const remaining = Math.max(0, evt.totalSeats - bookedCount);
           const jeZamrznut = evt.isFrozen === true;
+          const domenMap = {
+            registrovani_proba: '<span class="text-[11px] font-black bg-sky-100 text-sky-900 px-2 py-0.5 rounded-lg border border-sky-200">🔵 Projektni program</span>',
+            clanovi: '<span class="text-[11px] font-black bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-lg border border-emerald-200">🟢 Članski klub</span>',
+            partnerski: '<span class="text-[11px] font-black bg-amber-100 text-amber-900 px-2 py-0.5 rounded-lg border border-amber-200">🤝 Partnerska ponuda</span>',
+            svi: '<span class="text-[11px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200">🌐 Ostala ponuda</span>'
+          };
+          const domenBedz = domenMap[evt.accessTarget || 'svi'] || domenMap.svi;
           return `
             <div class="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 ${jeZamrznut ? 'bg-slate-100 opacity-75' : 'bg-white'}">
               <div class="space-y-1.5">
                 <div class="flex flex-wrap items-center gap-2">
+                  ${domenBedz}
                   <span class="text-xs font-black bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-xl border border-indigo-100">${cat.name}</span>
                   <h4 class="text-lg font-black text-slate-900">${evt.title}</h4>
                 </div>
                 <p class="text-xs text-slate-500 font-bold">📍 ${evt.location} • 📅 ${evt.startDate || evt.date} • Slobodno: ${remaining}/${evt.totalSeats}</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <button onclick="window.kopirajDirektanLinkPonude('${evt.id}')" class="px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-black cursor-pointer" title="Kopiraj direktan link do ove kartice">📤 Direktan link</button>
+                <button onclick="window.kopirajDirektanLinkPonude('${evt.id}')" class="px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-black cursor-pointer" title="Napravi i kopiraj link za vaspitačicu ili grupu">📤 Link vaspitačici</button>
+                <button onclick="window.kopirajLinkZaUvidOrganizatora('${evt.id}')" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black cursor-pointer" title="Kopiraj javni link za uvid organizatora">📊 Uvid prodaje</button>
                 <button onclick="window.kopirajLinkZaUcitelja()" class="px-3 py-2 bg-slate-100 rounded-xl text-xs font-black cursor-pointer">🔗 Link za školu</button>
                 <button onclick="toggleEventStatus('${evt.id}')" class="px-3 py-2 rounded-xl text-xs font-black border cursor-pointer ${evt.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}">${evt.isActive ? '🔓 Otvoreno' : '🔒 Zatvoreno'}</button>
                 <button onclick="window.togglePinEvent('${evt.id}')" class="px-3 py-2 rounded-xl text-xs font-black border cursor-pointer ${evt.isPinned ? 'bg-amber-500 text-white' : 'bg-white text-slate-700'}">${evt.isPinned ? '📌 Vrh' : '📌 Fiksiraj'}</button>
