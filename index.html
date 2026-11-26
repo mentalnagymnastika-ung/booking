@@ -526,14 +526,14 @@
           </div>
        </div>
 
-       <!-- Zaglavlje poput naslovne slike sa krunicom i crvenim X -->
+       <!-- Zaglavlje poput naslovne slike sa oznakom domena i crvenim X -->
        <div class="relative h-48 sm:h-56 w-full bg-slate-900 overflow-hidden shrink-0">
           <div id="modal-info-img-blur" class="absolute inset-0 bg-cover bg-center blur-xl opacity-50 scale-110"></div>
           <div id="modal-info-img" class="relative z-10 w-full h-full bg-contain bg-no-repeat bg-center"></div>
           
-          <div class="absolute top-3.5 left-3.5 z-20 bg-slate-900/80 backdrop-blur-md text-amber-300 border border-amber-400/50 px-3 py-1.5 rounded-2xl shadow-lg flex items-center gap-1.5 select-none pointer-events-none">
-            <span class="text-base leading-none">👑</span>
-            <span class="text-[11px] font-black tracking-wider uppercase text-white">Klub članova</span>
+          <div id="modal-info-domain-badge" class="absolute top-3.5 left-3.5 z-20 bg-slate-900/85 backdrop-blur-md text-white border border-white/25 px-3 py-1.5 rounded-2xl shadow-lg flex items-center gap-1.5 select-none pointer-events-none">
+            <span id="modal-info-domain-icon" class="text-sm leading-none">🟢</span>
+            <span id="modal-info-domain-text" class="text-[11px] font-black tracking-wider uppercase text-white">Članski klub</span>
           </div>
 
           <button type="button" onclick="document.getElementById('modal-info').classList.add('hidden')" class="absolute top-3.5 right-3.5 w-10 h-10 rounded-2xl bg-white/95 hover:bg-rose-50 text-rose-600 border-2 border-rose-200 flex items-center justify-center text-xl font-black shadow-lg transition active:scale-95 z-20 cursor-pointer" title="Zatvori">
@@ -1687,12 +1687,54 @@
       }, 60);
     };
 
+    window.uzmiOznakuDomenaPonude = function(ev) {
+      const domen = ev?.accessTarget || 'svi';
+      if (domen === 'registrovani_proba') {
+        return {
+          ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+          naziv: 'Projektni program',
+          karticaKlasa: 'bg-sky-50 text-sky-900 border-sky-200',
+          modalKlasa: 'bg-sky-950/90 text-sky-100 border-sky-400/50'
+        };
+      }
+      if (domen === 'clanovi' || (!ev?.accessTarget && ev?.paymentType === 'clanarina')) {
+        return {
+          ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+          naziv: 'Članski klub',
+          karticaKlasa: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+          modalKlasa: 'bg-emerald-950/90 text-emerald-100 border-emerald-400/50'
+        };
+      }
+      if (domen === 'partnerski') {
+        return {
+          ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+          naziv: 'Partnerska ponuda',
+          karticaKlasa: 'bg-amber-50 text-amber-900 border-amber-200',
+          modalKlasa: 'bg-amber-950/90 text-amber-100 border-amber-400/50'
+        };
+      }
+      return {
+        ikonica: `<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+        naziv: 'Otvoreno za sve',
+        karticaKlasa: 'bg-slate-100 text-slate-700 border-slate-200',
+        modalKlasa: 'bg-slate-900/85 text-white border-white/25'
+      };
+    };
+
     window.openInfoModal = function(eventId) {
       const event = state.events.find(e => e.id === eventId);
       if (!event) return;
 
       window.zabeleziInterakciju(eventId);
       window.zatvoriCeoTekstOpisa();
+
+      const infoDomen = window.uzmiOznakuDomenaPonude(event);
+      const modalBadge = document.getElementById('modal-info-domain-badge');
+      const modalIcon = document.getElementById('modal-info-domain-icon');
+      const modalText = document.getElementById('modal-info-domain-text');
+      if (modalBadge) modalBadge.className = `absolute top-3.5 left-3.5 z-20 backdrop-blur-md border px-3 py-1.5 rounded-2xl shadow-lg flex items-center gap-1.5 select-none pointer-events-none ${infoDomen.modalKlasa}`;
+      if (modalIcon) modalIcon.innerHTML = infoDomen.ikonica;
+      if (modalText) modalText.innerText = infoDomen.naziv;
       
       document.getElementById('modal-info-title').innerText = event.title;
       document.getElementById('modal-info-desc').innerText = event.description;
@@ -5628,12 +5670,11 @@ if (btnSadrzaj) {
               ${VELIKE_IKONE_KATEGORIJA.all}
             </button>
 
-            <button type="button" onclick="window.klikKucniSefSekcija()" title="KUĆNI SEF (Kuća / Ključ)" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex flex-col items-center justify-center border-2 active:scale-95 cursor-pointer px-1 ${isKucniSefActive ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-lg shadow-amber-500/30' : 'bg-slate-700/80 text-amber-300 border-slate-600 hover:bg-slate-700'}">
-              <svg class="w-7 h-7 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" onclick="window.klikKucniSefSekcija()" title="Kućni sef" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer ${isKucniSefActive ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-lg shadow-amber-500/30' : 'bg-slate-700/80 text-amber-300 border-slate-600 hover:bg-slate-700'}">
+              <svg class="w-9 h-9 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/>
                 <circle cx="12" cy="11" r="1.5"/>
               </svg>
-              <span class="text-[10px] font-black uppercase tracking-tight leading-none mt-1">KUĆNI SEF</span>
             </button>
 
             <button type="button" onclick="window.klikDugmePojedinacne()" title="${nazivDrugogDugmeta}" class="h-16 sm:h-[70px] w-full rounded-2xl transition-all flex items-center justify-center border-2 active:scale-95 cursor-pointer relative ${isSingleActive ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30' : 'bg-slate-700/80 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}">
@@ -5804,6 +5845,7 @@ if (btnSadrzaj) {
                 </div>
               `);
 
+          const domenInfoKartica = window.uzmiOznakuDomenaPonude(evt);
           const unutrasnjostKarticeHtml = `
             <div class="relative z-20 bg-white border-t border-slate-200 px-4 pt-3 pb-3.5 flex-1 flex flex-col justify-between overflow-hidden">
               <div>
@@ -5854,12 +5896,17 @@ if (btnSadrzaj) {
 
                     ${gornjiBedzHtml}
 
-                    ${(jeAktivno && evt.hasPromo1plus1) ? `
-                      <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-md text-amber-950 border-2 border-amber-400 px-3.5 py-2.5 rounded-2xl shadow-xl flex flex-col items-center justify-center leading-none select-none pointer-events-none">
-                        <span class="text-3xl">🎁</span>
-                        <span class="text-sm font-black tracking-widest text-amber-950 mt-1">1+1</span>
+                    <div class="absolute top-3 right-3 z-20 flex items-start gap-2 select-none pointer-events-none">
+                      ${(jeAktivno && evt.hasPromo1plus1) ? `
+                        <div class="bg-white text-amber-950 border-2 border-amber-400 px-3 py-2 rounded-2xl shadow-xl flex flex-col items-center justify-center leading-none">
+                          <span class="text-2xl">🎁</span>
+                          <span class="text-xs font-black tracking-widest text-amber-950 mt-1">1+1</span>
+                        </div>
+                      ` : ''}
+                      <div title="${domenInfoKartica.naziv}" class="w-12 h-12 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 shadow-xl flex items-center justify-center">
+                        <span class="scale-150 flex items-center justify-center">${domenInfoKartica.ikonica}</span>
                       </div>
-                    ` : ''}
+                    </div>
                   </div>
 
                   ${unutrasnjostKarticeHtml}
