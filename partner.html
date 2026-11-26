@@ -290,11 +290,11 @@
                 <input id="pmember-email-input" type="email" placeholder="clan@primer.rs" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Trajanje članarine</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nivo i trajanje pristupa</label>
                 <select id="pmember-duration-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
-                  <option value="30" selected>30 dana (Mesečna članarina)</option>
-                  <option value="skolska">Do kraja školske godine (31.08.)</option>
-                  <option value="365">Godinu dana (365 dana)</option>
+                  <option value="projektni" selected>Projektni član (Osnovni pristup — 0 RSD)</option>
+                  <option value="30">Pridruženi član (30 dana — puna mreža)</option>
+                  <option value="skolska">Redovan član (Do 31.08.)</option>
                 </select>
               </div>
               <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition cursor-pointer">
@@ -936,6 +936,9 @@
         ...postojeci,
         id: eventId,
         category: state.activePartner.id,
+        accessTarget: postojeci.accessTarget || 'partnerski',
+        projectBonusMode: postojeci.projectBonusMode || 'none',
+        projectBonusLimit: postojeci.projectBonusLimit || 10,
         activityType: document.getElementById('pevent-activity-type').value,
         subCategory: document.getElementById('pevent-sub-category').value,
         ordinalNumber: String(document.getElementById('pevent-ordinal').value || 1).padStart(2, '0'),
@@ -1017,12 +1020,46 @@
       showNotification("Ponuda je obrisana", "success");
     };
 
-    // Potvrda uplate isključivo za prijave partnera
+    // Potvrda uplate isključivo za prijave partnera + dodela Projektnog člana ako je odobreno kvotom
     window.potvrdiUplatuPartnera = async function(bookingId) {
       const b = state.bookings.find(x => x.id === bookingId);
       if (!b) return;
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), { isPaid: !b.isPaid });
-      showNotification(`Status uplate za ${b.firstName} je ažuriran`, "success");
+      const novoPlaceno = !b.isPaid;
+      let dodeljenBroj = b.memberCode || '';
+
+      if (novoPlaceno && !dodeljenBroj && b.memberRole && b.memberRole.includes('Projektni član')) {
+        const sad = new Date();
+        const god = String(sad.getFullYear()).slice(-2);
+        const mes = String(sad.getMonth() + 1).padStart(2, '0');
+        const datumFmt = `${String(sad.getDate()).padStart(2, '0')}.${mes}.${sad.getFullYear()}.`;
+        dodeljenBroj = `${god}${mes}${Math.floor(100 + Math.random() * 900)}`;
+
+        const noviProjektniClan = {
+          card: dodeljenBroj,
+          firstName: b.firstName || 'Polaznik',
+          lastName: b.lastName || '',
+          phone: (b.phone && b.phone !== 'Nije uneto' && b.phone !== 'Nije traženo') ? b.phone : '',
+          email: (b.email && b.email !== 'Nije uneto') ? b.email : '',
+          group: state.activePartner?.name || 'Partnerska ponuda',
+          partnerId: state.activePartner?.id || '',
+          membershipStatus: 'registrovan_saglasnost',
+          isPaidMember: false,
+          forceExpired: true,
+          joinedDate: datumFmt
+        };
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', dodeljenBroj), noviProjektniClan).catch(() => {});
+      }
+
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', bookingId), {
+        isPaid: novoPlaceno,
+        memberCode: dodeljenBroj
+      });
+      showNotification(
+        dodeljenBroj && novoPlaceno
+          ? `Uplata potvrđena! Kupac je dobio karticu Projektnog člana (${dodeljenBroj}).`
+          : `Status uplate za ${b.firstName} je ažuriran`,
+        "success"
+      );
     };
 
     // Trajno brisanje rezervacije iz baze (isključivo za ponude ovog partnera)
@@ -1058,8 +1095,11 @@
       const sad = new Date();
       const fmtD = (d) => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}.`;
       const trajanje = document.getElementById('pmember-duration-select').value;
+      const jeProjektni = trajanje === 'projektni';
       let vaziDo = '';
-      if (trajanje === 'skolska') {
+      if (jeProjektni) {
+        vaziDo = '';
+      } else if (trajanje === 'skolska') {
         const god = sad.getMonth() >= 8 ? sad.getFullYear() + 1 : sad.getFullYear();
         vaziDo = `31.08.${god}.`;
       } else {
@@ -1075,10 +1115,12 @@
         email,
         group: state.activePartner.name,
         partnerId: state.activePartner.id,
+        membershipStatus: jeProjektni ? 'registrovan_saglasnost' : 'aktivan_clan',
+        isPaidMember: !jeProjektni,
         joinedDate: fmtD(sad),
-        lastPaymentDate: sad.toISOString(),
+        lastPaymentDate: jeProjektni ? '' : sad.toISOString(),
         validUntil: vaziDo,
-        forceExpired: false
+        forceExpired: jeProjektni
       };
 
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', card), noviClan);
@@ -1271,10 +1313,11 @@
                     <h3 class="text-lg font-black text-slate-950 leading-tight">${ev.title}</h3>
                     <p class="text-xs text-slate-500 font-bold">📅 ${ev.startDate || ev.date} ${ev.time ? `• 🕒 ${ev.time}` : ''}</p>
                     <p class="text-xs text-slate-500 font-semibold truncate">📍 ${ev.location}</p>
-                    <div class="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs font-black">
-                      <span class="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700">Mesta: ${ev.totalSeats}</span>
-                      <span class="bg-emerald-50 px-2.5 py-1 rounded-lg text-emerald-700">Slobodno: ${slobodno}</span>
-                      <span class="bg-indigo-50 px-2.5 py-1 rounded-lg text-indigo-700">Cena: ${ev.price || 0} din</span>
+                    <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs font-black">
+                      <span class="bg-slate-100 px-2 py-1 rounded-lg text-slate-700">Mesta: ${ev.totalSeats}</span>
+                      <span class="bg-emerald-50 px-2 py-1 rounded-lg text-emerald-700">Slobodno: ${slobodno}</span>
+                      <span class="bg-indigo-50 px-2 py-1 rounded-lg text-indigo-700">Redovno: ${ev.price || 0} din</span>
+                      ${ev.memberPrice !== null && ev.memberPrice !== undefined ? `<span class="bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg text-amber-900">Za članove: ${ev.memberPrice} din</span>` : ''}
                     </div>
                   </div>
                 </div>
@@ -1402,7 +1445,9 @@
               <td class="py-3 px-3 font-mono font-black text-indigo-700 text-xs">${m.card}</td>
               <td class="py-3 px-3 font-bold text-slate-900 text-xs sm:text-sm">${m.firstName} ${m.lastName}</td>
               <td class="py-3 px-3 text-xs text-slate-600">${m.phone || ''} ${m.email ? `<br><span class="text-slate-400">${m.email}</span>` : ''}</td>
-              <td class="py-3 px-3 text-center text-xs font-black text-emerald-700">${m.validUntil || 'Aktivna'}</td>
+              <td class="py-3 px-3 text-center text-xs font-black ${m.membershipStatus === 'registrovan_saglasnost' && !m.isPaidMember ? 'text-sky-700' : 'text-emerald-700'}">
+                ${m.membershipStatus === 'registrovan_saglasnost' && !m.isPaidMember ? '🔵 Projektni član' : `🟢 ${m.validUntil || 'Aktivna'}`}
+              </td>
             </tr>
           `).join('');
         }
