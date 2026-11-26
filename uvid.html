@@ -223,12 +223,18 @@
             const placeno = b.isPaid === true || b.paymentType === 'clanarina_pokriveno' || Number(b.totalPrice || 0) === 0;
             const br = Number(b.ticketsCount || 1);
             const grupaPrikaz = b.ambassador || ((b.school && b.school !== 'Bez ustanove' && b.school !== 'Član udruženja') ? b.school : '');
+            const jeClan = b.paymentType === 'clanarina_pokriveno' || (b.memberCode && b.memberCode.trim() !== '');
+            const jeProjektniBonus = !jeClan && b.memberRole && b.memberRole.includes('Projektni član');
+            const tipKarteBedz = jeClan
+              ? `<span class="ml-1 text-[10px] font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">Član</span>`
+              : (jeProjektniBonus ? `<span class="ml-1 text-[10px] font-black text-sky-800 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded">+ Projektni član</span>` : '');
             return `
               <div class="py-3 flex items-center justify-between gap-3">
                 <div class="min-w-0">
                   <p class="text-sm font-black text-slate-900 truncate">
                     ${b.firstName} ${b.lastName || ''}
                     <span class="ml-1.5 text-xs font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">${br} ${br === 1 ? 'mesto' : 'mesta'}</span>
+                    ${tipKarteBedz}
                   </p>
                   <p class="text-xs font-bold text-slate-500 mt-0.5 truncate">
                     ${grupaPrikaz ? `${grupaPrikaz} • ` : ''}<span class="font-mono">${b.id}</span>
