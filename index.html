@@ -1215,9 +1215,14 @@
       </svg>
     </button>
 
-    <!-- 2. SREDINA: Centralno lebdeće dugme UČLANJENJE -->
-    <button type="button" onclick="window.otvoriCentralnoUclanjenje()" title="Priključi se projektu ili uplati Članarinu podmlatka" class="pointer-events-auto px-5 py-3.5 sm:px-6 sm:py-4 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 border-4 border-white shadow-[0_10px_30px_rgba(245,158,11,0.55)] flex items-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider transition-all active:scale-95 cursor-pointer">
-      <span class="text-base sm:text-lg leading-none">👑</span>
+    <!-- 2. SREDINA: Centralno lebdeće dugme UČLANJENJE (usklađeno sa navigacijom, bez krune) -->
+    <button type="button" onclick="window.otvoriCentralnoUclanjenje()" title="Priključi se projektu ili uplati Članarinu podmlatka" class="pointer-events-auto px-6 py-4 sm:px-7 sm:py-5 rounded-full bg-slate-800/95 hover:bg-indigo-600 backdrop-blur-md text-white border-4 border-indigo-400/80 shadow-[0_10px_30px_rgba(0,0,0,0.65)] flex items-center gap-2.5 font-black text-sm sm:text-base uppercase tracking-wider transition-all scale-105 active:scale-95 cursor-pointer">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="8.5" cy="7" r="4"></circle>
+        <line x1="20" y1="8" x2="20" y2="14"></line>
+        <line x1="23" y1="11" x2="17" y2="11"></line>
+      </svg>
       <span>Učlanjenje</span>
     </button>
 
@@ -6077,7 +6082,7 @@ if (btnSadrzaj) {
             htmlRows += `
               <div>
                 <div class="wallet-row-title text-emerald-300">
-                  <span> Najnovije i neotvorene (${najnovijeNeotvorene.length})</span>
+                  <span>✨ Najnovije i neotvorene (${najnovijeNeotvorene.length})</span>
                   <span class="text-[10px] text-slate-300 font-bold">Prevucite levo-desno ›</span>
                 </div>
                 <div class="wallet-slider">
