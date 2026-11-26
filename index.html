@@ -3424,7 +3424,10 @@ window.prikaziProveruPrenosaKarte = function(rezervacija) {
       const opisBrojaKarata = booking.ticketsCount > 1 ? '2 mesta' : '1 mesto';
 
       let sifraPlacanja = '289';
-      let purpose = `Kotizacija ${opisBrojaKarata} ${booking.id}`;
+      const jePartnerskaUplata = booking.memberRole && booking.memberRole.includes('Projektni član');
+      let purpose = jePartnerskaUplata
+        ? `Ulaznica / Usluga ${opisBrojaKarata} ${booking.id}`
+        : `Kotizacija ${opisBrojaKarata} ${booking.id}`;
 
       if (booking.paymentType === 'donacija') {
         sifraPlacanja = '287';
@@ -6313,8 +6316,39 @@ if (btnSadrzaj) {
         if (state.isOnline && firebaseActive) {
           await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', clanskiBroj), noviProjektniClan).catch(() => {});
         }
+        const projektniVaucerKarta = {
+          id: bookingId,
+          eventId: 'PROJEKTNI_CLAN_UMG',
+          eventTitle: 'Članska kartica (Projektni član)',
+          eventLocation: grupa,
+          eventDate: sad.toISOString().split('T')[0],
+          selectedDate: sad.toISOString().split('T')[0],
+          eventTime: '',
+          ticketsCount: 1,
+          pricePerTicket: 0,
+          totalPrice: 0,
+          paymentType: 'clanarina_pokriveno',
+          memberCode: clanskiBroj,
+          activityType: 'uclanjenje',
+          isPaid: true,
+          firstName: ime,
+          lastName: prezime,
+          email,
+          phone: telefon,
+          school: grupa,
+          memberRole: 'Projektni član',
+          timestamp: sad.toISOString(),
+          status: 'aktivna'
+        };
+        state.bookings = [projektniVaucerKarta, ...state.bookings];
+        safeStorage.setItem('edubooker_bookings', JSON.stringify(state.bookings));
+        const myTProj = JSON.parse(safeStorage.getItem('my_user_tickets') || '[]');
+        myTProj.push(projektniVaucerKarta.id);
+        safeStorage.setItem('my_user_tickets', JSON.stringify(myTProj));
+
         document.getElementById('modal-central-membership')?.classList.add('hidden');
-        showNotification(`Uspešno ste postali Projektni član! Vaš broj kartice je: ${clanskiBroj}`, "success");
+        renderUI();
+        openTicketModal(projektniVaucerKarta);
         return;
       }
 
